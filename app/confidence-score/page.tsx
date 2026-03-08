@@ -1,15 +1,112 @@
 "use client";
 
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { Download, RotateCcw, Trophy, Target, MessageSquare, TrendingUp, Sparkles } from "lucide-react";
+import {
+  Download,
+  RotateCcw,
+  Trophy,
+  Target,
+  MessageSquare,
+  TrendingUp,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+} from "lucide-react";
+import { useSalaryData } from "../providers/SalaryDataProvider";
+import {
+  analyzeNegotiationPerformance,
+  type ConfidenceResult,
+} from "./actions";
 
 export default function ConfidenceScorePage() {
-  const scores = [
-    { label: "Confianza al negociar", score: 85, icon: Trophy, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Claridad al comunicar valor", score: 78, icon: MessageSquare, color: "text-secondary", bg: "bg-secondary/10" },
-    { label: "Posicionamiento salarial", score: 88, icon: Target, color: "text-accent", bg: "bg-accent/10" },
-  ];
+  const {
+    simulationChat,
+    profileData,
+    currentSalary,
+    averageSalary,
+    gapPercentage,
+  } = useSalaryData();
+
+  const [result, setResult] = useState<ConfidenceResult | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (simulationChat.length === 0) return;
+
+    startTransition(async () => {
+      const currency = profileData?.currency || "USD";
+      const symbol =
+        currency === "USD" ? "$" : currency === "COP" ? "COL$" : "S/";
+
+      const analysis = await analyzeNegotiationPerformance(simulationChat, {
+        role: profileData?.role || "Developer",
+        seniority: profileData?.seniority || "Mid",
+        techStack: profileData?.techStack?.join(", ") || "General",
+        country: profileData?.country || "Latinoamérica",
+        currentSalary: `${symbol}${currentSalary.toLocaleString()}`,
+        marketSalary: `${symbol}${averageSalary.toLocaleString()}`,
+        gapPercentage,
+      });
+      setResult(analysis);
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const overallScore = result?.overall_score ?? 0;
+  const circumference = 2 * Math.PI * 45; // ~282.74
+  const dashArray = `${(overallScore / 100) * circumference} ${circumference}`;
+
+  const scores = result
+    ? [
+        {
+          label: "Confianza al negociar",
+          score: result.confidence_score,
+          icon: Trophy,
+          color: "text-primary",
+          bg: "bg-primary/10",
+        },
+        {
+          label: "Claridad al comunicar valor",
+          score: result.clarity_score,
+          icon: MessageSquare,
+          color: "text-secondary",
+          bg: "bg-secondary/10",
+        },
+        {
+          label: "Posicionamiento salarial",
+          score: result.positioning_score,
+          icon: Target,
+          color: "text-accent",
+          bg: "bg-accent/10",
+        },
+      ]
+    : [];
+
+  // No chat data available
+  if (simulationChat.length === 0 && !isPending) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4 max-w-4xl mx-auto w-full min-h-[70vh]">
+        <div className="text-center">
+          <AlertTriangle className="w-16 h-16 text-amber-500 mx-auto mb-6" />
+          <h1 className="text-3xl font-extrabold font-heading text-slate-900 mb-4">
+            No hay datos de simulación
+          </h1>
+          <p className="text-lg text-slate-500 mb-8">
+            Primero necesitas completar una simulación de negociación para
+            obtener tu análisis personalizado.
+          </p>
+          <Link
+            href="/simulator"
+            className="inline-flex h-14 px-8 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold text-lg items-center justify-center gap-3 shadow-lg hover:scale-105 transition-transform"
+          >
+            <RotateCcw className="w-5 h-5" />
+            Ir al simulador
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 max-w-4xl mx-auto w-full min-h-[70vh]">
@@ -30,81 +127,175 @@ export default function ConfidenceScorePage() {
             Tu nivel de preparación para negociar
           </h1>
           <p className="text-lg md:text-xl text-slate-500 max-w-xl mx-auto font-medium">
-            Basado en tu simulación y análisis, este es tu progreso actual para conseguir el salario que mereces.
+            Basado en tu simulación y análisis, este es tu progreso actual para
+            conseguir el salario que mereces.
           </p>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-8 lg:gap-16 items-center justify-center mb-12 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="relative flex flex-col items-center justify-center w-56 h-56 rounded-full bg-white shadow-xl border border-slate-100"
-          >
-            <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" fill="none" stroke="#F1F5F9" strokeWidth="8" />
-              <motion.circle
-                initial={{ strokeDasharray: "0 1000" }}
-                animate={{ strokeDasharray: "230 1000" }}
-                transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke="url(#gradient)"
-                strokeWidth="8"
-                strokeLinecap="round"
-              />
-              <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#FF2E93" />
-                  <stop offset="100%" stopColor="#4361EE" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <span className="text-6xl font-black font-heading bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">82%</span>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-2 text-center leading-tight">Preparada</span>
-          </motion.div>
-
-          <div className="flex flex-col gap-4 w-full max-w-sm">
-            {scores.map((item, i) => (
+        {isPending || !result ? (
+          /* Skeleton loading */
+          <div className="flex flex-col md:flex-row gap-8 lg:gap-16 items-center justify-center mb-12 relative z-10 animate-pulse">
+            <div className="w-56 h-56 rounded-full bg-slate-100" />
+            <div className="flex flex-col gap-4 w-full max-w-sm">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-[72px] bg-slate-100 rounded-2xl"
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col md:flex-row gap-8 lg:gap-16 items-center justify-center mb-12 relative z-10">
               <motion.div
-                key={i}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + i * 0.1 }}
-                className="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-shadow group"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="relative flex flex-col items-center justify-center w-56 h-56 rounded-full bg-white shadow-xl border border-slate-100"
               >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${item.bg} group-hover:scale-110 transition-transform`}>
-                    <item.icon className={`w-6 h-6 ${item.color}`} />
-                  </div>
-                  <span className="font-bold text-slate-700">{item.label}</span>
-                </div>
-                <span className="font-black text-2xl font-heading text-slate-900">{item.score}%</span>
+                <svg
+                  className="absolute inset-0 w-full h-full transform -rotate-90"
+                  viewBox="0 0 100 100"
+                >
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="#F1F5F9"
+                    strokeWidth="8"
+                  />
+                  <motion.circle
+                    initial={{ strokeDasharray: "0 1000" }}
+                    animate={{ strokeDasharray: dashArray }}
+                    transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="url(#gradient)"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                  />
+                  <defs>
+                    <linearGradient
+                      id="gradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="0%"
+                    >
+                      <stop offset="0%" stopColor="#FF2E93" />
+                      <stop offset="100%" stopColor="#4361EE" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span className="text-6xl font-black font-heading bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+                  {overallScore}%
+                </span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-2 text-center leading-tight">
+                  Preparada
+                </span>
               </motion.div>
-            ))}
-          </div>
-        </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="bg-primary/5 rounded-[2rem] p-8 mb-12 flex items-start gap-4 max-w-2xl mx-auto border border-primary/10 shadow-inner"
-        >
-          <div className="bg-white p-2 rounded-full shrink-0 shadow-sm">
-            <Sparkles className="w-6 h-6 text-primary" />
-          </div>
-          <p className="text-secondary font-bold text-lg leading-relaxed">
-            Con datos claros y práctica, estás mucho más preparada para negociar el salario que mereces. Recuerda que tu valor es real y tienes el poder de demostrarlo.
-          </p>
-        </motion.div>
+              <div className="flex flex-col gap-4 w-full max-w-sm">
+                {scores.map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                    className="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-shadow group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center ${item.bg} group-hover:scale-110 transition-transform`}
+                      >
+                        <item.icon className={`w-6 h-6 ${item.color}`} />
+                      </div>
+                      <span className="font-bold text-slate-700">
+                        {item.label}
+                      </span>
+                    </div>
+                    <span className="font-black text-2xl font-heading text-slate-900">
+                      {item.score}%
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* AI Summary */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="bg-primary/5 rounded-[2rem] p-8 mb-8 flex items-start gap-4 max-w-2xl mx-auto border border-primary/10 shadow-inner"
+            >
+              <div className="bg-white p-2 rounded-full shrink-0 shadow-sm">
+                <Sparkles className="w-6 h-6 text-primary" />
+              </div>
+              <p className="text-secondary font-bold text-lg leading-relaxed">
+                {result.summary}
+              </p>
+            </motion.div>
+
+            {/* Strengths & Improvements */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12 relative z-10">
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+                className="bg-green-50 border border-green-200 rounded-2xl p-6"
+              >
+                <h3 className="font-extrabold text-green-800 mb-4 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5" />
+                  Fortalezas
+                </h3>
+                <ul className="space-y-2">
+                  {result.strengths.map((s, i) => (
+                    <li
+                      key={i}
+                      className="text-sm font-medium text-green-700 flex items-start gap-2"
+                    >
+                      <span className="text-green-500 mt-0.5">•</span>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 }}
+                className="bg-amber-50 border border-amber-200 rounded-2xl p-6"
+              >
+                <h3 className="font-extrabold text-amber-800 mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Áreas de mejora
+                </h3>
+                <ul className="space-y-2">
+                  {result.improvements.map((s, i) => (
+                    <li
+                      key={i}
+                      className="text-sm font-medium text-amber-700 flex items-start gap-2"
+                    >
+                      <span className="text-amber-500 mt-0.5">•</span>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            </div>
+          </>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
+          transition={{ delay: 1.1 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10"
         >
           <button className="w-full sm:w-auto h-16 px-8 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold text-lg flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(255,46,147,0.4)] hover:scale-105 transition-transform">

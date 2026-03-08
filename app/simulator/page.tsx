@@ -3,7 +3,27 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { User, Send, StopCircle, Bot, Sparkles, ChevronLeft, Plus, History, Lightbulb, CheckCircle2, TrendingUp } from "lucide-react";
+import {
+  User,
+  Send,
+  StopCircle,
+  Bot,
+  Sparkles,
+  ChevronLeft,
+  Plus,
+  History,
+  Lightbulb,
+  CheckCircle2,
+  TrendingUp,
+} from "lucide-react";
+import {
+  analyzeResponse,
+  getManagerResponse,
+  generateSuggestions,
+  type CoachAnalysis,
+  type ProfileContext,
+} from "./actions";
+import { useSalaryData } from "../providers/SalaryDataProvider";
 
 type Message = {
   id: string;
@@ -16,61 +36,162 @@ type Message = {
 
 export default function AiNegotiationSimulatorPage() {
   const router = useRouter();
+  const { profileData, currentSalary, averageSalary, gapPercentage, setSimulationChat } =
+    useSalaryData();
+
+  // Datos del perfil para personalizar
+  const currency = profileData?.currency || "PEN";
+  const currencySymbol =
+    currency === "USD" ? "$" : currency === "COP" ? "COL$" : "S/";
+  const role = profileData?.role || "Frontend Developer";
+  const seniority = profileData?.seniority || "Mid";
+  const techStack =
+    profileData?.techStack?.join(", ") || "React, TypeScript";
+  const yearsExp = profileData?.yearsExperience || "2-3 años";
+
+  // Formatear salarios para las sugerencias
+  const fmtSalary = (n: number) => `${currencySymbol}${n.toLocaleString()}`;
+  const targetLow = fmtSalary(averageSalary);
+  const targetHigh = fmtSalary(Math.round(averageSalary * 1.1));
+
+  const INITIAL_AI_MESSAGE = `Hola, gracias por reunirte conmigo hoy. Hemos revisado tu perfil como ${role} ${seniority} y estamos muy interesados en que te unas al equipo. Sin embargo, entiendo tu expectativa salarial, pero nuestro presupuesto actual para este rol es más limitado. ¿Podrías considerar un rango menor?`;
 
   const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "ai",
-      text: "Hola, gracias por reunirte conmigo hoy. Hemos revisado tu perfil y estamos muy interesados en que te unas al equipo. Sin embargo, entiendo tu expectativa salarial, pero nuestro presupuesto actual para este rol es más limitado. ¿Podrías considerar un rango menor?",
-    },
+    { id: "1", role: "ai", text: INITIAL_AI_MESSAGE },
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [inputText, setInputText] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const suggestions = [
-    "Podríamos revisar el rango salarial considerando mis responsabilidades.",
-    "Basándome en datos del mercado, creo que un rango entre S/7,500 y S/8,000 sería justo.",
-    "Estoy abierta a discutir beneficios adicionales.",
-  ];
+  const profileCtx: ProfileContext | undefined = profileData
+    ? {
+        role,
+        seniority,
+        techStack,
+        country: profileData.country || "Latinoamérica",
+        currentSalary: fmtSalary(currentSalary),
+        marketSalary: fmtSalary(averageSalary),
+      }
+    : undefined;
 
-  const handleSend = (text: string) => {
-    if (!text.trim()) return;
+  // Genera sugerencias con IA basadas en la conversación actual
+  const refreshSuggestions = async (msgs: Message[]) => {
+    setLoadingSuggestions(true);
+    try {
+      const history = msgs
+        .filter((m) => m.role === "ai" || m.role === "user")
+        .map((m) => ({ role: m.role as "ai" | "user", text: m.text! }));
+      const newSuggestions = await generateSuggestions(history, profileCtx);
+      setSuggestions(newSuggestions);
+    } catch {
+      setSuggestions([
+        "Me gustaría que revisáramos el rango salarial considerando mi experiencia.",
+        "Según datos del mercado, mi perfil justifica una compensación más competitiva.",
+        "Estoy abierta a explorar beneficios adicionales junto con un ajuste salarial.",
+        "Valoro la oportunidad, y me gustaría encontrar un punto medio justo.",
+      ]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
 
-    const userMsgId = Date.now().toString();
-    setMessages((prev) => [...prev, { id: userMsgId, role: "user", text }]);
+  // Cargar sugerencias iniciales al montar
+  useEffect(() => {
+    refreshSuggestions(messages);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Build OpenAI-compatible history from messages (only ai + user)
+  function buildChatHistory() {
+    return messages
+      .filter((m) => m.role === "ai" || m.role === "user")
+      .map((m) => ({
+        role: (m.role === "ai" ? "assistant" : "user") as
+          | "assistant"
+          | "user",
+        content: m.text!,
+      }));
+  }
+
+  // Build simple history for coach context
+  function buildSimpleHistory() {
+    return messages
+      .filter((m) => m.role === "ai" || m.role === "user")
+      .map((m) => ({ role: m.role as "ai" | "user", text: m.text! }));
+  }
+
+  const handleSend = async (text: string) => {
+    if (!text.trim() || isTyping) return;
+
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      text,
+    };
+    setMessages((prev) => [...prev, userMsg]);
     setInputText("");
     setIsTyping(true);
+    setShowSuggestions(false);
 
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString() + "-coach",
-          role: "coach",
-          scores: { clarity: 8, confidence: 7, data: 6 },
-          improvementText: "Podrías fortalecer tu argumento mencionando datos del mercado o resultados medibles de tu trabajo.",
-          improvedResponse: "Basándome en datos del mercado para roles similares y considerando mis resultados recientes, me gustaría explorar un rango salarial entre S/7,500 y S/8,000.",
+    try {
+      // 1. Coach analyzes user's response
+      const history = buildSimpleHistory();
+      const coach: CoachAnalysis = await analyzeResponse(history, text);
+
+      const coachMsg: Message = {
+        id: Date.now().toString() + "-coach",
+        role: "coach",
+        scores: {
+          clarity: coach.clarity,
+          confidence: coach.confidence,
+          data: coach.data,
         },
-      ]);
+        improvementText: coach.recommendation,
+        improvedResponse: coach.improved_response,
+      };
+      setMessages((prev) => [...prev, coachMsg]);
 
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString() + "-ai",
-            role: "ai",
-            text: "Entiendo tu posición. Si consideramos tus responsabilidades y experiencia, creo que podríamos hacer un esfuerzo adicional. Déjame revisar con finanzas si podemos acercarnos a ese rango.",
-          },
-        ]);
-        setIsTyping(false);
-      }, 2500);
-    }, 1500);
+      // 2. Manager responds to user with profile context
+      const chatHistory = [
+        ...buildChatHistory(),
+        { role: "user" as const, content: text },
+      ];
+      const managerText = await getManagerResponse(chatHistory, profileCtx);
+
+      const aiMsg: Message = {
+        id: Date.now().toString() + "-ai",
+        role: "ai",
+        text: managerText,
+      };
+      setMessages((prev) => {
+        const updated = [...prev, aiMsg];
+        // Refresh suggestions based on new conversation state
+        refreshSuggestions(updated);
+        return updated;
+      });
+    } catch {
+      const errorMsg: Message = {
+        id: Date.now().toString() + "-error",
+        role: "ai",
+        text: "Lo siento, hubo un problema de conexión. ¿Podrías repetir tu último punto?",
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsTyping(false);
+      setShowSuggestions(true);
+    }
   };
 
   const useImprovedResponse = (text: string) => {
     setInputText(text);
+  };
+
+  const handleNewSimulation = () => {
+    setMessages([{ id: "1", role: "ai", text: INITIAL_AI_MESSAGE }]);
+    setInputText("");
+    setShowSuggestions(true);
   };
 
   useEffect(() => {
@@ -81,25 +202,28 @@ export default function AiNegotiationSimulatorPage() {
     <div className="flex h-[calc(100vh-4rem)] w-full bg-background">
       {/* Sidebar - History */}
       <div className="hidden lg:flex flex-col w-80 bg-white border-r border-border p-5 shrink-0 z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <button className="flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-gradient-to-r from-primary to-accent text-white rounded-2xl font-bold hover:shadow-[0_0_15px_rgba(255,46,147,0.4)] hover:-translate-y-0.5 transition-all mb-8">
+        <button
+          onClick={handleNewSimulation}
+          className="flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-gradient-to-r from-primary to-accent text-white rounded-2xl font-bold hover:shadow-[0_0_15px_rgba(255,46,147,0.4)] hover:-translate-y-0.5 transition-all mb-8"
+        >
           <Plus className="w-5 h-5" />
           Nueva simulación
         </button>
 
         <div className="flex items-center gap-2 mb-4 px-2 text-muted-foreground">
           <History className="w-5 h-5" />
-          <span className="text-xs font-bold uppercase tracking-wider">Historial</span>
+          <span className="text-xs font-bold uppercase tracking-wider">
+            Historial
+          </span>
         </div>
 
         <div className="flex flex-col gap-3">
           <button className="text-left px-5 py-4 rounded-2xl bg-primary/5 border border-primary/20 text-primary transition-colors relative overflow-hidden group">
             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary" />
-            <div className="font-bold mb-1 truncate">Negociación – Data Analyst</div>
-            <div className="text-xs font-medium text-muted-foreground truncate">Hace 2 horas</div>
-          </button>
-          <button className="text-left px-5 py-4 rounded-2xl hover:bg-muted/50 text-foreground transition-colors border border-transparent hover:border-border">
-            <div className="font-bold mb-1 truncate">Solicitud de aumento anual</div>
-            <div className="text-xs font-medium text-muted-foreground truncate">Hace 1 semana</div>
+            <div className="font-bold mb-1 truncate">Simulación actual</div>
+            <div className="text-xs font-medium text-muted-foreground truncate">
+              {messages.filter((m) => m.role === "user").length} mensajes
+            </div>
           </button>
         </div>
       </div>
@@ -126,15 +250,23 @@ export default function AiNegotiationSimulatorPage() {
                   Simulador de Negociación AI
                 </h1>
                 <p className="text-xs font-medium text-secondary flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  Gerente Virtual conectado
+                  <span
+                    className={`w-2 h-2 rounded-full ${isTyping ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`}
+                  />
+                  {isTyping ? "Escribiendo..." : "Gerente Virtual conectado"}
                 </p>
               </div>
             </div>
           </div>
 
           <button
-            onClick={() => router.push("/confidence-score")}
+            onClick={() => {
+              const chatHistory = messages
+                .filter((m) => m.role === "ai" || m.role === "user")
+                .map((m) => ({ role: m.role as "ai" | "user", text: m.text! }));
+              setSimulationChat(chatHistory);
+              router.push("/confidence-score");
+            }}
             className="px-5 py-2.5 rounded-full bg-foreground text-white font-bold text-sm flex items-center gap-2 hover:bg-foreground/90 transition-colors shadow-md whitespace-nowrap"
           >
             <StopCircle className="w-4 h-4" />
@@ -157,10 +289,16 @@ export default function AiNegotiationSimulatorPage() {
                   {msg.role !== "coach" && (
                     <div
                       className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex flex-shrink-0 items-center justify-center shadow-md ${
-                        msg.role === "user" ? "bg-gradient-to-br from-primary to-accent text-white" : "bg-white text-primary border border-primary/20"
+                        msg.role === "user"
+                          ? "bg-gradient-to-br from-primary to-accent text-white"
+                          : "bg-white text-primary border border-primary/20"
                       }`}
                     >
-                      {msg.role === "user" ? <User className="w-5 h-5 md:w-6 md:h-6" /> : <Bot className="w-5 h-5 md:w-6 md:h-6" />}
+                      {msg.role === "user" ? (
+                        <User className="w-5 h-5 md:w-6 md:h-6" />
+                      ) : (
+                        <Bot className="w-5 h-5 md:w-6 md:h-6" />
+                      )}
                     </div>
                   )}
 
@@ -174,25 +312,55 @@ export default function AiNegotiationSimulatorPage() {
                           <div className="p-2 bg-primary/10 rounded-xl">
                             <TrendingUp className="w-6 h-6 text-primary" />
                           </div>
-                          <h3 className="font-extrabold text-xl text-foreground">Análisis de tu respuesta</h3>
+                          <h3 className="font-extrabold text-xl text-foreground">
+                            Análisis de tu respuesta
+                          </h3>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 relative z-10">
                           {[
-                            { label: "Claridad", score: msg.scores?.clarity, color: "text-secondary", bg: "bg-secondary/10", bar: "bg-secondary" },
-                            { label: "Confianza", score: msg.scores?.confidence, color: "text-primary", bg: "bg-primary/10", bar: "bg-primary" },
-                            { label: "Uso de datos", score: msg.scores?.data, color: "text-accent", bg: "bg-accent/10", bar: "bg-accent" },
+                            {
+                              label: "Claridad",
+                              score: msg.scores?.clarity,
+                              color: "text-secondary",
+                              bar: "bg-secondary",
+                            },
+                            {
+                              label: "Confianza",
+                              score: msg.scores?.confidence,
+                              color: "text-primary",
+                              bar: "bg-primary",
+                            },
+                            {
+                              label: "Uso de datos",
+                              score: msg.scores?.data,
+                              color: "text-accent",
+                              bar: "bg-accent",
+                            },
                           ].map((stat, i) => (
-                            <div key={i} className="flex flex-col p-4 bg-white rounded-2xl border border-border shadow-sm">
-                              <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-2">{stat.label}</span>
+                            <div
+                              key={i}
+                              className="flex flex-col p-4 bg-white rounded-2xl border border-border shadow-sm"
+                            >
+                              <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-2">
+                                {stat.label}
+                              </span>
                               <div className="flex items-end gap-1 mb-3">
-                                <span className={`text-3xl font-black leading-none ${stat.color}`}>{stat.score}</span>
-                                <span className="text-sm text-muted-foreground/50 font-bold mb-1">/10</span>
+                                <span
+                                  className={`text-3xl font-black leading-none ${stat.color}`}
+                                >
+                                  {stat.score}
+                                </span>
+                                <span className="text-sm text-muted-foreground/50 font-bold mb-1">
+                                  /10
+                                </span>
                               </div>
                               <div className="w-full h-2 bg-muted/20 rounded-full overflow-hidden">
                                 <motion.div
                                   initial={{ width: 0 }}
-                                  animate={{ width: `${(stat.score || 0) * 10}%` }}
+                                  animate={{
+                                    width: `${(stat.score || 0) * 10}%`,
+                                  }}
                                   transition={{ duration: 1, delay: 0.5 }}
                                   className={`h-full rounded-full ${stat.bar}`}
                                 />
@@ -207,7 +375,9 @@ export default function AiNegotiationSimulatorPage() {
                               <Lightbulb className="w-5 h-5 text-amber-500" />
                               Recomendación de IA
                             </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed font-medium">{msg.improvementText}</p>
+                            <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                              {msg.improvementText}
+                            </p>
                           </div>
 
                           <div className="flex-1 bg-gradient-to-br from-primary to-accent p-5 rounded-2xl shadow-md text-white">
@@ -215,9 +385,13 @@ export default function AiNegotiationSimulatorPage() {
                               <Sparkles className="w-4 h-4 text-white/60" />
                               Versión mejorada
                             </div>
-                            <p className="text-[15px] font-medium leading-relaxed mb-5">&ldquo;{msg.improvedResponse}&rdquo;</p>
+                            <p className="text-[15px] font-medium leading-relaxed mb-5">
+                              &ldquo;{msg.improvedResponse}&rdquo;
+                            </p>
                             <button
-                              onClick={() => useImprovedResponse(msg.improvedResponse || "")}
+                              onClick={() =>
+                                useImprovedResponse(msg.improvedResponse || "")
+                              }
                               className="w-full text-sm font-bold bg-white text-primary px-4 py-2.5 rounded-xl shadow-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
                             >
                               <CheckCircle2 className="w-5 h-5" />
@@ -242,14 +416,53 @@ export default function AiNegotiationSimulatorPage() {
               ))}
 
               {isTyping && (
-                <motion.div key="typing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex gap-3 md:gap-4">
+                <motion.div
+                  key="typing"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex gap-3 md:gap-4"
+                >
                   <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-primary/20 text-primary flex items-center justify-center shadow-md">
                     <Bot className="w-5 h-5 md:w-6 md:h-6" />
                   </div>
                   <div className="bg-white border border-border rounded-3xl rounded-tl-none px-6 py-5 shadow-sm flex items-center gap-2 w-fit">
-                    <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0 }} className="w-2.5 h-2.5 rounded-full bg-primary" />
-                    <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0.2 }} className="w-2.5 h-2.5 rounded-full bg-primary" />
-                    <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1.4, delay: 0.4 }} className="w-2.5 h-2.5 rounded-full bg-primary" />
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.5, 1, 0.5],
+                      }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1.4,
+                        delay: 0,
+                      }}
+                      className="w-2.5 h-2.5 rounded-full bg-primary"
+                    />
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.5, 1, 0.5],
+                      }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1.4,
+                        delay: 0.2,
+                      }}
+                      className="w-2.5 h-2.5 rounded-full bg-primary"
+                    />
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.5, 1, 0.5],
+                      }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 1.4,
+                        delay: 0.4,
+                      }}
+                      className="w-2.5 h-2.5 rounded-full bg-primary"
+                    />
                   </div>
                 </motion.div>
               )}
@@ -277,18 +490,37 @@ export default function AiNegotiationSimulatorPage() {
 
               <AnimatePresence>
                 {showSuggestions && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                    <div className="flex overflow-x-auto pb-3 pt-1 gap-3 scrollbar-hide snap-x" style={{ scrollbarWidth: "none" }}>
-                      {suggestions.map((suggestion, i) => (
-                        <button
-                          key={i}
-                          onClick={() => handleSend(suggestion)}
-                          disabled={isTyping}
-                          className="snap-start shrink-0 max-w-[280px] md:max-w-sm text-left px-5 py-3.5 bg-white hover:bg-muted/50 text-foreground hover:text-primary font-medium text-sm rounded-2xl border border-border hover:border-primary/30 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-normal"
-                        >
-                          &ldquo;{suggestion}&rdquo;
-                        </button>
-                      ))}
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="relative">
+                      {/* Fade hint derecha para indicar scroll */}
+                      <div className="absolute right-0 top-0 bottom-3 w-12 bg-gradient-to-l from-white/90 to-transparent z-10 pointer-events-none rounded-r-2xl" />
+                      <div
+                        className="flex overflow-x-auto pb-3 pt-1 gap-3 snap-x snap-mandatory pr-8"
+                        style={{ scrollbarWidth: "thin", scrollbarColor: "#e5e7eb transparent" }}
+                      >
+                        {loadingSuggestions
+                          ? Array.from({ length: 4 }).map((_, i) => (
+                              <div
+                                key={i}
+                                className="snap-start shrink-0 w-[260px] md:w-[300px] h-[76px] bg-muted/30 border border-border rounded-2xl animate-pulse"
+                              />
+                            ))
+                          : suggestions.map((suggestion, i) => (
+                              <button
+                                key={`${i}-${suggestion.slice(0, 20)}`}
+                                onClick={() => handleSend(suggestion)}
+                                disabled={isTyping}
+                                className="snap-start shrink-0 w-[260px] md:w-[300px] text-left px-5 py-3.5 bg-white hover:bg-primary/5 text-foreground hover:text-primary font-medium text-sm rounded-2xl border border-border hover:border-primary/30 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-normal leading-relaxed"
+                              >
+                                &ldquo;{suggestion}&rdquo;
+                              </button>
+                            ))}
+                      </div>
                     </div>
                   </motion.div>
                 )}

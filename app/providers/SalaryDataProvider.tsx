@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, ReactNode } from "react";
 
+export type ChatEntry = { role: "ai" | "user"; text: string };
+
 export type ProfileData = {
   role: string;
   seniority: string;
@@ -41,6 +43,8 @@ type SalaryData = {
   setPrefillRole: (role: string) => void;
   prefillSeniority: string;
   setPrefillSeniority: (seniority: string) => void;
+  simulationChat: ChatEntry[];
+  setSimulationChat: (chat: ChatEntry[]) => void;
 };
 
 const SalaryDataContext = createContext<SalaryData | null>(null);
@@ -52,6 +56,7 @@ export function SalaryDataProvider({ children }: { children: ReactNode }) {
   const [gapPercentage, setGapPercentage] = useState(23);
   const [prefillRole, setPrefillRole] = useState("Frontend Developer");
   const [prefillSeniority, setPrefillSeniority] = useState("");
+  const [simulationChat, setSimulationChat] = useState<ChatEntry[]>([]);
 
   return (
     <SalaryDataContext.Provider
@@ -68,6 +73,8 @@ export function SalaryDataProvider({ children }: { children: ReactNode }) {
         setPrefillRole,
         prefillSeniority,
         setPrefillSeniority,
+        simulationChat,
+        setSimulationChat,
       }}
     >
       {children}
