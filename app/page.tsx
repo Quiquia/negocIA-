@@ -4,13 +4,13 @@ import {
   ArrowRight,
   Bot,
   Calculator,
-  Sparkles,
-  TrendingUp,
   Shield,
-  Users,
+  Sparkles,
   Star,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { HeroSalaryForm } from "./components/HeroSalaryForm";
@@ -145,7 +145,7 @@ export default function Home() {
             >
               <Link
                 href="/salary-input"
-                className="inline-flex h-16 w-full items-center justify-center gap-3 px-10 rounded-full bg-gradient-to-r from-primary to-[#FF5EAB] text-white font-extrabold text-lg shadow-[0_0_30px_rgba(255,46,147,0.5)] hover:scale-105 transition-all"
+                className="text-xs md:text-lg inline-flex h-16 w-full items-center justify-center gap-3 px-10 rounded-full bg-gradient-to-r from-primary to-[#FF5EAB] text-white font-extrabold  shadow-[0_0_30px_rgba(255,46,147,0.5)] hover:scale-105 transition-all"
               >
                 Analizar mi salario
                 <ArrowRight className="w-6 h-6" />

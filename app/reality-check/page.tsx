@@ -182,11 +182,11 @@ export default function RealityCheckPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="w-full bg-white border border-border p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-primary/5 mb-8 relative overflow-hidden"
+        className="w-full bg-white border border-border p-4 sm:p-8 md:p-12 rounded-[2.5rem] shadow-xl shadow-primary/5 mb-8 relative overflow-visible"
       >
-        <div className="absolute top-0 inset-x-0 h-3 bg-gradient-to-r from-primary via-accent to-secondary" />
+        <div className="absolute top-0 inset-x-0 h-3 bg-gradient-to-r from-primary via-accent to-secondary rounded-t-[2.5rem]" />
 
-        <h2 className="text-2xl md:text-3xl font-bold font-heading text-foreground mb-12 text-center">
+        <h2 className="text-lg sm:text-2xl md:text-3xl font-bold font-heading text-foreground mb-8 sm:mb-12 text-center">
           Tu salario comparado con el mercado
         </h2>
 
@@ -210,11 +210,11 @@ export default function RealityCheckPage() {
           </div>
         ) : hasAiData ? (
           <>
-            <div className="relative pt-12 pb-16 px-8 md:px-12 max-w-4xl mx-auto">
-              <div className="absolute top-0 left-0 w-full flex justify-between text-sm font-bold text-muted-foreground uppercase tracking-wider px-8 md:px-12">
-                <span>Rango menor</span>
+            <div className="relative pt-10 sm:pt-12 pb-14 sm:pb-16 px-1 sm:px-8 md:px-12 max-w-4xl mx-auto">
+              <div className="absolute top-0 left-0 w-full flex justify-between text-[10px] sm:text-sm font-bold text-muted-foreground uppercase tracking-wider px-1 sm:px-8 md:px-12">
+                <span>Menor</span>
                 <span>Promedio</span>
-                <span>Rango mayor</span>
+                <span>Mayor</span>
               </div>
 
               <div className="relative h-6 bg-muted/20 rounded-full w-full overflow-visible shadow-inner">
@@ -239,12 +239,12 @@ export default function RealityCheckPage() {
                     <div className="w-2.5 h-2.5 bg-white rounded-full" />
                   </div>
 
-                  <div className="absolute top-full mt-4 bg-foreground text-white px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">
+                  <div className="absolute top-full mt-3 sm:mt-4 bg-foreground text-white px-3 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl whitespace-nowrap">
                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-b-foreground" />
-                    <p className="text-xs text-white/70 font-bold uppercase tracking-wider mb-1 text-center">
+                    <p className="text-[9px] sm:text-xs text-white/70 font-bold uppercase tracking-wider mb-0.5 sm:mb-1 text-center">
                       Tu salario actual
                     </p>
-                    <p className="text-2xl font-black font-heading">
+                    <p className="text-base sm:text-2xl font-black font-heading">
                       {currencySymbol}
                       {currentSalary.toLocaleString()}
                     </p>
@@ -252,7 +252,7 @@ export default function RealityCheckPage() {
                 </motion.div>
               </div>
 
-              <div className="absolute bottom-0 left-0 w-full flex justify-between text-lg font-black text-foreground px-8 md:px-12 mt-4">
+              <div className="absolute bottom-0 left-0 w-full flex justify-between text-[11px] sm:text-lg font-black text-foreground px-1 sm:px-8 md:px-12 mt-4">
                 <span className="text-muted-foreground">
                   {currencySymbol}
                   {lowerSalary.toLocaleString()}
@@ -268,11 +268,11 @@ export default function RealityCheckPage() {
               </div>
             </div>
 
-            <div className="mt-12 text-center">
+            <div className="mt-8 sm:mt-12 text-center">
               {isBelowMarket ? (
-                <div className="inline-flex items-center gap-3 bg-rose-50 text-rose-700 px-6 py-4 rounded-2xl border border-rose-200">
-                  <AlertCircle className="w-6 h-6 shrink-0" />
-                  <p className="text-lg font-semibold">
+                <div className="inline-flex items-center gap-2 sm:gap-3 bg-rose-50 text-rose-700 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl border border-rose-200">
+                  <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                  <p className="text-sm sm:text-lg font-semibold text-left">
                     Tu salario está aproximadamente{" "}
                     <strong className="font-black">
                       {gapPercentage}% por debajo
@@ -281,9 +281,9 @@ export default function RealityCheckPage() {
                   </p>
                 </div>
               ) : isAtMarket ? (
-                <div className="inline-flex items-center gap-3 bg-emerald-50 text-emerald-700 px-6 py-4 rounded-2xl border border-emerald-200">
-                  <CheckCircle2 className="w-6 h-6 shrink-0" />
-                  <p className="text-lg font-semibold">
+                <div className="inline-flex items-center gap-2 sm:gap-3 bg-emerald-50 text-emerald-700 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl border border-emerald-200">
+                  <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                  <p className="text-sm sm:text-lg font-semibold text-left">
                     Tu salario se encuentra{" "}
                     <strong className="font-black">
                       dentro del rango esperado
@@ -292,9 +292,9 @@ export default function RealityCheckPage() {
                   </p>
                 </div>
               ) : (
-                <div className="inline-flex items-center gap-3 bg-purple-50 text-purple-700 px-6 py-4 rounded-2xl border border-purple-200">
-                  <Sparkles className="w-6 h-6 shrink-0" />
-                  <p className="text-lg font-semibold">
+                <div className="inline-flex items-center gap-2 sm:gap-3 bg-purple-50 text-purple-700 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl border border-purple-200">
+                  <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                  <p className="text-sm sm:text-lg font-semibold text-left">
                     ¡Excelente! Tu salario está{" "}
                     <strong className="font-black">
                       {gapPercentage}% por encima del promedio

@@ -125,11 +125,22 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
+
+    @media (max-width: 640px) {
+      font-size: 14px;
+    }
   }
 
   input {
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+}
+
+/* Mobile: reduce button/CTA font size to 14px */
+@media (max-width: 640px) {
+  a[class*="rounded-full"][class*="font-"] {
+    font-size: 14px !important;
   }
 }

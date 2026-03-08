@@ -230,7 +230,7 @@ export default function SalaryInputPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-10 md:py-16 px-4 max-w-3xl mx-auto w-full">
+    <div className="flex flex-col items-center justify-center py-10 md:py-16 px-2 sm:px-4 max-w-3xl mx-auto w-full">
       {/* Progress Indicator */}
       <div className="w-full mb-8">
         <div className="flex justify-between items-center mb-2">
@@ -261,7 +261,7 @@ export default function SalaryInputPage() {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
         transition={{ duration: 0.4 }}
-        className="w-full bg-white border border-border rounded-[2rem] p-6 md:p-10 shadow-xl shadow-primary/5 relative overflow-hidden"
+        className="w-full bg-white border border-border rounded-[2rem] p-4 sm:p-6 md:p-10 shadow-xl shadow-primary/5 relative overflow-hidden"
       >
         <div className="absolute top-0 inset-x-0 h-3 bg-gradient-to-r from-primary via-accent to-secondary" />
 
@@ -270,10 +270,10 @@ export default function SalaryInputPage() {
           {currentStep === 1 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="text-center md:text-left mb-8">
-                <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
                   Cuéntanos sobre tu perfil profesional
                 </h1>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-sm sm:text-lg text-muted-foreground">
                   Esto nos ayudará a entender tu nivel de experiencia y tu valor
                   en el mercado.
                 </p>
@@ -554,10 +554,10 @@ export default function SalaryInputPage() {
           {currentStep === 2 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
               <div className="text-center md:text-left mb-8">
-                <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
                   Cuéntanos sobre tu trabajo actual
                 </h1>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-sm sm:text-lg text-muted-foreground">
                   Esto nos ayuda a contextualizar tu salario dentro de tu
                   mercado local.
                 </p>
@@ -575,7 +575,7 @@ export default function SalaryInputPage() {
                     {["Perú", "Colombia"].map((opt) => (
                       <label
                         key={opt}
-                        className="flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all text-center bg-white"
+                        className="flex-1 flex items-center justify-center gap-2 p-3 sm:p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all text-center bg-white"
                       >
                         <input
                           type="radio"
@@ -583,7 +583,9 @@ export default function SalaryInputPage() {
                           {...register("country", { required: true })}
                           className="hidden"
                         />
-                        <span className="font-bold text-lg">{opt}</span>
+                        <span className="font-bold text-sm sm:text-lg">
+                          {opt}
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -600,7 +602,7 @@ export default function SalaryInputPage() {
                     disabled={!watchCountry}
                     className={fieldClasses(
                       "city",
-                      "w-full h-14 px-4 bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all disabled:opacity-50",
+                      "w-full h-12 sm:h-14 px-4 text-sm sm:text-base bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all disabled:opacity-50",
                     )}
                   >
                     <option value="" disabled>
@@ -787,10 +789,10 @@ export default function SalaryInputPage() {
           {currentStep === 3 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
               <div className="text-center md:text-left mb-8">
-                <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
                   Cuéntanos sobre tu compensación actual
                 </h1>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-sm sm:text-lg text-muted-foreground">
                   Esta información nos ayudará a comparar tu salario con el
                   mercado.
                 </p>
@@ -940,10 +942,10 @@ export default function SalaryInputPage() {
           {currentStep === 4 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
               <div className="text-center md:text-left mb-8">
-                <h1 className="text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
+                <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
                   Negociación y crecimiento
                 </h1>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-sm sm:text-lg text-muted-foreground">
                   Queremos ayudarte a negociar con mayor confianza.
                 </p>
               </div>
@@ -1041,7 +1043,7 @@ export default function SalaryInputPage() {
               <button
                 type="button"
                 onClick={handlePrev}
-                className="inline-flex h-14 items-center justify-center gap-2 px-6 rounded-full bg-muted text-foreground font-bold hover:bg-muted/80 transition-all"
+                className="inline-flex h-14 items-center justify-center gap-2 px-4 md:px-8 rounded-full bg-muted text-foreground font-bold hover:bg-muted/80 transition-all text-xs sm:text-lg"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Anterior
@@ -1054,7 +1056,7 @@ export default function SalaryInputPage() {
               <button
                 type="button"
                 onClick={handleNext}
-                className="inline-flex h-14 items-center justify-center gap-2 px-8 rounded-full bg-primary text-white font-extrabold text-lg shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all ml-auto"
+                className="inline-flex h-14 items-center justify-center gap-2 px-4 md:px-8 text-xs sm:text-lg rounded-full bg-primary text-white font-extrabold  shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all ml-auto"
               >
                 Siguiente
                 <ArrowRight className="w-5 h-5" />
@@ -1074,7 +1076,7 @@ export default function SalaryInputPage() {
                     handleSubmit(onSubmit)();
                   }
                 }}
-                className="inline-flex h-14 items-center justify-center gap-2 px-8 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold text-lg shadow-[0_0_20px_rgba(255,46,147,0.4)] hover:-translate-y-0.5 transition-all ml-auto disabled:opacity-60 disabled:pointer-events-none"
+                className="text-sm md:text-lg inline-flex h-14 items-center justify-center gap-2 px-4 md:px-8 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold  shadow-[0_0_20px_rgba(255,46,147,0.4)] hover:-translate-y-0.5 transition-all ml-auto disabled:opacity-60 disabled:pointer-events-none"
               >
                 {isPending ? (
                   <>
