@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { Sparkles } from "lucide-react";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -46,24 +46,21 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             : "max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12"
         }`}
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={
-              pathname === "/simulator"
-                ? "flex-1 flex flex-col h-[calc(100vh-4rem)]"
-                : pathname === "/"
-                  ? "min-h-[calc(100vh-4rem)]"
-                  : "min-h-[calc(100vh-14rem)]"
-            }
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className={
+            pathname === "/simulator"
+              ? "flex-1 flex flex-col h-[calc(100vh-4rem)]"
+              : pathname === "/"
+                ? "min-h-[calc(100vh-4rem)]"
+                : "min-h-[calc(100vh-14rem)]"
+          }
+        >
+          {children}
+        </motion.div>
       </main>
 
       {pathname !== "/simulator" && (
