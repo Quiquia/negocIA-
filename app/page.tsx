@@ -302,7 +302,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15 }}
-                className={`flex flex-col p-10 rounded-[2rem] border shadow-sm hover:shadow-xl transition-all hover:-translate-y-2 group ${feature.color}`}
+                className={`flex flex-col p-10 rounded-[2rem] border shadow-sm transition-all group ${feature.color}`}
               >
                 <div
                   className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-sm ${feature.iconColor} group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(255,46,147,0.3)] transition-all`}
@@ -315,12 +315,9 @@ export default function Home() {
                 <p className="text-muted-foreground text-lg leading-relaxed mb-8 flex-1">
                   {feature.desc}
                 </p>
-                <Link
-                  href={feature.link}
-                  className="inline-flex items-center gap-2 font-bold text-lg text-primary hover:opacity-70 transition-opacity"
-                >
-                  Explorar <ArrowRight className="w-5 h-5" />
-                </Link>
+                <span className="inline-flex items-center gap-2 font-bold text-lg text-primary/40 cursor-default">
+                  Próximamente <ArrowRight className="w-5 h-5" />
+                </span>
               </motion.div>
             ))}
           </div>
