@@ -326,7 +326,9 @@ export default function ConfidenceScorePage() {
           </button>
           <Link
             href="/simulator"
-            className="w-full sm:w-auto h-16 px-8 rounded-full bg-white border-2 border-slate-200 text-slate-700 font-extrabold text-lg flex items-center justify-center gap-3 hover:bg-slate-50 transition-colors"
+            aria-disabled={!result}
+            onClick={(e) => { if (!result) e.preventDefault(); }}
+            className={`w-full sm:w-auto h-16 px-8 rounded-full bg-white border-2 border-slate-200 text-slate-700 font-extrabold text-lg flex items-center justify-center gap-3 transition-colors ${!result ? "opacity-50 pointer-events-none" : "hover:bg-slate-50"}`}
           >
             <RotateCcw className="w-6 h-6" />
             Volver a practicar
