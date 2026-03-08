@@ -1,25 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Sparkles, ArrowRight, Lock, MapPin, Briefcase, DollarSign } from "lucide-react";
+import {
+  Sparkles,
+  ArrowRight,
+  Lock,
+  MapPin,
+  Briefcase,
+  DollarSign,
+  TrendingUp,
+  Loader2,
+} from "lucide-react";
+import { getQuickSalaryEstimate, type QuickEstimate } from "./hero-actions";
 
 export function HeroSalaryForm() {
   const router = useRouter();
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const [result, setResult] = useState<QuickEstimate | null>(null);
+  const [location, setLocation] = useState("");
   const [formData, setFormData] = useState({
     salary: "",
     experience: "",
-    location: ""
+    location: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.salary && formData.experience && formData.location) {
-      setIsSubmitted(true);
-    }
+    if (!formData.salary || !formData.experience || !formData.location) return;
+
+    setLocation(formData.location);
+    startTransition(async () => {
+      const estimate = await getQuickSalaryEstimate({
+        role: "Frontend Developer",
+        experience: formData.experience,
+        location: formData.location,
+        currentSalary: Number(formData.salary),
+      });
+      setResult(estimate);
+    });
   };
+
+  const fmt = (n: number) => `$${n.toLocaleString()}`;
 
   return (
     <motion.div
@@ -38,7 +61,7 @@ export function HeroSalaryForm() {
         </h3>
 
         <AnimatePresence mode="wait">
-          {!isSubmitted ? (
+          {!result && !isPending ? (
             <motion.form
               key="form"
               initial={{ opacity: 0, x: -10 }}
@@ -54,7 +77,9 @@ export function HeroSalaryForm() {
                 </label>
                 <div className="w-full px-4 py-2.5 bg-white/60 border border-[#D1C4E9] rounded-xl text-sm font-medium text-[#0F172A]/70 flex items-center justify-between cursor-not-allowed">
                   Frontend Developer
-                  <span className="text-xs bg-[#4361EE]/10 text-[#4361EE] px-2 py-0.5 rounded-full font-bold">Fijado</span>
+                  <span className="text-xs bg-[#4361EE]/10 text-[#4361EE] px-2 py-0.5 rounded-full font-bold">
+                    Fijado
+                  </span>
                 </div>
               </div>
 
@@ -67,10 +92,14 @@ export function HeroSalaryForm() {
                   <select
                     required
                     value={formData.experience}
-                    onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, experience: e.target.value })
+                    }
                     className="w-full px-4 py-2.5 bg-white border border-[#D1C4E9] rounded-xl text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#FF2E93]/50 focus:border-[#FF2E93] transition-all"
                   >
-                    <option value="" disabled>Selecciona...</option>
+                    <option value="" disabled>
+                      Selecciona...
+                    </option>
                     <option value="0-1">0-1 años</option>
                     <option value="2-3">2-3 años</option>
                     <option value="4-5">4-5 años</option>
@@ -87,10 +116,14 @@ export function HeroSalaryForm() {
                   <select
                     required
                     value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, location: e.target.value })
+                    }
                     className="w-full px-4 py-2.5 bg-white border border-[#D1C4E9] rounded-xl text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#FF2E93]/50 focus:border-[#FF2E93] transition-all"
                   >
-                    <option value="" disabled>Selecciona...</option>
+                    <option value="" disabled>
+                      Selecciona...
+                    </option>
                     <option value="LatAm">LatAm</option>
                     <option value="Europa">Europa</option>
                     <option value="Estados Unidos">Estados Unidos</option>
@@ -105,13 +138,17 @@ export function HeroSalaryForm() {
                   Salario Mensual Actual (USD)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+                    $
+                  </span>
                   <input
                     type="number"
                     required
                     placeholder="Ej: 2200"
                     value={formData.salary}
-                    onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, salary: e.target.value })
+                    }
                     className="w-full pl-8 pr-4 py-2.5 bg-white border border-[#D1C4E9] rounded-xl text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#FF2E93]/50 focus:border-[#FF2E93] transition-all"
                   />
                 </div>
@@ -125,32 +162,55 @@ export function HeroSalaryForm() {
                 <ArrowRight className="w-4 h-4" />
               </button>
             </motion.form>
-          ) : (
+          ) : isPending ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-10 gap-4"
+            >
+              <Loader2 className="w-10 h-10 text-[#3A0CA3] animate-spin" />
+              <p className="text-sm font-bold text-[#3A0CA3]">
+                Analizando tu perfil con IA...
+              </p>
+            </motion.div>
+          ) : result ? (
             <motion.div
               key="result"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="space-y-5 bg-white rounded-2xl p-5 border border-[#D1C4E9] shadow-sm text-center"
+              className="space-y-5 bg-white rounded-2xl p-5 border border-[#D1C4E9] shadow-sm"
             >
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-2">Tu salario estimado de mercado podría estar entre:</p>
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-600 mb-2">
+                  Tu salario estimado de mercado:
+                </p>
                 <div className="text-3xl font-black font-heading text-transparent bg-clip-text bg-gradient-to-r from-[#FF2E93] to-[#3A0CA3]">
-                  $2,800 – $3,400
+                  {fmt(result.min_salary)} – {fmt(result.max_salary)}
                 </div>
                 <p className="text-xs text-[#4361EE] font-semibold mt-2 bg-[#4361EE]/10 inline-block px-3 py-1 rounded-full">
-                  Basado en datos de {formData.location}
+                  Basado en datos de {location}
+                </p>
+              </div>
+
+              {/* AI Insight */}
+              <div className="flex items-start gap-2 bg-[#F8F5FF] rounded-xl p-3 border border-[#D1C4E9]">
+                <TrendingUp className="w-4 h-4 text-[#3A0CA3] mt-0.5 shrink-0" />
+                <p className="text-xs text-[#3A0CA3] font-medium leading-relaxed">
+                  {result.insight}
                 </p>
               </div>
 
               <button
-                onClick={() => router.push('/salary-input')}
+                onClick={() => router.push("/salary-input")}
                 className="w-full py-3 px-4 bg-gradient-to-r from-[#FF2E93] to-[#3A0CA3] hover:scale-[1.02] text-white rounded-xl font-bold text-sm transition-all shadow-[0_4px_15px_rgba(255,46,147,0.3)] flex items-center justify-center gap-2"
               >
-                Continuar simulación completa (Gratis)
+                Análisis completo (Gratis)
                 <ArrowRight className="w-4 h-4" />
               </button>
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
       </div>
     </motion.div>
