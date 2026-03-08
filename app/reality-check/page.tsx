@@ -28,7 +28,7 @@ import type { SalaryEstimate } from "@/core/lib/salary-estimator";
 
 export default function RealityCheckPage() {
   const router = useRouter();
-  const { profileData, currentSalary, setCurrentSalary, setAverageSalary, setGapPercentage } =
+  const { submissionId, profileData, currentSalary, setCurrentSalary, setAverageSalary, setGapPercentage } =
     useSalaryData();
 
   const [isPending, startTransition] = useTransition();
@@ -69,8 +69,12 @@ export default function RealityCheckPage() {
 
   // Fetch AI analysis on mount
   useEffect(() => {
+    if (!submissionId) {
+      setAiError("No se encontró el ID del perfil. Vuelve a completar el formulario.");
+      return;
+    }
     startTransition(async () => {
-      const result = await analyzeProfile();
+      const result = await analyzeProfile(submissionId);
       if (result.success) {
         setEstimate(result.estimate);
         // Update context so downstream pages have AI data

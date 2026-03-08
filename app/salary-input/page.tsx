@@ -45,6 +45,7 @@ export default function SalaryInputPage() {
   const {
     prefillRole,
     prefillSeniority,
+    setSubmissionId,
     setProfileData,
     setCurrentSalary,
     setAverageSalary,
@@ -194,7 +195,8 @@ export default function SalaryInputPage() {
         return;
       }
 
-      // Store data in context for subsequent pages
+      // Store submission ID and data in context for subsequent pages
+      setSubmissionId(result.id!);
       setProfileData(data as any);
       const salary = Number(data.monthlySalary);
       const avg = Math.round(salary * 1.418);

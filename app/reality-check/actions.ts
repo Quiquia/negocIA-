@@ -17,14 +17,17 @@ export type RealityCheckResult = {
 };
 
 /**
- * Fetches the most recent salary submission and runs the AI analysis.
+ * Fetches a specific salary submission by ID and runs the AI analysis.
  */
-export async function analyzeProfile(): Promise<RealityCheckResult> {
+export async function analyzeProfile(submissionId: string): Promise<RealityCheckResult> {
+  if (!submissionId) {
+    return { success: false, error: "No se proporcionó un ID de perfil." };
+  }
+
   const { data: submission, error } = await supabase
     .from("salary_submissions")
     .select("*")
-    .order("created_at", { ascending: false })
-    .limit(1)
+    .eq("id", submissionId)
     .single();
 
   if (error || !submission) {

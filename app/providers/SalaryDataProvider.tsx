@@ -31,6 +31,8 @@ export type ProfileData = {
 };
 
 type SalaryData = {
+  submissionId: string | null;
+  setSubmissionId: (id: string) => void;
   profileData: ProfileData | null;
   setProfileData: (data: ProfileData) => void;
   currentSalary: number;
@@ -50,6 +52,7 @@ type SalaryData = {
 const SalaryDataContext = createContext<SalaryData | null>(null);
 
 export function SalaryDataProvider({ children }: { children: ReactNode }) {
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [currentSalary, setCurrentSalary] = useState(5500);
   const [averageSalary, setAverageSalary] = useState(7800);
@@ -61,6 +64,8 @@ export function SalaryDataProvider({ children }: { children: ReactNode }) {
   return (
     <SalaryDataContext.Provider
       value={{
+        submissionId,
+        setSubmissionId,
         profileData,
         setProfileData,
         currentSalary,
