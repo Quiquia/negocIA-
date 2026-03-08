@@ -233,25 +233,25 @@ export default function AiNegotiationSimulatorPage() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/40 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-xl border-b border-border px-6 py-4 flex items-center justify-between shrink-0 shadow-sm z-10 sticky top-0">
-          <div className="flex items-center gap-4">
+        <div className="bg-white/80 backdrop-blur-xl border-b border-border px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between shrink-0 shadow-sm z-10 sticky top-0 gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <button
               onClick={() => router.back()}
-              className="lg:hidden p-2 -ml-2 text-muted-foreground hover:text-primary transition-colors bg-muted/50 rounded-full"
+              className="lg:hidden p-2 -ml-1 text-muted-foreground hover:text-primary transition-colors bg-muted/50 rounded-full shrink-0"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-md">
-                <Bot className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center shadow-md shrink-0">
+                <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-lg md:text-xl font-extrabold font-heading text-foreground leading-tight">
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-lg md:text-xl font-extrabold font-heading text-foreground leading-tight truncate">
                   Simulador de Negociación AI
                 </h1>
-                <p className="text-xs font-medium text-secondary flex items-center gap-1">
+                <p className="text-[10px] sm:text-xs font-medium text-secondary flex items-center gap-1">
                   <span
-                    className={`w-2 h-2 rounded-full ${isTyping ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`}
+                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isTyping ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`}
                   />
                   {isTyping ? "Escribiendo..." : "Gerente Virtual conectado"}
                 </p>
@@ -267,9 +267,9 @@ export default function AiNegotiationSimulatorPage() {
               setSimulationChat(chatHistory);
               router.push("/confidence-score");
             }}
-            className="px-5 py-2.5 rounded-full bg-foreground text-white font-bold text-sm flex items-center gap-2 hover:bg-foreground/90 transition-colors shadow-md whitespace-nowrap"
+            className="px-3 py-2 sm:px-5 sm:py-2.5 rounded-full bg-foreground text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 hover:bg-foreground/90 transition-colors shadow-md whitespace-nowrap shrink-0"
           >
-            <StopCircle className="w-4 h-4" />
+            <StopCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Finalizar simulación</span>
             <span className="sm:hidden">Finalizar</span>
           </button>
@@ -403,7 +403,7 @@ export default function AiNegotiationSimulatorPage() {
                     </div>
                   ) : (
                     <div
-                      className={`max-w-[85%] md:max-w-[75%] rounded-3xl px-6 py-4 md:py-5 shadow-sm text-[16px] leading-relaxed font-medium ${
+                      className={`max-w-[85%] md:max-w-[75%] rounded-3xl px-4 py-3 sm:px-6 sm:py-4 md:py-5 shadow-sm text-sm sm:text-[16px] leading-relaxed font-medium ${
                         msg.role === "user"
                           ? "bg-gradient-to-r from-primary to-accent text-white rounded-tr-none shadow-[0_4px_15px_rgba(255,46,147,0.2)]"
                           : "bg-white border border-border text-foreground rounded-tl-none shadow-sm"
@@ -527,8 +527,8 @@ export default function AiNegotiationSimulatorPage() {
               </AnimatePresence>
             </div>
 
-            <div className="px-4 md:px-6 pb-6 pt-1">
-              <div className="relative flex items-end gap-3 bg-muted/20 border border-border rounded-[2rem] p-2 shadow-inner focus-within:bg-white focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary/30 transition-all">
+            <div className="px-3 sm:px-4 md:px-6 pb-4 sm:pb-6 pt-1">
+              <div className="relative flex items-end gap-2 sm:gap-3 bg-muted/20 border border-border rounded-2xl sm:rounded-[2rem] p-1.5 sm:p-2 shadow-inner focus-within:bg-white focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary/30 transition-all">
                 <textarea
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
@@ -539,16 +539,16 @@ export default function AiNegotiationSimulatorPage() {
                     }
                   }}
                   placeholder="Escribe tu mensaje o usa una sugerencia arriba..."
-                  className="flex-1 max-h-32 min-h-[60px] bg-transparent outline-none resize-none px-5 py-4 text-[16px] text-foreground font-medium placeholder:text-muted-foreground"
+                  className="flex-1 max-h-32 min-h-[48px] sm:min-h-[60px] bg-transparent outline-none resize-none px-3 py-3 sm:px-5 sm:py-4 text-sm sm:text-[16px] text-foreground font-medium placeholder:text-muted-foreground"
                   disabled={isTyping}
                   rows={1}
                 />
                 <button
                   onClick={() => handleSend(inputText)}
                   disabled={isTyping || !inputText.trim()}
-                  className="p-4 mb-1 mr-1 bg-gradient-to-r from-primary to-accent text-white rounded-2xl hover:shadow-[0_4px_15px_rgba(255,46,147,0.3)] hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none shadow-md shrink-0"
+                  className="p-3 sm:p-4 mb-0.5 mr-0.5 sm:mb-1 sm:mr-1 bg-gradient-to-r from-primary to-accent text-white rounded-xl sm:rounded-2xl hover:shadow-[0_4px_15px_rgba(255,46,147,0.3)] hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none shadow-md shrink-0"
                 >
-                  <Send className="w-6 h-6" />
+                  <Send className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
             </div>
