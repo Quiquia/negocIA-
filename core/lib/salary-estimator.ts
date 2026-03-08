@@ -11,8 +11,8 @@
  *
  * @see https://featherless.ai/docs/quickstart-guide
  */
-import { getFeatherless } from "@/lib/featherless";
-import type { SalarySubmission } from "@/types/database";
+import { getFeatherless } from "@/core/lib/featherless";
+import type { SalarySubmission } from "@/core/types/database";
 
 // --- Tipos ---
 

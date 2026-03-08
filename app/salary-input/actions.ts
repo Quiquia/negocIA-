@@ -1,7 +1,7 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
-import type { SalarySubmissionInsert } from "@/types/database";
+import { supabase } from "@/core/lib/supabase";
+import type { SalarySubmissionInsert } from "@/core/types/database";
 
 /**
  * Guarda el perfil salarial en Supabase.
