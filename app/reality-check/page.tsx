@@ -350,23 +350,36 @@ export default function RealityCheckPage() {
           <Bot className="w-6 h-6 text-primary" /> Lo que detectamos sobre tu
           perfil
         </h3>
-        <div className="grid md:grid-cols-3 gap-4">
-          {insights.map((insight, idx) => (
-            <div
-              key={idx}
-              className="bg-white border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all"
-            >
-              {insightIcons[idx]}
-              <p className="text-sm font-medium text-foreground leading-relaxed">
-                {isPending ? (
-                  <span className="inline-block w-full h-4 bg-muted/50 rounded animate-pulse" />
-                ) : (
-                  insight
-                )}
-              </p>
-            </div>
-          ))}
-        </div>
+        {isPending && !hasAiData ? (
+          <div className="grid md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-white border border-border p-6 rounded-2xl shadow-sm"
+              >
+                <div className="w-6 h-6 bg-muted/40 rounded mb-4 animate-pulse" />
+                <div className="space-y-2">
+                  <div className="h-4 w-full bg-muted/40 rounded animate-pulse" />
+                  <div className="h-4 w-3/4 bg-muted/30 rounded animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-4">
+            {insights.map((insight, idx) => (
+              <div
+                key={idx}
+                className="bg-white border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all"
+              >
+                {insightIcons[idx]}
+                <p className="text-sm font-medium text-foreground leading-relaxed">
+                  {insight}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* SECTION 4 — CRECIMIENTO PROFESIONAL */}
@@ -379,19 +392,35 @@ export default function RealityCheckPage() {
         <h3 className="text-xl font-bold font-heading text-foreground mb-6">
           Cómo podrías aumentar tu valor en el mercado
         </h3>
-        <p className="text-muted-foreground font-medium mb-6">
-          Para avanzar hacia un rol {targetRole} podrías fortalecer:
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {growthSkills.map((skill, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-xl p-4 text-center shadow-sm border border-border/50"
-            >
-              <span className="font-bold text-sm text-primary">{skill}</span>
+        {isPending && !hasAiData ? (
+          <div className="space-y-4">
+            <div className="h-5 w-64 bg-muted/40 rounded animate-pulse" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="h-14 bg-white/60 rounded-xl animate-pulse border border-border/50"
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <>
+            <p className="text-muted-foreground font-medium mb-6">
+              Para avanzar hacia un rol {targetRole} podrías fortalecer:
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {growthSkills.map((skill, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white rounded-xl p-4 text-center shadow-sm border border-border/50"
+                >
+                  <span className="font-bold text-sm text-primary">{skill}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </motion.div>
 
       {/* SECTION 5 — ALERTA DE NEGOCIACIÓN */}
@@ -465,12 +494,9 @@ export default function RealityCheckPage() {
               Descubre qué rangos salariales ofrecen otras empresas para
               perfiles como el tuyo.
             </p>
-            <Link
-              href="/salary-impact"
-              className="w-full h-12 rounded-full bg-muted/20 text-foreground font-bold hover:bg-muted/30 transition-colors flex items-center justify-center"
-            >
-              Explorar mercado
-            </Link>
+            <span className="w-full h-12 rounded-full bg-muted/20 text-muted-foreground font-bold flex items-center justify-center cursor-default opacity-50">
+              Próximamente
+            </span>
           </div>
 
           <div className="bg-white border border-border rounded-[2rem] p-8 shadow-sm flex flex-col hover:shadow-xl transition-all group">
@@ -484,12 +510,9 @@ export default function RealityCheckPage() {
               Descubre cuánto podrías cobrar por tus servicios de desarrollo
               frontend de forma independiente.
             </p>
-            <button
-              onClick={() => alert("Próximamente")}
-              className="w-full h-12 rounded-full bg-muted/20 text-foreground font-bold hover:bg-muted/30 transition-colors flex items-center justify-center"
-            >
-              Calcular tarifa freelance
-            </button>
+            <span className="w-full h-12 rounded-full bg-muted/20 text-muted-foreground font-bold flex items-center justify-center cursor-default opacity-50">
+              Próximamente
+            </span>
           </div>
         </div>
       </motion.div>
