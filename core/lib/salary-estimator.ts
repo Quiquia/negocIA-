@@ -1,17 +1,16 @@
 /**
- * Estimador de salario de mercado usando Featherless AI.
+ * Estimador de salario de mercado usando OpenAI.
  *
  * Recibe el perfil de una usuaria y devuelve:
  * - estimated_salary: el salario mensual estimado del mercado
  * - currency: la moneda del salario
  * - gap_percentage: qué tan lejos está del mercado (positivo = por debajo)
  * - summary: una explicación corta en español
- *
- * Usa DeepSeek-R1 (el modelo más avanzado disponible en Featherless).
- *
- * @see https://featherless.ai/docs/quickstart-guide
+ * - profile_insights: 3 insights personalizados
+ * - growth_skills: habilidades a fortalecer
+ * - growth_target_role: siguiente nivel objetivo
  */
-import { getFeatherless } from "@/core/lib/featherless";
+import OpenAI from "openai";
 import type { SalarySubmission } from "@/core/types/database";
 
 // --- Tipos ---
@@ -22,26 +21,26 @@ export interface SalaryEstimate {
   gap_percentage: number;
   gap_direction: "below" | "above" | "at_market";
   summary: string;
+  profile_insights: [string, string, string];
+  growth_skills: string[];
+  growth_target_role: string;
 }
 
-// --- Modelo ---
+// --- Cliente OpenAI (lazy) ---
 
-/**
- * Modelo a usar en Featherless.
- *
- * DeepSeek-R1 es el modelo más avanzado disponible (671B parámetros).
- * Si necesitas respuestas más rápidas, puedes cambiar a:
- * - "Qwen/Qwen2.5-72B-Instruct" (rápido, bueno con JSON)
- * - "meta-llama/Llama-3.3-70B-Instruct" (alternativa sólida)
- */
-const MODEL = "deepseek-ai/DeepSeek-R1";
+let _client: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!_client) {
+    _client = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return _client;
+}
 
 // --- Prompt ---
 
-/**
- * Construye el prompt que describe el perfil de la usuaria.
- * Se separa del llamado a la IA para que sea fácil de leer y testear.
- */
 function buildPrompt(profile: SalarySubmission): string {
   return `Eres una experta en compensación y mercado laboral en Latinoamérica.
 
@@ -74,7 +73,10 @@ del mercado laboral de la región.
 
 1. Estima el salario mensual de mercado en la MISMA moneda (${profile.salary_currency ?? "USD"}).
 2. Calcula el porcentaje de brecha: ((estimado - actual) / estimado) * 100.
-3. Responde ÚNICAMENTE con un JSON válido, sin markdown ni explicaciones fuera del JSON.
+3. Genera 3 insights personalizados sobre el perfil (oportunidades, fortalezas, tendencias del mercado para este perfil específico). Cada insight debe ser una oración completa en español, específica al perfil (no genérica).
+4. Sugiere 4 habilidades técnicas concretas que esta persona debería fortalecer para avanzar al siguiente nivel.
+5. Indica cuál sería el siguiente rol objetivo (ej: "Mid", "Senior", "Lead / Staff").
+6. Responde ÚNICAMENTE con un JSON válido, sin markdown ni explicaciones fuera del JSON.
 
 ## Formato de respuesta (JSON)
 
@@ -83,25 +85,22 @@ del mercado laboral de la región.
   "currency": "${profile.salary_currency ?? "USD"}",
   "gap_percentage": <número con 1 decimal>,
   "gap_direction": "below" | "above" | "at_market",
-  "summary": "<1-2 oraciones en español explicando la estimación>"
+  "summary": "<1-2 oraciones en español explicando la estimación>",
+  "profile_insights": ["<insight 1>", "<insight 2>", "<insight 3>"],
+  "growth_skills": ["<skill 1>", "<skill 2>", "<skill 3>", "<skill 4>"],
+  "growth_target_role": "<siguiente nivel>"
 }`;
 }
 
-// --- Llamada a Featherless AI ---
+// --- Llamada a OpenAI ---
 
-/**
- * Llama a Featherless AI para estimar el salario de mercado.
- *
- * Featherless es compatible con el SDK de OpenAI, así que el código
- * es idéntico — solo cambia el cliente y el modelo.
- */
 export async function estimateSalary(
   profile: SalarySubmission
 ): Promise<SalaryEstimate> {
   const prompt = buildPrompt(profile);
 
-  const response = await getFeatherless().chat.completions.create({
-    model: MODEL,
+  const response = await getOpenAI().chat.completions.create({
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
@@ -113,20 +112,14 @@ export async function estimateSalary(
         content: prompt,
       },
     ],
-    temperature: 0.3, // Baja temperatura = respuestas más consistentes
-    max_tokens: 500,
+    temperature: 0.3,
+    max_tokens: 1000,
   });
 
   const content = response.choices[0]?.message?.content ?? "";
 
-  // Limpiar respuesta: algunos modelos envuelven el JSON en ```json ... ```
-  // o incluyen texto de "pensamiento" antes del JSON (<think>...</think>)
+  // Limpiar respuesta por si envuelve en ```json ... ```
   let cleaned = content;
-
-  // Remover bloques <think>...</think> que DeepSeek-R1 puede incluir
-  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/g, "");
-
-  // Remover bloques de código markdown
   cleaned = cleaned.replace(/```json\n?|```\n?/g, "");
 
   // Extraer el primer objeto JSON válido
