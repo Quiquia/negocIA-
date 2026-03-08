@@ -19,6 +19,7 @@ import {
   analyzeNegotiationPerformance,
   type ConfidenceResult,
 } from "./actions";
+import { generateNegotiationPDF } from "./generate-pdf";
 
 export default function ConfidenceScorePage() {
   const {
@@ -298,7 +299,28 @@ export default function ConfidenceScorePage() {
           transition={{ delay: 1.1 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10"
         >
-          <button className="w-full sm:w-auto h-16 px-8 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold text-lg flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(255,46,147,0.4)] hover:scale-105 transition-transform">
+          <button
+            onClick={() => {
+              if (!result) return;
+              const currency = profileData?.currency || "USD";
+              const symbol =
+                currency === "USD" ? "$" : currency === "COP" ? "COL$" : "S/";
+              generateNegotiationPDF({
+                result,
+                profile: {
+                  role: profileData?.role || "Developer",
+                  seniority: profileData?.seniority || "Mid",
+                  techStack: profileData?.techStack?.join(", ") || "General",
+                  country: profileData?.country || "Latinoamérica",
+                  currentSalary: `${symbol}${currentSalary.toLocaleString()}`,
+                  marketSalary: `${symbol}${averageSalary.toLocaleString()}`,
+                  gapPercentage,
+                },
+              });
+            }}
+            disabled={!result}
+            className="w-full sm:w-auto h-16 px-8 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold text-lg flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(255,46,147,0.4)] hover:scale-105 transition-transform disabled:opacity-50 disabled:scale-100"
+          >
             <Download className="w-6 h-6" />
             Descargar mi plan de negociación
           </button>
