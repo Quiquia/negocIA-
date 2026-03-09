@@ -1,5 +1,8 @@
 # NegocIA+
 
+<img width="1886" height="867" alt="image" src="https://github.com/user-attachments/assets/7a3f1716-31fa-4422-9dde-98f0e6b8b876" />
+
+
 Herramienta de negociación salarial impulsada por IA, diseñada para mujeres en tecnología en Latinoamérica. Analiza perfiles profesionales, compara salarios con el mercado y simula negociaciones con un gerente virtual.
 
 ## Stack tecnologico
