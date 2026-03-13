@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Loader2,
   Sparkles,
+  X,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
@@ -57,6 +58,12 @@ export default function SalaryInputPage() {
   const [isPending, startTransition] = useTransition();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const totalSteps = 4;
+  const [customTechStack, setCustomTechStack] = useState<string[]>([]);
+  const [customTools, setCustomTools] = useState<string[]>([]);
+  const [techInput, setTechInput] = useState("");
+  const [toolInput, setToolInput] = useState("");
+  const [techInputError, setTechInputError] = useState(false);
+  const [toolInputError, setToolInputError] = useState(false);
 
   const {
     register,
@@ -78,8 +85,67 @@ export default function SalaryInputPage() {
   });
 
   const watchCountry = watch("country");
+  const watchRole = watch("role");
   const currencySymbol =
     watchCountry === "Perú" ? "S/" : watchCountry === "Colombia" ? "$" : "$";
+
+  const roleOptions = {
+    "Frontend Developer": {
+      techStack: ["React", "Next.js", "Angular", "Vue", "JavaScript / TypeScript"],
+      tools: ["TypeScript", "JavaScript", "HTML", "CSS", "Tailwind CSS", "Git", "Testing", "APIs REST"],
+      roleDescriptions: [
+        "Desarrollo de interfaces y componentes",
+        "Desarrollo frontend con lógica de negocio",
+        "Frontend con decisiones técnicas / arquitectura",
+        "Frontend con liderazgo o mentoría",
+      ],
+    },
+    "Backend Developer": {
+      techStack: ["Node.js", "Python", "Java", "Go", ".NET / C#", "PHP"],
+      tools: ["TypeScript", "SQL / NoSQL", "Docker", "AWS / GCP / Azure", "Git", "Testing", "APIs REST", "GraphQL", "CI/CD"],
+      roleDescriptions: [
+        "Desarrollo de APIs y microservicios",
+        "Backend con lógica de negocio compleja",
+        "Backend con decisiones técnicas / arquitectura",
+        "Backend con liderazgo o mentoría",
+      ],
+    },
+    "Data Analyst": {
+      techStack: ["Python", "SQL", "R", "Excel avanzado", "Power BI", "Tableau"],
+      tools: ["Pandas / NumPy", "SQL / NoSQL", "Google Sheets", "Looker / Metabase", "Git", "Jupyter Notebooks", "ETL / Pipelines", "APIs REST", "Estadística"],
+      roleDescriptions: [
+        "Análisis de datos y generación de reportes",
+        "Data analysis con modelado y visualización",
+        "Data analysis con decisiones estratégicas de negocio",
+        "Data analysis con liderazgo o mentoría",
+      ],
+    },
+    "UX Designer": {
+      techStack: ["Figma", "Sketch", "Adobe XD", "Framer", "Webflow", "HTML / CSS"],
+      tools: ["Figma", "Miro / FigJam", "Notion", "Hotjar / Analytics", "Prototyping", "Design Systems", "User Research", "Accesibilidad"],
+      roleDescriptions: [
+        "Diseño de interfaces y prototipado",
+        "UX Research y testing con usuarios",
+        "UX con decisiones de producto y estrategia",
+        "UX con liderazgo de equipo o mentoría",
+      ],
+    },
+  };
+
+  const currentRoleOptions = roleOptions[watchRole as keyof typeof roleOptions] || roleOptions["Frontend Developer"];
+
+  // Reset role-specific fields when role changes
+  useEffect(() => {
+    setValue("techStack", []);
+    setValue("tools", []);
+    setValue("roleDescription", "" as never);
+    setCustomTechStack([]);
+    setCustomTools([]);
+    setTechInput("");
+    setToolInput("");
+    setTechInputError(false);
+    setToolInputError(false);
+  }, [watchRole, setValue]);
 
   const peruCities = [
     "Lima",
@@ -325,6 +391,15 @@ export default function SalaryInputPage() {
                     <option value="Frontend Developer">
                       Frontend Developer
                     </option>
+                    <option value="Backend Developer">
+                      Backend Developer
+                    </option>
+                    <option value="Data Analyst">
+                      Data Analyst
+                    </option>
+                    <option value="UX Designer">
+                      UX Designer
+                    </option>
                   </select>
                   <ErrorMsg name="role" />
                 </div>
@@ -365,8 +440,8 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Cuántos años de experiencia tienes específicamente como
-                    Frontend Developer? <span className="text-rose-500">*</span>
+                    ¿Cuántos años de experiencia tienes específicamente como{" "}
+                    {watchRole || "Frontend Developer"}? <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${errors.yearsExperience ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
@@ -406,14 +481,7 @@ export default function SalaryInputPage() {
                   <div
                     className={`flex flex-wrap gap-3 ${errors.techStack ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      "React",
-                      "Next.js",
-                      "Angular",
-                      "Vue",
-                      "JavaScript / TypeScript",
-                      "Otro",
-                    ].map((tech) => (
+                    {currentRoleOptions.techStack.filter(t => t !== "Otro").map((tech) => (
                       <label
                         key={tech}
                         className="relative flex items-center justify-center pl-4 pr-10 py-2.5 border-2 border-border/50 rounded-full cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all select-none bg-white group"
@@ -430,6 +498,69 @@ export default function SalaryInputPage() {
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
+                    {/* Custom tech chips */}
+                    {customTechStack.map((tech) => (
+                      <div
+                        key={tech}
+                        className="relative flex items-center justify-center pl-4 pr-10 py-2.5 border-2 border-primary rounded-full bg-primary/10 select-none group"
+                      >
+                        <input
+                          type="checkbox"
+                          value={tech}
+                          checked
+                          {...register("techStack", { required: true })}
+                          className="hidden"
+                          readOnly
+                        />
+                        <span className="font-bold text-sm text-primary">{tech}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCustomTechStack(prev => prev.filter(t => t !== tech));
+                            const current = watch("techStack") || [];
+                            setValue("techStack", current.filter((t: string) => t !== tech));
+                          }}
+                          className="absolute right-3 text-primary hover:text-rose-500 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {/* "Otro" input */}
+                    <div className="flex flex-col gap-1">
+                      <input
+                        type="text"
+                        value={techInput}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const filtered = raw.replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑüÜ\s/.#+\-]/g, "");
+                          if (raw !== filtered) {
+                            setTechInputError(true);
+                          } else {
+                            setTechInputError(false);
+                          }
+                          setTechInput(filtered);
+                        }}
+                        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const val = techInput.trim();
+                            if (val && !customTechStack.includes(val)) {
+                              setCustomTechStack(prev => [...prev, val]);
+                              const current = watch("techStack") || [];
+                              setValue("techStack", [...current, val], { shouldValidate: true });
+                              setTechInput("");
+                              setTechInputError(false);
+                            }
+                          }
+                        }}
+                        placeholder="Otro..."
+                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all w-32 ${techInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
+                      />
+                      {techInputError && (
+                        <span className="text-xs text-rose-500 pl-2">Solo letras</span>
+                      )}
+                    </div>
                   </div>
                   <ErrorMsg name="techStack" />
                 </div>
@@ -442,17 +573,7 @@ export default function SalaryInputPage() {
                   <div
                     className={`flex flex-wrap gap-3 ${errors.tools ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      "TypeScript",
-                      "JavaScript",
-                      "HTML",
-                      "CSS",
-                      "Tailwind CSS",
-                      "Git",
-                      "Testing",
-                      "APIs REST",
-                      "Otra",
-                    ].map((tool) => (
+                    {currentRoleOptions.tools.filter(t => t !== "Otra").map((tool) => (
                       <label
                         key={tool}
                         className="relative flex items-center justify-center pl-4 pr-10 py-2.5 border-2 border-border/50 rounded-full cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all select-none bg-white group"
@@ -469,6 +590,69 @@ export default function SalaryInputPage() {
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
+                    {/* Custom tool chips */}
+                    {customTools.map((tool) => (
+                      <div
+                        key={tool}
+                        className="relative flex items-center justify-center pl-4 pr-10 py-2.5 border-2 border-primary rounded-full bg-primary/10 select-none group"
+                      >
+                        <input
+                          type="checkbox"
+                          value={tool}
+                          checked
+                          {...register("tools", { required: true })}
+                          className="hidden"
+                          readOnly
+                        />
+                        <span className="font-bold text-sm text-primary">{tool}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCustomTools(prev => prev.filter(t => t !== tool));
+                            const current = watch("tools") || [];
+                            setValue("tools", current.filter((t: string) => t !== tool));
+                          }}
+                          className="absolute right-3 text-primary hover:text-rose-500 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {/* "Otra" input */}
+                    <div className="flex flex-col gap-1">
+                      <input
+                        type="text"
+                        value={toolInput}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const filtered = raw.replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑüÜ\s/.#+\-]/g, "");
+                          if (raw !== filtered) {
+                            setToolInputError(true);
+                          } else {
+                            setToolInputError(false);
+                          }
+                          setToolInput(filtered);
+                        }}
+                        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const val = toolInput.trim();
+                            if (val && !customTools.includes(val)) {
+                              setCustomTools(prev => [...prev, val]);
+                              const current = watch("tools") || [];
+                              setValue("tools", [...current, val], { shouldValidate: true });
+                              setToolInput("");
+                              setToolInputError(false);
+                            }
+                          }
+                        }}
+                        placeholder="Otra..."
+                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all w-32 ${toolInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
+                      />
+                      {toolInputError && (
+                        <span className="text-xs text-rose-500 pl-2">Solo letras</span>
+                      )}
+                    </div>
                   </div>
                   <ErrorMsg name="tools" />
                 </div>
@@ -570,12 +754,7 @@ export default function SalaryInputPage() {
                   <div
                     className={`grid grid-cols-1 gap-3 ${errors.roleDescription ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      "Desarrollo de interfaces y componentes",
-                      "Desarrollo frontend con lógica de negocio",
-                      "Frontend con decisiones técnicas / arquitectura",
-                      "Frontend con liderazgo o mentoría",
-                    ].map((opt) => (
+                    {currentRoleOptions.roleDescriptions.map((opt) => (
                       <label
                         key={opt}
                         className="relative flex items-start gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
