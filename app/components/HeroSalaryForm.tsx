@@ -14,12 +14,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { getQuickSalaryEstimate, type QuickEstimate } from "./hero-actions";
+import { isTechRole } from "../data/tech-roles";
 
 export function HeroSalaryForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<QuickEstimate | null>(null);
   const [aiMessage, setAiMessage] = useState("Analizando tu perfil...");
+  const [roleError, setRoleError] = useState("");
   const [formData, setFormData] = useState({
     role: "Frontend Developer",
     customRole: "",
@@ -34,6 +36,11 @@ export function HeroSalaryForm() {
     if (isNaN(numSalary) || numSalary < 100) return;
     const resolvedRole = formData.role === "Otro" ? formData.customRole : formData.role;
     if (!resolvedRole || !formData.salary || !formData.experience || !formData.location) return;
+    if (formData.role === "Otro" && !isTechRole(formData.customRole)) {
+      setRoleError("Ingresa un rol relacionado con tecnología.");
+      return;
+    }
+    setRoleError("");
 
     startTransition(async () => {
       setAiMessage("Analizando tu perfil...");
@@ -50,6 +57,7 @@ export function HeroSalaryForm() {
   const resolvedRole = formData.role === "Otro" ? formData.customRole.trim() : formData.role;
   const isFormValid =
     resolvedRole &&
+    (formData.role !== "Otro" || isTechRole(formData.customRole)) &&
     formData.salary &&
     formData.experience &&
     formData.location &&
@@ -107,9 +115,10 @@ export function HeroSalaryForm() {
                 <select
                   required
                   value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value, customRole: "" })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, role: e.target.value, customRole: "" });
+                    setRoleError("");
+                  }}
                   className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-xl text-sm text-white focus:outline-none transition-all duration-300 [&>option]:text-black ${
                     formData.role
                       ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
@@ -126,20 +135,31 @@ export function HeroSalaryForm() {
                   <option value="Otro">Otro</option>
                 </select>
                 {formData.role === "Otro" && (
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ej: DevOps, QA, Product Manager..."
-                    value={formData.customRole}
-                    onChange={(e) =>
-                      setFormData({ ...formData, customRole: e.target.value })
-                    }
-                    className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-xl text-sm text-white focus:outline-none transition-all duration-300 placeholder-white/30 mt-2 ${
-                      formData.customRole
-                        ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
-                        : "border-white/10"
-                    } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
-                  />
+                  <>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej: DevOps, QA, Product Manager..."
+                      value={formData.customRole}
+                      onChange={(e) => {
+                        setFormData({ ...formData, customRole: e.target.value });
+                        if (roleError) setRoleError("");
+                      }}
+                      className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-xl text-sm text-white focus:outline-none transition-all duration-300 placeholder-white/30 mt-2 ${
+                        roleError
+                          ? "border-[#FF2E93]/70 shadow-[0_0_15px_rgba(255,46,147,0.3)]"
+                          : formData.customRole
+                            ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
+                            : "border-white/10"
+                      } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
+                    />
+                    {roleError && (
+                      <p className="text-xs font-semibold text-[#FF2E93] mt-1 ml-1 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {roleError}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
 
