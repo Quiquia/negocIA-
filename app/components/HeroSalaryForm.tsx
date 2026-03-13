@@ -316,6 +316,14 @@ export function HeroSalaryForm() {
                 Continuar simulación completa (Gratis)
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform text-[#FF2E93]" />
               </button>
+
+              <button
+                type="button"
+                onClick={() => setResult(null)}
+                className="relative z-10 w-full py-3 px-4 bg-transparent hover:bg-white/10 border border-white/20 text-white/80 hover:text-white rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                Volver a analizar
+              </button>
             </motion.div>
           ) : null}
         </AnimatePresence>
