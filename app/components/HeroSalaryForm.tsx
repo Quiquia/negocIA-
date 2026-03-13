@@ -161,17 +161,18 @@ export function HeroSalaryForm() {
                       } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
                     />
                     {roleError ? (
-                      <p className="text-xs font-semibold text-[#FF2E93] mt-1 ml-1 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {roleError}
-                      </p>
+                      <div className="mt-1.5 ml-1 space-y-1">
+                        <p className="text-xs font-semibold text-[#FF2E93] flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 shrink-0" />
+                          {roleError}
+                        </p>
+                        <p className="text-xs text-white/60">
+                          Prueba con: <span className="text-white/80 font-medium">DevOps Engineer, QA Tester, Scrum Master, Data Scientist, Product Manager, Soporte técnico</span>
+                        </p>
+                      </div>
                     ) : formData.customRole && isTechRole(formData.customRole) ? (
                       <p className="text-xs font-semibold text-green-400 mt-1 ml-1">
                         Rol válido
-                      </p>
-                    ) : formData.customRole ? (
-                      <p className="text-xs font-medium text-white/50 mt-1 ml-1">
-                        Ej: DevOps Engineer, QA Tester, Scrum Master, Soporte técnico...
                       </p>
                     ) : null}
                   </>
