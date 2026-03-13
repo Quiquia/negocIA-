@@ -1,0 +1,34 @@
+# NegocIA+
+
+> Herramienta de negociación salarial con IA para mujeres en tecnología en Latinoamérica.
+
+NegocIA+ es una aplicación web gratuita que ayuda a mujeres en tech a:
+- Analizar su salario comparándolo con el mercado
+- Visualizar la brecha salarial de género en su área
+- Practicar negociaciones con un simulador de IA
+- Generar estrategias personalizadas de negociación
+
+## Stack
+- Next.js 16 + React 19 + TypeScript + Tailwind CSS v4
+- OpenAI GPT-4o-mini para análisis y simulación
+- Supabase para almacenamiento
+
+## Países soportados
+Argentina, Bolivia, Brasil, Chile, Colombia, Costa Rica, Cuba, Ecuador,
+El Salvador, Guatemala, Honduras, México, Nicaragua, Panamá, Paraguay,
+Perú, Puerto Rico, República Dominicana, Uruguay, Venezuela
+
+## Flujo del usuario
+1. Completa perfil profesional (rol, seniority, stack tecnológico)
+2. Ingresa datos de trabajo actual (país, ciudad, empresa, modalidad)
+3. Ingresa compensación actual (salario, moneda, tipo)
+4. Recibe análisis salarial con comparación de mercado
+5. Visualiza brecha salarial de género
+6. Practica negociación con simulador de IA
+7. Obtiene estrategia personalizada y reporte PDF
+
+## Idioma
+Todo el contenido está en español.
+
+## Público objetivo
+Mujeres profesionales en tecnología en Latinoamérica.

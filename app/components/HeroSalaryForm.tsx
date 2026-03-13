@@ -6,9 +6,9 @@ import {
   Bot,
   Briefcase,
   DollarSign,
-  Lock,
   MapPin,
   TrendingUp,
+  User,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
@@ -21,6 +21,8 @@ export function HeroSalaryForm() {
   const [result, setResult] = useState<QuickEstimate | null>(null);
   const [aiMessage, setAiMessage] = useState("Analizando tu perfil...");
   const [formData, setFormData] = useState({
+    role: "Frontend Developer",
+    customRole: "",
     salary: "",
     experience: "",
     location: "",
@@ -30,12 +32,13 @@ export function HeroSalaryForm() {
     e.preventDefault();
     const numSalary = parseInt(formData.salary, 10);
     if (isNaN(numSalary) || numSalary < 100) return;
-    if (!formData.salary || !formData.experience || !formData.location) return;
+    const resolvedRole = formData.role === "Otro" ? formData.customRole : formData.role;
+    if (!resolvedRole || !formData.salary || !formData.experience || !formData.location) return;
 
     startTransition(async () => {
       setAiMessage("Analizando tu perfil...");
       const estimate = await getQuickSalaryEstimate({
-        role: "Frontend Developer",
+        role: resolvedRole,
         experience: formData.experience,
         location: formData.location,
         currentSalary: numSalary,
@@ -44,7 +47,9 @@ export function HeroSalaryForm() {
     });
   };
 
+  const resolvedRole = formData.role === "Otro" ? formData.customRole.trim() : formData.role;
   const isFormValid =
+    resolvedRole &&
     formData.salary &&
     formData.experience &&
     formData.location &&
@@ -94,11 +99,48 @@ export function HeroSalaryForm() {
               onSubmit={handleSubmit}
               className="space-y-4"
             >
-              <div className="w-full px-4 py-3 bg-[#4361EE]/10 border border-[#4361EE]/30 rounded-xl text-sm font-medium text-[#F1E9FF] flex items-center justify-between shadow-[0_0_15px_rgba(67,97,238,0.15)]">
-                <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-[#4361EE]" />
-                  Perfil detectado: Frontend Developer
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-[#4361EE]" />
+                  ¿Cuál es tu rol?
+                </label>
+                <select
+                  required
+                  value={formData.role}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value, customRole: "" })
+                  }
+                  className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-xl text-sm text-white focus:outline-none transition-all duration-300 [&>option]:text-black ${
+                    formData.role
+                      ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
+                      : "border-white/10"
+                  } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
+                >
+                  <option value="" disabled>
+                    Selecciona tu rol...
+                  </option>
+                  <option value="Frontend Developer">Frontend Developer</option>
+                  <option value="Backend Developer">Backend Developer</option>
+                  <option value="Data Analyst">Data Analyst</option>
+                  <option value="UX Designer">UX Designer</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                {formData.role === "Otro" && (
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: DevOps, QA, Product Manager..."
+                    value={formData.customRole}
+                    onChange={(e) =>
+                      setFormData({ ...formData, customRole: e.target.value })
+                    }
+                    className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-xl text-sm text-white focus:outline-none transition-all duration-300 placeholder-white/30 mt-2 ${
+                      formData.customRole
+                        ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
+                        : "border-white/10"
+                    } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
+                  />
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -273,6 +315,14 @@ export function HeroSalaryForm() {
               >
                 Continuar simulación completa (Gratis)
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform text-[#FF2E93]" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setResult(null)}
+                className="relative z-10 w-full py-3 px-4 bg-transparent hover:bg-white/10 border border-white/20 text-white/80 hover:text-white rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                Volver a analizar
               </button>
             </motion.div>
           ) : null}

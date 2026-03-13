@@ -14,10 +14,17 @@ import { useRouter } from "next/navigation";
 import { KeyboardEvent, useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { useSalaryData } from "../providers/SalaryDataProvider";
+import {
+  latamCountries,
+  getCountryByName,
+  getCurrencyOptions,
+  detectCountryByTimezone,
+} from "../data/latam-countries";
 import { submitSalaryProfile } from "./actions";
 
 type ProfileForm = {
   role: string;
+  customRole: string;
   seniority: string;
   yearsExperience: string;
   techStack: string[];
@@ -80,14 +87,18 @@ export default function SalaryInputPage() {
       techStack: [],
       tools: [],
       keywords: [],
+      country: "",
+      currency: "",
       negotiationConfidence: 5,
     },
   });
 
   const watchCountry = watch("country");
   const watchRole = watch("role");
-  const currencySymbol =
-    watchCountry === "Perú" ? "S/" : watchCountry === "Colombia" ? "$" : "$";
+  const selectedCountry = getCountryByName(watchCountry);
+  const currencySymbol = selectedCountry?.currency.symbol ?? "$";
+  const countryCities = selectedCountry?.cities ?? [];
+  const currencyOptions = getCurrencyOptions(watchCountry);
 
   const roleOptions = {
     "Frontend Developer": {
@@ -132,13 +143,21 @@ export default function SalaryInputPage() {
     },
   };
 
-  const currentRoleOptions = roleOptions[watchRole as keyof typeof roleOptions] || roleOptions["Frontend Developer"];
+  const isOtherRole = watchRole === "Otro";
+  const currentRoleOptions = isOtherRole
+    ? {
+        techStack: ["Python", "JavaScript / TypeScript", "SQL", "Excel avanzado", "Java", "Git", "Docker", "AWS / GCP / Azure"],
+        tools: ["Jira / Trello", "Slack", "Notion", "Google Workspace", "Git", "CI/CD", "APIs REST", "Testing"],
+        roleDescriptions: [] as string[],
+      }
+    : (roleOptions[watchRole as keyof typeof roleOptions] || roleOptions["Frontend Developer"]);
 
   // Reset role-specific fields when role changes
   useEffect(() => {
     setValue("techStack", []);
     setValue("tools", []);
     setValue("roleDescription", "" as never);
+    if (watchRole !== "Otro") setValue("customRole", "");
     setCustomTechStack([]);
     setCustomTools([]);
     setTechInput("");
@@ -147,34 +166,25 @@ export default function SalaryInputPage() {
     setToolInputError(false);
   }, [watchRole, setValue]);
 
-  const peruCities = [
-    "Lima",
-    "Arequipa",
-    "Trujillo",
-    "Chiclayo",
-    "Cusco",
-    "Callao",
-    "Piura",
-    "Iquitos",
-    "Huancayo",
-    "Chimbote",
-    "Tacna",
-    "Pucallpa",
-    "Ica",
-  ];
+  // Detect country from browser timezone on mount
+  useEffect(() => {
+    const detected = detectCountryByTimezone();
+    if (detected) {
+      setValue("country", detected);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const colombiaCities = [
-    "Bogotá",
-    "Medellín",
-    "Cali",
-    "Barranquilla",
-    "Cartagena de Indias",
-    "Bucaramanga",
-    "Pereira",
-    "Santa Marta",
-    "Cúcuta",
-    "Ibagué",
-  ];
+  // Reset city and currency when country changes
+  useEffect(() => {
+    if (watchCountry) {
+      setValue("city", "");
+      const country = getCountryByName(watchCountry);
+      if (country) {
+        setValue("currency", country.currency.code);
+      }
+    }
+  }, [watchCountry, setValue]);
 
   useEffect(() => {
     const firstError = document.querySelector(".error-field");
@@ -188,6 +198,7 @@ export default function SalaryInputPage() {
     if (currentStep === 1) {
       fieldsToValidate = [
         "role",
+        ...(isOtherRole ? ["customRole" as const] : []),
         "seniority",
         "yearsExperience",
         "techStack",
@@ -233,7 +244,7 @@ export default function SalaryInputPage() {
     // Build FormData with the keys the server action expects
     const fd = new FormData();
     fd.set("acceptedTerms", "on");
-    fd.set("roleArea", data.role);
+    fd.set("roleArea", data.role === "Otro" ? data.customRole : data.role);
     fd.set("seniority", data.seniority);
     fd.set("frontendYearsExperience", data.yearsExperience);
     fd.set("mainTechnology", data.techStack.join(", "));
@@ -267,7 +278,11 @@ export default function SalaryInputPage() {
 
       // Store submission ID and data in context for subsequent pages
       setSubmissionId(result.id!);
-      setProfileData(data as any);
+      const resolvedData = {
+        ...data,
+        role: data.role === "Otro" ? data.customRole : data.role,
+      };
+      setProfileData(resolvedData as any);
       const salary = Number(data.monthlySalary);
       const avg = Math.round(salary * 1.418);
       setCurrentSalary(salary);
@@ -400,8 +415,28 @@ export default function SalaryInputPage() {
                     <option value="UX Designer">
                       UX Designer
                     </option>
+                    <option value="Otro">Otro</option>
                   </select>
                   <ErrorMsg name="role" />
+                  {isOtherRole && (
+                    <div className="mt-3">
+                      <input
+                        type="text"
+                        placeholder="Escribe tu rol (ej. DevOps Engineer, QA Tester, Product Manager...)"
+                        {...register("customRole", {
+                          validate: (value) =>
+                            watchRole !== "Otro" ||
+                            (value && value.trim().length > 0) ||
+                            "Por favor escribe tu rol.",
+                        })}
+                        className={fieldClasses(
+                          "customRole",
+                          "w-full h-14 px-4 bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all",
+                        )}
+                      />
+                      <ErrorMsg name="customRole" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -478,6 +513,11 @@ export default function SalaryInputPage() {
                     ¿Cuál es tu stack tecnológico principal?{" "}
                     <span className="text-rose-500">*</span>
                   </label>
+                  {isOtherRole && (
+                    <p className="text-xs text-muted-foreground -mt-1">
+                      Selecciona las que apliquen o agrega las tuyas con el campo de texto.
+                    </p>
+                  )}
                   <div
                     className={`flex flex-wrap gap-3 ${errors.techStack ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
@@ -554,8 +594,8 @@ export default function SalaryInputPage() {
                             }
                           }
                         }}
-                        placeholder="Otro..."
-                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all w-32 ${techInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
+                        placeholder={isOtherRole ? "Ej. Kotlin, Terraform..." : "Otro..."}
+                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? "w-48" : "w-32"} ${techInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
                       />
                       {techInputError && (
                         <span className="text-xs text-rose-500 pl-2">Solo letras</span>
@@ -570,6 +610,11 @@ export default function SalaryInputPage() {
                     ¿Con qué herramientas complementas tu trabajo en el día a
                     día? <span className="text-rose-500">*</span>
                   </label>
+                  {isOtherRole && (
+                    <p className="text-xs text-muted-foreground -mt-1">
+                      Selecciona las que apliquen o agrega las tuyas con el campo de texto.
+                    </p>
+                  )}
                   <div
                     className={`flex flex-wrap gap-3 ${errors.tools ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
@@ -646,8 +691,8 @@ export default function SalaryInputPage() {
                             }
                           }
                         }}
-                        placeholder="Otra..."
-                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all w-32 ${toolInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
+                        placeholder={isOtherRole ? "Ej. Figma, SAP..." : "Otra..."}
+                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? "w-48" : "w-32"} ${toolInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
                       />
                       {toolInputError && (
                         <span className="text-xs text-rose-500 pl-2">Solo letras</span>
@@ -751,27 +796,39 @@ export default function SalaryInputPage() {
                     ¿Cuál describe mejor tu rol actual?{" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  <div
-                    className={`grid grid-cols-1 gap-3 ${errors.roleDescription ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
-                  >
-                    {currentRoleOptions.roleDescriptions.map((opt) => (
-                      <label
-                        key={opt}
-                        className="relative flex items-start gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
-                      >
-                        <input
-                          type="radio"
-                          value={opt}
-                          {...register("roleDescription", { required: true })}
-                          className="w-5 h-5 accent-primary mt-0.5 shrink-0"
-                        />
-                        <span className="font-medium text-sm leading-tight pr-6 group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                          {opt}
-                        </span>
-                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
-                      </label>
-                    ))}
-                  </div>
+                  {isOtherRole ? (
+                    <input
+                      type="text"
+                      placeholder="Describe brevemente tu rol (ej. Gestión de proyectos tech, Soporte técnico...)"
+                      {...register("roleDescription", { required: "Por favor describe tu rol." })}
+                      className={fieldClasses(
+                        "roleDescription",
+                        "w-full h-14 px-4 bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all",
+                      )}
+                    />
+                  ) : (
+                    <div
+                      className={`grid grid-cols-1 gap-3 ${errors.roleDescription ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
+                    >
+                      {currentRoleOptions.roleDescriptions.map((opt) => (
+                        <label
+                          key={opt}
+                          className="relative flex items-start gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
+                        >
+                          <input
+                            type="radio"
+                            value={opt}
+                            {...register("roleDescription", { required: true })}
+                            className="w-5 h-5 accent-primary mt-0.5 shrink-0"
+                          />
+                          <span className="font-medium text-sm leading-tight pr-6 group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
+                            {opt}
+                          </span>
+                          <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
+                        </label>
+                      ))}
+                    </div>
+                  )}
                   <ErrorMsg name="roleDescription" />
                 </div>
               </div>
@@ -797,27 +854,22 @@ export default function SalaryInputPage() {
                     ¿En qué país trabajas actualmente?{" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  <div
-                    className={`flex gap-4 ${errors.country ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
+                  <select
+                    {...register("country", { required: true })}
+                    className={fieldClasses(
+                      "country",
+                      "w-full h-12 sm:h-14 px-4 text-sm sm:text-base bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all",
+                    )}
                   >
-                    {["Perú", "Colombia"].map((opt) => (
-                      <label
-                        key={opt}
-                        className="relative flex-1 flex items-center justify-center gap-2 p-3 sm:p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
-                      >
-                        <input
-                          type="radio"
-                          value={opt}
-                          {...register("country", { required: true })}
-                          className="hidden"
-                        />
-                        <span className="font-bold text-sm sm:text-lg group-has-[:checked]:text-primary">
-                          {opt}
-                        </span>
-                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
-                      </label>
+                    <option value="" disabled>
+                      Selecciona tu país
+                    </option>
+                    {latamCountries.map((c) => (
+                      <option key={c.name} value={c.name}>
+                        {c.name}
+                      </option>
                     ))}
-                  </div>
+                  </select>
                   <ErrorMsg name="country" />
                 </div>
 
@@ -837,18 +889,11 @@ export default function SalaryInputPage() {
                     <option value="" disabled>
                       Selecciona tu ciudad
                     </option>
-                    {watchCountry === "Perú" &&
-                      peruCities.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    {watchCountry === "Colombia" &&
-                      colombiaCities.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
+                    {countryCities.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
                   </select>
                   <ErrorMsg name="city" />
                 </div>
@@ -1081,25 +1126,21 @@ export default function SalaryInputPage() {
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
-                    className={`grid grid-cols-1 md:grid-cols-3 gap-3 ${errors.currency ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
+                    className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${errors.currency ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {["PEN", "COP", "USD"].map((opt) => (
+                    {currencyOptions.map((opt) => (
                       <label
-                        key={opt}
+                        key={opt.code}
                         className="relative flex-1 flex items-center justify-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
                       >
                         <input
                           type="radio"
-                          value={opt}
+                          value={opt.code}
                           {...register("currency", { required: true })}
                           className="hidden"
                         />
                         <span className="font-bold text-sm group-has-[:checked]:text-primary">
-                          {opt === "PEN"
-                            ? "Soles (PEN)"
-                            : opt === "COP"
-                              ? "Pesos (COP)"
-                              : "Dólares (USD)"}
+                          {opt.label}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
