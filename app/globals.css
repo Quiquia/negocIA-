@@ -83,6 +83,11 @@
     @apply bg-background text-foreground;
   }
 
+  /* Global Keyboard Accessibility Focus States */
+  a:focus-visible, button:focus-visible, [role="button"]:focus-visible, [tabindex="0"]:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    @apply outline-none ring-2 ring-primary/80 ring-offset-2 ring-offset-background shadow-[0_0_12px_rgba(255,46,147,0.6)];
+  }
+
   html {
     font-size: var(--font-size);
   }

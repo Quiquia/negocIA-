@@ -15,6 +15,8 @@ import {
   Lightbulb,
   CheckCircle2,
   TrendingUp,
+  Mic,
+  Volume2,
 } from "lucide-react";
 import {
   analyzeResponse,
@@ -64,6 +66,10 @@ export default function AiNegotiationSimulatorPage() {
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [activePopover, setActivePopover] = useState<string | null>(null);
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const profileCtx: ProfileContext | undefined = profileData
@@ -76,6 +82,44 @@ export default function AiNegotiationSimulatorPage() {
         marketSalary: fmtSalary(averageSalary),
       }
     : undefined;
+
+  // Recording timer
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setRecordingTime(0);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording]);
+
+  const handleStartRecording = () => {
+    setIsRecording(true);
+  };
+
+  const handleStopRecording = () => {
+    setIsRecording(false);
+    setInputText(
+      `Basándome en datos del mercado, creo que un rango entre ${targetLow} y ${targetHigh} sería justo.`
+    );
+  };
+
+  const handlePlayAudio = (id: string) => {
+    setActivePopover(null);
+    setPlayingMessageId(id);
+    setTimeout(() => {
+      setPlayingMessageId(null);
+    }, 4000);
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
 
   // Genera sugerencias con IA basadas en la conversación actual
   const refreshSuggestions = async (msgs: Message[]) => {
@@ -246,15 +290,31 @@ export default function AiNegotiationSimulatorPage() {
                 <Bot className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-sm sm:text-lg md:text-xl font-extrabold font-heading text-foreground leading-tight truncate">
-                  Simulador de Negociación AI
+                <h1 className="text-sm sm:text-lg md:text-xl font-extrabold font-heading text-foreground leading-tight flex items-center gap-3">
+                  <span className="truncate">Simulador de Negociación AI</span>
+                  <span className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full bg-muted/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border">
+                    Ronda{" "}
+                    {Math.ceil(
+                      messages.filter((m) => m.role !== "coach").length / 2
+                    )}{" "}
+                    de 5
+                  </span>
                 </h1>
-                <p className="text-[10px] sm:text-xs font-medium text-secondary flex items-center gap-1">
-                  <span
-                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isTyping ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`}
-                  />
-                  {isTyping ? "Escribiendo..." : "Gerente Virtual conectado"}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-[10px] sm:text-xs font-medium text-secondary flex items-center gap-1">
+                    <span
+                      className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isTyping ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`}
+                    />
+                    {isTyping ? "Escribiendo..." : "Gerente Virtual conectado"}
+                  </p>
+                  <span className="md:hidden items-center px-2 py-0.5 rounded-full bg-muted/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border">
+                    Ronda{" "}
+                    {Math.ceil(
+                      messages.filter((m) => m.role !== "coach").length / 2
+                    )}{" "}
+                    de 5
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -275,9 +335,31 @@ export default function AiNegotiationSimulatorPage() {
           </button>
         </div>
 
+        {/* Session Context */}
+        <div className="bg-slate-50/80 border-b border-border px-6 py-2.5 flex flex-wrap gap-4 items-center text-xs font-medium text-slate-600 z-10 relative">
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-slate-700">Objetivo:</span>
+            <span>Negociar aumento salarial</span>
+          </div>
+          <div className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-slate-700">Meta sugerida:</span>
+            <span className="text-primary font-bold">
+              {targetLow} – {targetHigh}
+            </span>
+          </div>
+          <div className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-slate-700">Etapa:</span>
+            <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-sm">
+              Objeción salarial
+            </span>
+          </div>
+        </div>
+
         {/* Chat Conversation */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-8 z-10 scroll-smooth">
-          <div className="max-w-3xl mx-auto w-full space-y-8 pb-4">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-10 z-10 scroll-smooth">
+          <div className="max-w-3xl mx-auto w-full space-y-10 pb-4">
             <AnimatePresence initial={false}>
               {messages.map((msg) => (
                 <motion.div
@@ -287,24 +369,32 @@ export default function AiNegotiationSimulatorPage() {
                   className={`flex gap-3 md:gap-4 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"} ${msg.role === "coach" ? "w-full justify-center" : ""}`}
                 >
                   {msg.role !== "coach" && (
-                    <div
-                      className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex flex-shrink-0 items-center justify-center shadow-md ${
-                        msg.role === "user"
-                          ? "bg-gradient-to-br from-primary to-accent text-white"
-                          : "bg-white text-primary border border-primary/20"
-                      }`}
-                    >
-                      {msg.role === "user" ? (
-                        <User className="w-5 h-5 md:w-6 md:h-6" />
-                      ) : (
-                        <Bot className="w-5 h-5 md:w-6 md:h-6" />
+                    <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
+                      <div
+                        className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex flex-shrink-0 items-center justify-center shadow-md ${
+                          msg.role === "user"
+                            ? "bg-gradient-to-br from-primary to-accent text-white"
+                            : "bg-white text-primary border border-primary/20"
+                        }`}
+                      >
+                        {msg.role === "user" ? (
+                          <User className="w-5 h-5 md:w-6 md:h-6" />
+                        ) : (
+                          <Bot className="w-5 h-5 md:w-6 md:h-6" />
+                        )}
+                      </div>
+                      {msg.role === "ai" && (
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-white px-2 py-0.5 rounded-full shadow-sm border border-border mt-1 whitespace-nowrap hidden md:block">
+                          Gerente de contratación
+                        </span>
                       )}
                     </div>
                   )}
 
                   {msg.role === "coach" ? (
-                    <div className="w-full flex justify-center my-6">
-                      <div className="bg-gradient-to-br from-white to-slate-50 border border-border p-6 md:p-8 rounded-[2rem] max-w-2xl w-full shadow-xl relative overflow-hidden">
+                    <div className="w-full flex justify-center my-10 relative">
+                      <div className="absolute top-1/2 left-0 right-0 h-px bg-border -z-10" />
+                      <div className="bg-gradient-to-br from-white to-slate-50 border border-border p-6 md:p-8 rounded-[2rem] max-w-2xl w-full shadow-2xl shadow-primary/5 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
 
@@ -323,18 +413,21 @@ export default function AiNegotiationSimulatorPage() {
                               label: "Claridad",
                               score: msg.scores?.clarity,
                               color: "text-secondary",
+                              bg: "bg-secondary/10",
                               bar: "bg-secondary",
                             },
                             {
                               label: "Confianza",
                               score: msg.scores?.confidence,
                               color: "text-primary",
+                              bg: "bg-primary/10",
                               bar: "bg-primary",
                             },
                             {
                               label: "Uso de datos",
                               score: msg.scores?.data,
                               color: "text-accent",
+                              bg: "bg-accent/10",
                               bar: "bg-accent",
                             },
                           ].map((stat, i) => (
@@ -346,24 +439,51 @@ export default function AiNegotiationSimulatorPage() {
                                 {stat.label}
                               </span>
                               <div className="flex items-end gap-1 mb-3">
-                                <span
+                                <motion.span
+                                  initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  transition={{
+                                    duration: 0.5,
+                                    delay: 0.2 + i * 0.1,
+                                    type: "spring",
+                                    stiffness: 200,
+                                  }}
                                   className={`text-3xl font-black leading-none ${stat.color}`}
                                 >
                                   {stat.score}
-                                </span>
+                                </motion.span>
                                 <span className="text-sm text-muted-foreground/50 font-bold mb-1">
                                   /10
                                 </span>
                               </div>
-                              <div className="w-full h-2 bg-muted/20 rounded-full overflow-hidden">
+                              <div className="w-full h-2 bg-muted/20 rounded-full overflow-hidden relative">
                                 <motion.div
                                   initial={{ width: 0 }}
                                   animate={{
                                     width: `${(stat.score || 0) * 10}%`,
                                   }}
-                                  transition={{ duration: 1, delay: 0.5 }}
-                                  className={`h-full rounded-full ${stat.bar}`}
-                                />
+                                  transition={{
+                                    duration: 1,
+                                    delay: 0.3 + i * 0.1,
+                                    ease: "easeOut",
+                                  }}
+                                  className={`h-full rounded-full ${stat.bar} relative`}
+                                >
+                                  <motion.div
+                                    initial={{ opacity: 0, x: "-100%" }}
+                                    animate={{
+                                      opacity: [0, 1, 0],
+                                      x: "100%",
+                                    }}
+                                    transition={{
+                                      duration: 1.5,
+                                      delay: 1 + i * 0.1,
+                                      ease: "easeInOut",
+                                      repeat: 1,
+                                    }}
+                                    className="absolute inset-0 w-full h-full bg-white/40 skew-x-12"
+                                  />
+                                </motion.div>
                               </div>
                             </div>
                           ))}
@@ -380,19 +500,19 @@ export default function AiNegotiationSimulatorPage() {
                             </p>
                           </div>
 
-                          <div className="flex-1 bg-gradient-to-br from-primary to-accent p-5 rounded-2xl shadow-md text-white">
-                            <div className="text-sm font-bold text-white/80 mb-3 flex items-center gap-2">
-                              <Sparkles className="w-4 h-4 text-white/60" />
+                          <div className="flex-1 bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 p-5 rounded-2xl shadow-sm text-foreground">
+                            <div className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+                              <Sparkles className="w-4 h-4 text-primary" />
                               Versión mejorada
                             </div>
-                            <p className="text-[15px] font-medium leading-relaxed mb-5">
+                            <p className="text-[15px] font-medium leading-relaxed mb-5 text-slate-700">
                               &ldquo;{msg.improvedResponse}&rdquo;
                             </p>
                             <button
                               onClick={() =>
                                 useImprovedResponse(msg.improvedResponse || "")
                               }
-                              className="w-full text-sm font-bold bg-white text-primary px-4 py-2.5 rounded-xl shadow-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+                              className="w-full text-sm font-bold bg-primary text-white px-4 py-2.5 rounded-xl shadow-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
                             >
                               <CheckCircle2 className="w-5 h-5" />
                               Usar esta respuesta
@@ -403,13 +523,74 @@ export default function AiNegotiationSimulatorPage() {
                     </div>
                   ) : (
                     <div
-                      className={`max-w-[85%] md:max-w-[75%] rounded-3xl px-4 py-3 sm:px-6 sm:py-4 md:py-5 shadow-sm text-sm sm:text-[16px] leading-relaxed font-medium ${
-                        msg.role === "user"
-                          ? "bg-gradient-to-r from-primary to-accent text-white rounded-tr-none shadow-[0_4px_15px_rgba(255,46,147,0.2)]"
-                          : "bg-white border border-border text-foreground rounded-tl-none shadow-sm"
-                      }`}
+                      className={`flex flex-col gap-1 ${msg.role === "user" ? "items-end" : "items-start"} max-w-[85%] md:max-w-[75%]`}
                     >
-                      {msg.text}
+                      {msg.role === "ai" && (
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider md:hidden px-1">
+                          Gerente de contratación
+                        </span>
+                      )}
+                      <div
+                        className={`rounded-3xl px-4 py-3 sm:px-6 sm:py-4 md:py-5 shadow-sm text-sm sm:text-[16px] leading-relaxed font-medium relative group z-0 ${
+                          msg.role === "user"
+                            ? "bg-gradient-to-r from-primary to-accent text-white rounded-tr-none shadow-[0_4px_15px_rgba(255,46,147,0.2)]"
+                            : "bg-white border border-border text-foreground rounded-tl-none shadow-sm"
+                        }`}
+                      >
+                        {playingMessageId === msg.id && (
+                          <div className="absolute inset-0 z-0 rounded-3xl rounded-tl-none overflow-hidden">
+                            <motion.div
+                              initial={{ width: "0%" }}
+                              animate={{ width: "100%" }}
+                              transition={{ duration: 4, ease: "linear" }}
+                              className="absolute top-0 left-0 bottom-0 bg-primary/10"
+                            />
+                          </div>
+                        )}
+                        <div className="relative z-10">{msg.text}</div>
+                        {msg.role === "ai" && (
+                          <div className="mt-3 flex justify-end relative z-20">
+                            <button
+                              onClick={() =>
+                                setActivePopover(
+                                  activePopover === msg.id ? null : msg.id
+                                )
+                              }
+                              className="text-muted-foreground/60 hover:text-primary transition-colors p-1.5 rounded-full hover:bg-primary/5"
+                              title="Escuchar respuesta"
+                            >
+                              <Volume2 className="w-4 h-4" />
+                            </button>
+
+                            <AnimatePresence>
+                              {activePopover === msg.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                                  className="absolute bottom-full right-0 mb-2 w-44 bg-white rounded-xl shadow-lg border border-border p-2 z-50 origin-bottom-right"
+                                >
+                                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2 pt-1">
+                                    Escuchar respuesta
+                                  </div>
+                                  <button
+                                    onClick={() => handlePlayAudio(msg.id)}
+                                    className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50 rounded-lg transition-colors"
+                                  >
+                                    Voz femenina
+                                  </button>
+                                  <button
+                                    onClick={() => handlePlayAudio(msg.id)}
+                                    className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50 rounded-lg transition-colors"
+                                  >
+                                    Voz masculina
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </motion.div>
@@ -423,9 +604,18 @@ export default function AiNegotiationSimulatorPage() {
                   exit={{ opacity: 0 }}
                   className="flex gap-3 md:gap-4"
                 >
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-primary/20 text-primary flex items-center justify-center shadow-md">
-                    <Bot className="w-5 h-5 md:w-6 md:h-6" />
+                  <div className="flex flex-col items-center gap-1.5 mt-1 shrink-0">
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-primary/20 text-primary flex items-center justify-center shadow-md">
+                      <Bot className="w-5 h-5 md:w-6 md:h-6" />
+                    </div>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-white px-2 py-0.5 rounded-full shadow-sm border border-border mt-1 whitespace-nowrap hidden md:block">
+                      Gerente de contratación
+                    </span>
                   </div>
+                  <div className="flex flex-col gap-1 items-start">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider md:hidden px-1">
+                      Gerente de contratación
+                    </span>
                   <div className="bg-white border border-border rounded-3xl rounded-tl-none px-6 py-5 shadow-sm flex items-center gap-2 w-fit">
                     <motion.div
                       animate={{
@@ -463,6 +653,7 @@ export default function AiNegotiationSimulatorPage() {
                       }}
                       className="w-2.5 h-2.5 rounded-full bg-primary"
                     />
+                  </div>
                   </div>
                 </motion.div>
               )}
@@ -528,29 +719,65 @@ export default function AiNegotiationSimulatorPage() {
             </div>
 
             <div className="px-3 sm:px-4 md:px-6 pb-4 sm:pb-6 pt-1">
-              <div className="relative flex items-end gap-2 sm:gap-3 bg-muted/20 border border-border rounded-2xl sm:rounded-[2rem] p-1.5 sm:p-2 shadow-inner focus-within:bg-white focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary/30 transition-all">
-                <textarea
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend(inputText);
-                    }
-                  }}
-                  placeholder="Escribe tu mensaje o usa una sugerencia arriba..."
-                  className="flex-1 max-h-32 min-h-[48px] sm:min-h-[60px] bg-transparent outline-none resize-none px-3 py-3 sm:px-5 sm:py-4 text-sm sm:text-[16px] text-foreground font-medium placeholder:text-muted-foreground"
-                  disabled={isTyping}
-                  rows={1}
-                />
-                <button
-                  onClick={() => handleSend(inputText)}
-                  disabled={isTyping || !inputText.trim()}
-                  className="p-3 sm:p-4 mb-0.5 mr-0.5 sm:mb-1 sm:mr-1 bg-gradient-to-r from-primary to-accent text-white rounded-xl sm:rounded-2xl hover:shadow-[0_4px_15px_rgba(255,46,147,0.3)] hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none shadow-md shrink-0"
-                >
-                  <Send className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-              </div>
+              {isRecording ? (
+                <div className="relative flex items-center justify-between gap-3 bg-red-50 border border-red-100 rounded-[2rem] p-4 shadow-inner transition-all w-full min-h-[60px]">
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.7, 1, 0.7],
+                      }}
+                      transition={{ repeat: Infinity, duration: 1.5 }}
+                      className="w-3 h-3 rounded-full bg-red-500"
+                    />
+                    <span className="font-bold text-red-600 text-sm">
+                      Grabando...
+                    </span>
+                    <span className="text-red-500 font-medium text-sm font-mono ml-2">
+                      {formatTime(recordingTime)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleStopRecording}
+                    className="p-3 bg-red-500 hover:bg-red-600 text-white rounded-xl hover:scale-105 transition-all shadow-sm flex items-center gap-2"
+                  >
+                    <StopCircle className="w-4 h-4 fill-current" />
+                    <span className="text-xs font-bold">Detener</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="relative flex items-end gap-2 sm:gap-3 bg-muted/20 border border-border rounded-2xl sm:rounded-[2rem] p-1.5 sm:p-2 shadow-inner focus-within:bg-white focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary/30 transition-all">
+                  <button
+                    onClick={handleStartRecording}
+                    disabled={isTyping}
+                    className="p-3 sm:p-4 mb-0.5 ml-0.5 sm:mb-1 sm:ml-1 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-full transition-colors disabled:opacity-50 shrink-0"
+                    title="Grabar mensaje de voz"
+                  >
+                    <Mic className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                  <textarea
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend(inputText);
+                      }
+                    }}
+                    placeholder="Escribe tu mensaje o usa una sugerencia arriba..."
+                    className="flex-1 max-h-32 min-h-[48px] sm:min-h-[60px] bg-transparent outline-none resize-none py-3 sm:py-4 text-sm sm:text-[16px] text-foreground font-medium placeholder:text-muted-foreground"
+                    disabled={isTyping}
+                    rows={1}
+                  />
+                  <button
+                    onClick={() => handleSend(inputText)}
+                    disabled={isTyping || !inputText.trim()}
+                    className="p-3 sm:p-4 mb-0.5 mr-0.5 sm:mb-1 sm:mr-1 bg-gradient-to-r from-primary to-accent text-white rounded-xl sm:rounded-2xl hover:shadow-[0_4px_15px_rgba(255,46,147,0.3)] hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100 disabled:shadow-none shadow-md shrink-0"
+                  >
+                    <Send className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
