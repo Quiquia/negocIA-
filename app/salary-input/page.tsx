@@ -6,10 +6,11 @@ import {
   ArrowRight,
   CheckCircle2,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { KeyboardEvent, useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 import { submitSalaryProfile } from "./actions";
@@ -20,6 +21,7 @@ type ProfileForm = {
   yearsExperience: string;
   techStack: string[];
   tools: string[];
+  keywords: string[];
   englishLevel: string;
   englishUsage: string;
   otherLanguages: string;
@@ -62,6 +64,7 @@ export default function SalaryInputPage() {
     watch,
     formState: { errors },
     trigger,
+    setValue,
   } = useForm<ProfileForm>({
     mode: "onChange",
     defaultValues: {
@@ -69,6 +72,7 @@ export default function SalaryInputPage() {
       seniority: prefillSeniority || "",
       techStack: [],
       tools: [],
+      keywords: [],
       negotiationConfidence: 5,
     },
   });
@@ -229,6 +233,26 @@ export default function SalaryInputPage() {
     return `${base} ${errors[name] ? "border-rose-500 ring-rose-500/10" : "border-border/50 focus:border-primary focus:ring-primary/10"}`;
   };
 
+  const watchKeywords = watch("keywords") || [];
+  const [keywordInput, setKeywordInput] = useState("");
+
+  const handleAddKeyword = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      const newKeyword = keywordInput.trim();
+      if (newKeyword && !watchKeywords.includes(newKeyword)) {
+        const updated = [...watchKeywords, newKeyword];
+        setValue("keywords", updated, { shouldValidate: true });
+        setKeywordInput("");
+      }
+    }
+  };
+
+  const handleRemoveKeyword = (keywordToRemove: string) => {
+    const updated = watchKeywords.filter((k) => k !== keywordToRemove);
+    setValue("keywords", updated, { shouldValidate: true });
+  };
+
   return (
     <div className="flex flex-col items-center justify-center py-10 md:py-16 px-2 sm:px-4 max-w-3xl mx-auto w-full">
       {/* Progress Indicator */}
@@ -249,10 +273,17 @@ export default function SalaryInputPage() {
             transition={{ duration: 0.3 }}
           />
         </div>
-        <p className="text-sm text-muted-foreground mt-3 text-center md:text-left">
-          Mientras más detalles compartas, más preciso será tu análisis
-          salarial.
-        </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between mt-3 gap-2">
+          <p className="text-sm text-muted-foreground text-center md:text-left">
+            Mientras más detalles compartas, más preciso será tu análisis
+            salarial.
+          </p>
+          <p className="text-xs text-muted-foreground/80 flex items-center justify-center md:justify-end gap-1.5 font-medium bg-muted/30 px-3 py-1.5 rounded-full">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            NegocIA+ utiliza datos reales del mercado tecnológico para estimar
+            rangos salariales.
+          </p>
+        </div>
       </div>
 
       <motion.div
@@ -314,7 +345,7 @@ export default function SalaryInputPage() {
                     ].map((opt) => (
                       <label
                         key={opt.value}
-                        className="flex items-center gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex items-center gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -322,7 +353,10 @@ export default function SalaryInputPage() {
                           {...register("seniority", { required: true })}
                           className="w-5 h-5 accent-primary"
                         />
-                        <span className="font-medium">{opt.label}</span>
+                        <span className="font-medium group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
+                          {opt.label}
+                        </span>
+                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -346,7 +380,7 @@ export default function SalaryInputPage() {
                     ].map((opt) => (
                       <label
                         key={opt}
-                        className="flex items-center gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex items-center gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -354,7 +388,10 @@ export default function SalaryInputPage() {
                           {...register("yearsExperience", { required: true })}
                           className="w-5 h-5 accent-primary"
                         />
-                        <span className="font-medium">{opt}</span>
+                        <span className="font-medium group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
+                          {opt}
+                        </span>
+                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -379,17 +416,18 @@ export default function SalaryInputPage() {
                     ].map((tech) => (
                       <label
                         key={tech}
-                        className="flex items-center justify-center px-4 py-2.5 border-2 border-border/50 rounded-full cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 transition-all select-none bg-white"
+                        className="relative flex items-center justify-center pl-4 pr-10 py-2.5 border-2 border-border/50 rounded-full cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all select-none bg-white group"
                       >
                         <input
                           type="checkbox"
                           value={tech}
                           {...register("techStack", { required: true })}
-                          className="hidden"
+                          className="hidden peer"
                         />
                         <span className="font-bold text-sm text-foreground/80 peer-checked:text-primary">
                           {tech}
                         </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -417,17 +455,18 @@ export default function SalaryInputPage() {
                     ].map((tool) => (
                       <label
                         key={tool}
-                        className="flex items-center justify-center px-4 py-2.5 border-2 border-border/50 rounded-full cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 transition-all select-none bg-white"
+                        className="relative flex items-center justify-center pl-4 pr-10 py-2.5 border-2 border-border/50 rounded-full cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all select-none bg-white group"
                       >
                         <input
                           type="checkbox"
                           value={tool}
                           {...register("tools", { required: true })}
-                          className="hidden"
+                          className="hidden peer"
                         />
                         <span className="font-bold text-sm text-foreground/80 peer-checked:text-primary">
                           {tool}
                         </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -451,7 +490,7 @@ export default function SalaryInputPage() {
                     ].map((opt) => (
                       <label
                         key={opt}
-                        className="flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -459,7 +498,10 @@ export default function SalaryInputPage() {
                           {...register("englishLevel", { required: true })}
                           className="w-4 h-4 accent-primary"
                         />
-                        <span className="font-medium text-sm">{opt}</span>
+                        <span className="font-medium text-sm group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
+                          {opt}
+                        </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -477,7 +519,7 @@ export default function SalaryInputPage() {
                     {["Sí, frecuentemente", "A veces", "No"].map((opt) => (
                       <label
                         key={opt}
-                        className="flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all text-center bg-white"
+                        className="relative flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
                       >
                         <input
                           type="radio"
@@ -485,7 +527,10 @@ export default function SalaryInputPage() {
                           {...register("englishUsage", { required: true })}
                           className="hidden"
                         />
-                        <span className="font-bold text-sm">{opt}</span>
+                        <span className="font-bold text-sm group-has-[:checked]:text-primary">
+                          {opt}
+                        </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -500,7 +545,7 @@ export default function SalaryInputPage() {
                     {["Sí", "No"].map((opt) => (
                       <label
                         key={opt}
-                        className="flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all text-center"
+                        className="relative flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center group"
                       >
                         <input
                           type="radio"
@@ -508,7 +553,10 @@ export default function SalaryInputPage() {
                           {...register("otherLanguages", { required: false })}
                           className="hidden"
                         />
-                        <span className="font-bold text-sm">{opt}</span>
+                        <span className="font-bold text-sm group-has-[:checked]:text-primary">
+                          {opt}
+                        </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -530,7 +578,7 @@ export default function SalaryInputPage() {
                     ].map((opt) => (
                       <label
                         key={opt}
-                        className="flex items-start gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex items-start gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -538,9 +586,10 @@ export default function SalaryInputPage() {
                           {...register("roleDescription", { required: true })}
                           className="w-5 h-5 accent-primary mt-0.5 shrink-0"
                         />
-                        <span className="font-medium text-sm leading-tight">
+                        <span className="font-medium text-sm leading-tight pr-6 group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
                           {opt}
                         </span>
+                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -575,7 +624,7 @@ export default function SalaryInputPage() {
                     {["Perú", "Colombia"].map((opt) => (
                       <label
                         key={opt}
-                        className="flex-1 flex items-center justify-center gap-2 p-3 sm:p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all text-center bg-white"
+                        className="relative flex-1 flex items-center justify-center gap-2 p-3 sm:p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
                       >
                         <input
                           type="radio"
@@ -583,9 +632,10 @@ export default function SalaryInputPage() {
                           {...register("country", { required: true })}
                           className="hidden"
                         />
-                        <span className="font-bold text-sm sm:text-lg">
+                        <span className="font-bold text-sm sm:text-lg group-has-[:checked]:text-primary">
                           {opt}
                         </span>
+                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -635,7 +685,7 @@ export default function SalaryInputPage() {
                     {["Remoto", "Híbrido", "Presencial"].map((opt) => (
                       <label
                         key={opt}
-                        className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all text-center bg-white"
+                        className="relative flex-1 flex items-center justify-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
                       >
                         <input
                           type="radio"
@@ -643,7 +693,10 @@ export default function SalaryInputPage() {
                           {...register("workMode", { required: true })}
                           className="hidden"
                         />
-                        <span className="font-bold text-sm">{opt}</span>
+                        <span className="font-bold text-sm group-has-[:checked]:text-primary">
+                          {opt}
+                        </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -669,7 +722,7 @@ export default function SalaryInputPage() {
                     ].map((opt) => (
                       <label
                         key={opt}
-                        className="flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -677,9 +730,10 @@ export default function SalaryInputPage() {
                           {...register("companyType", { required: true })}
                           className="w-4 h-4 accent-primary shrink-0"
                         />
-                        <span className="font-medium text-sm leading-tight">
+                        <span className="font-medium text-sm leading-tight group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
                           {opt}
                         </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -702,7 +756,7 @@ export default function SalaryInputPage() {
                     ].map((opt) => (
                       <label
                         key={opt}
-                        className="flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -710,9 +764,10 @@ export default function SalaryInputPage() {
                           {...register("contractType", { required: true })}
                           className="w-4 h-4 accent-primary shrink-0"
                         />
-                        <span className="font-medium text-sm leading-tight">
+                        <span className="font-medium text-sm leading-tight group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
                           {opt}
                         </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -735,7 +790,7 @@ export default function SalaryInputPage() {
                     ].map((opt) => (
                       <label
                         key={opt}
-                        className="flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -743,9 +798,10 @@ export default function SalaryInputPage() {
                           {...register("workSchedule", { required: true })}
                           className="w-4 h-4 accent-primary shrink-0"
                         />
-                        <span className="font-medium text-sm leading-tight">
+                        <span className="font-medium text-sm leading-tight group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
                           {opt}
                         </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -760,23 +816,29 @@ export default function SalaryInputPage() {
                   <div
                     className={`flex flex-col sm:flex-row gap-4 ${errors.companyOrigin ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    <label className="flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white">
+                    <label className="relative flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group">
                       <input
                         type="radio"
                         value="Local"
                         {...register("companyOrigin", { required: true })}
                         className="w-5 h-5 accent-primary hidden"
                       />
-                      <span className="font-bold">Local</span>
+                      <span className="font-bold group-has-[:checked]:text-primary">
+                        Local
+                      </span>
+                      <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                     </label>
-                    <label className="flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white">
+                    <label className="relative flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group">
                       <input
                         type="radio"
                         value="Internacional"
                         {...register("companyOrigin", { required: true })}
                         className="w-5 h-5 accent-primary hidden"
                       />
-                      <span className="font-bold">Internacional</span>
+                      <span className="font-bold group-has-[:checked]:text-primary">
+                        Internacional
+                      </span>
+                      <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                     </label>
                   </div>
                   <ErrorMsg name="companyOrigin" />
@@ -826,6 +888,11 @@ export default function SalaryInputPage() {
                       )}
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Puedes ingresar una estimación aproximada. Tus datos son
+                    privados y solo se utilizan para generar tu análisis
+                    salarial.
+                  </p>
                   <ErrorMsg name="monthlySalary" />
                 </div>
 
@@ -840,7 +907,7 @@ export default function SalaryInputPage() {
                     {["PEN", "COP", "USD"].map((opt) => (
                       <label
                         key={opt}
-                        className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all text-center bg-white"
+                        className="relative flex-1 flex items-center justify-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
                       >
                         <input
                           type="radio"
@@ -848,13 +915,14 @@ export default function SalaryInputPage() {
                           {...register("currency", { required: true })}
                           className="hidden"
                         />
-                        <span className="font-bold text-sm">
+                        <span className="font-bold text-sm group-has-[:checked]:text-primary">
                           {opt === "PEN"
                             ? "Soles (PEN)"
                             : opt === "COP"
                               ? "Pesos (COP)"
                               : "Dólares (USD)"}
                         </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -885,7 +953,7 @@ export default function SalaryInputPage() {
                     {["Bruto", "Neto", "No estoy segura"].map((type) => (
                       <label
                         key={type}
-                        className="flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -893,7 +961,10 @@ export default function SalaryInputPage() {
                           {...register("salaryType", { required: true })}
                           className="hidden"
                         />
-                        <span className="font-bold">{type}</span>
+                        <span className="font-bold group-has-[:checked]:text-primary">
+                          {type}
+                        </span>
+                        <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -920,7 +991,7 @@ export default function SalaryInputPage() {
                     {["Sí", "No"].map((opt) => (
                       <label
                         key={opt}
-                        className="flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -928,7 +999,10 @@ export default function SalaryInputPage() {
                           {...register("hasBonus", { required: true })}
                           className="hidden"
                         />
-                        <span className="font-bold">{opt}</span>
+                        <span className="font-bold group-has-[:checked]:text-primary">
+                          {opt}
+                        </span>
+                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -968,7 +1042,7 @@ export default function SalaryInputPage() {
                     ].map((opt) => (
                       <label
                         key={opt}
-                        className="flex items-center gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
+                        className="relative flex items-center gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
                       >
                         <input
                           type="radio"
@@ -976,7 +1050,10 @@ export default function SalaryInputPage() {
                           {...register("lastIncrease", { required: true })}
                           className="w-5 h-5 accent-primary shrink-0"
                         />
-                        <span className="font-medium text-sm">{opt}</span>
+                        <span className="font-medium text-sm group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
+                          {opt}
+                        </span>
+                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
                     ))}
                   </div>
@@ -1000,31 +1077,25 @@ export default function SalaryInputPage() {
                     <span>Muy segura y confiada</span>
                   </div>
                 </div>
-
-                <div className="space-y-3 pt-4 border-t border-border/50">
-                  <label className="text-sm font-bold text-foreground">
-                    ¿Te gustaría practicar una negociación salarial con IA?{" "}
-                    <span className="text-rose-500">*</span>
-                  </label>
-                  <div
-                    className={`flex flex-col sm:flex-row gap-4 ${errors.wantsAiPractice ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
-                  >
-                    {["Sí", "No"].map((opt) => (
-                      <label
-                        key={opt}
-                        className="flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 transition-all bg-white"
-                      >
-                        <input
-                          type="radio"
-                          value={opt}
-                          {...register("wantsAiPractice", { required: true })}
-                          className="hidden"
-                        />
-                        <span className="font-bold">{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-                  <ErrorMsg name="wantsAiPractice" />
+                <hr />
+                <div className="mt-8 p-5 bg-primary/5 border border-primary/20 rounded-2xl">
+                  <h4 className="font-bold text-foreground text-sm mb-2">
+                    Tu análisis incluirá:
+                  </h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground font-medium">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                      Tu rango salarial estimado
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                      Comparación con el mercado tecnológico
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                      Recomendaciones para negociar tu salario
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -1038,25 +1109,25 @@ export default function SalaryInputPage() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between pt-8 mt-8 border-t border-border/50">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-between pt-8 mt-8 border-t border-border/50 gap-4 sm:gap-0">
             {currentStep > 1 ? (
               <button
                 type="button"
                 onClick={handlePrev}
-                className="inline-flex h-14 items-center justify-center gap-2 px-4 md:px-8 rounded-full bg-muted text-foreground font-bold hover:bg-muted/80 transition-all text-xs sm:text-lg"
+                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 px-6 rounded-full bg-muted text-foreground font-bold hover:bg-muted/80 transition-all"
               >
                 <ArrowLeft className="w-5 h-5" />
                 Anterior
               </button>
             ) : (
-              <div />
+              <div className="hidden sm:block" />
             )}
 
             {currentStep < totalSteps ? (
               <button
                 type="button"
                 onClick={handleNext}
-                className="inline-flex h-14 items-center justify-center gap-2 px-4 md:px-8 text-xs sm:text-lg rounded-full bg-primary text-white font-extrabold  shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all ml-auto"
+                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 px-8 rounded-full bg-primary text-white font-extrabold text-lg shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all sm:ml-auto"
               >
                 Siguiente
                 <ArrowRight className="w-5 h-5" />
@@ -1076,7 +1147,7 @@ export default function SalaryInputPage() {
                     handleSubmit(onSubmit)();
                   }
                 }}
-                className="text-sm md:text-lg inline-flex h-14 items-center justify-center gap-2 px-4 md:px-8 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold  shadow-[0_0_20px_rgba(255,46,147,0.4)] hover:-translate-y-0.5 transition-all ml-auto disabled:opacity-60 disabled:pointer-events-none"
+                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 px-8 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold text-lg shadow-[0_0_20px_rgba(255,46,147,0.4)] hover:-translate-y-0.5 transition-all sm:ml-auto disabled:opacity-60 disabled:pointer-events-none"
               >
                 {isPending ? (
                   <>

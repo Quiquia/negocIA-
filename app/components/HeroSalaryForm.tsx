@@ -1,25 +1,25 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
 import {
-  Sparkles,
+  AlertCircle,
   ArrowRight,
-  Lock,
-  MapPin,
+  Bot,
   Briefcase,
   DollarSign,
+  Lock,
+  MapPin,
   TrendingUp,
-  Loader2,
 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { getQuickSalaryEstimate, type QuickEstimate } from "./hero-actions";
 
 export function HeroSalaryForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<QuickEstimate | null>(null);
-  const [location, setLocation] = useState("");
+  const [aiMessage, setAiMessage] = useState("Analizando tu perfil...");
   const [formData, setFormData] = useState({
     salary: "",
     experience: "",
@@ -28,37 +28,61 @@ export function HeroSalaryForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const numSalary = parseInt(formData.salary, 10);
+    if (isNaN(numSalary) || numSalary < 100) return;
     if (!formData.salary || !formData.experience || !formData.location) return;
 
-    setLocation(formData.location);
     startTransition(async () => {
+      setAiMessage("Analizando tu perfil...");
       const estimate = await getQuickSalaryEstimate({
         role: "Frontend Developer",
         experience: formData.experience,
         location: formData.location,
-        currentSalary: Number(formData.salary),
+        currentSalary: numSalary,
       });
       setResult(estimate);
     });
   };
 
+  const isFormValid =
+    formData.salary &&
+    formData.experience &&
+    formData.location &&
+    parseInt(formData.salary, 10) >= 100;
+  const showSalaryError =
+    formData.salary !== "" && parseInt(formData.salary, 10) < 100;
   const fmt = (n: number) => `$${n.toLocaleString()}`;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.4 }}
-      className="w-full max-w-md bg-[#F1E9FF]/95 backdrop-blur-xl border border-white/40 rounded-3xl p-6 shadow-[0_10px_40px_rgba(58,12,163,0.3)] relative overflow-hidden"
+      className="w-full max-w-lg bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_20px_60px_rgba(58,12,163,0.4)] relative overflow-hidden"
     >
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF2E93]/20 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#4361EE]/20 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF2E93]/30 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#4361EE]/30 rounded-full blur-2xl pointer-events-none" />
 
       <div className="relative z-10">
-        <h3 className="text-xl font-bold font-heading text-[#3A0CA3] mb-4 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-[#FF2E93]" />
-          Prueba rápida: ¿tu salario está alineado con el mercado?
-        </h3>
+        <div className="flex items-start md:items-center gap-3 mb-6 ">
+          <div className="p-2 bg-gradient-to-br from-[#FF2E93] to-[#3A0CA3] rounded-xl shadow-lg">
+            <Bot className="w-5 h-5 text-white" />
+          </div>
+          <div className="w-full">
+            <div className="flex items-center justify-between w-full">
+              <h3 className="text-xl font-black font-heading text-white">
+                AI Salary Scanner
+              </h3>
+              <span className="w-[100px]  text-xs font-bold px-2 py-1 bg-white/10 rounded-full text-white/80">
+                Paso 1 de 4
+              </span>
+            </div>
+            <p className="text-sm font-medium text-white/70 mt-1">
+              Prueba rápida: descubre si tu salario está alineado con el mercado
+              tecnológico
+            </p>
+          </div>
+        </div>
 
         <AnimatePresence mode="wait">
           {!result && !isPending ? (
@@ -70,24 +94,51 @@ export function HeroSalaryForm() {
               onSubmit={handleSubmit}
               className="space-y-4"
             >
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-[#0F172A] flex items-center gap-2">
-                  <Lock className="w-3.5 h-3.5 text-[#4361EE]" />
-                  Perfil
-                </label>
-                <div className="w-full px-4 py-2.5 bg-white/60 border border-[#D1C4E9] rounded-xl text-sm font-medium text-[#0F172A]/70 flex items-center justify-between cursor-not-allowed">
-                  Frontend Developer
-                  <span className="text-xs bg-[#4361EE]/10 text-[#4361EE] px-2 py-0.5 rounded-full font-bold">
-                    Fijado
-                  </span>
+              <div className="w-full px-4 py-3 bg-[#4361EE]/10 border border-[#4361EE]/30 rounded-xl text-sm font-medium text-[#F1E9FF] flex items-center justify-between shadow-[0_0_15px_rgba(67,97,238,0.15)]">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-[#4361EE]" />
+                  Perfil detectado: Frontend Developer
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-[#FF2E93]" />
+                  Salario Mensual Actual (USD)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 font-medium">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    required
+                    min="100"
+                    placeholder="Ej: 2200"
+                    value={formData.salary}
+                    onChange={(e) =>
+                      setFormData({ ...formData, salary: e.target.value })
+                    }
+                    className={`w-full pl-8 pr-4 py-3 bg-white/5 backdrop-blur-sm border rounded-xl text-sm text-white focus:outline-none transition-all duration-300 placeholder-white/30 ${
+                      formData.salary
+                        ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
+                        : "border-white/10"
+                    } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
+                  />
+                </div>
+                {showSalaryError && (
+                  <p className="text-xs font-semibold text-[#FF2E93] mt-1 ml-1 animate-pulse flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    El salario debe ser mayor a 100 USD
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-[#0F172A] flex items-center gap-1.5">
-                    <Briefcase className="w-3.5 h-3.5 text-[#3A0CA3]" />
-                    Experiencia
+                  <label className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-[#4361EE]" />
+                    Años de experiencia
                   </label>
                   <select
                     required
@@ -95,7 +146,11 @@ export function HeroSalaryForm() {
                     onChange={(e) =>
                       setFormData({ ...formData, experience: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 bg-white border border-[#D1C4E9] rounded-xl text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#FF2E93]/50 focus:border-[#FF2E93] transition-all"
+                    className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-xl text-sm text-white focus:outline-none transition-all duration-300 [&>option]:text-black ${
+                      formData.experience
+                        ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
+                        : "border-white/10"
+                    } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
                   >
                     <option value="" disabled>
                       Selecciona...
@@ -109,8 +164,8 @@ export function HeroSalaryForm() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-[#0F172A] flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#3A0CA3]" />
+                  <label className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#4361EE]" />
                     Ubicación
                   </label>
                   <select
@@ -119,7 +174,11 @@ export function HeroSalaryForm() {
                     onChange={(e) =>
                       setFormData({ ...formData, location: e.target.value })
                     }
-                    className="w-full px-4 py-2.5 bg-white border border-[#D1C4E9] rounded-xl text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#FF2E93]/50 focus:border-[#FF2E93] transition-all"
+                    className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-xl text-sm text-white focus:outline-none transition-all duration-300 [&>option]:text-black ${
+                      formData.location
+                        ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
+                        : "border-white/10"
+                    } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
                   >
                     <option value="" disabled>
                       Selecciona...
@@ -132,46 +191,53 @@ export function HeroSalaryForm() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-[#0F172A] flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-[#3A0CA3]" />
-                  Salario Mensual Actual (USD)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    required
-                    placeholder="Ej: 2200"
-                    value={formData.salary}
-                    onChange={(e) =>
-                      setFormData({ ...formData, salary: e.target.value })
-                    }
-                    className="w-full pl-8 pr-4 py-2.5 bg-white border border-[#D1C4E9] rounded-xl text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#FF2E93]/50 focus:border-[#FF2E93] transition-all"
-                  />
-                </div>
-              </div>
-
               <button
                 type="submit"
-                className="w-full mt-2 py-3 px-4 bg-[#3A0CA3] hover:bg-[#2A0880] text-white rounded-xl font-bold text-sm transition-all shadow-[0_4px_15px_rgba(58,12,163,0.3)] hover:shadow-[0_6px_20px_rgba(58,12,163,0.4)] flex items-center justify-center gap-2"
+                disabled={!isFormValid}
+                className={`w-full mt-4 h-14 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                  isFormValid
+                    ? "bg-gradient-to-r from-[#FF2E93] to-[#3A0CA3] hover:scale-[1.02] text-white shadow-[0_8px_30px_rgba(255,46,147,0.4)] cursor-pointer"
+                    : "bg-white/5 border border-white/10 text-white/40 cursor-not-allowed"
+                }`}
               >
                 Ver estimación rápida
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              <div className="pt-3 text-center flex flex-col gap-1">
+                <p className="text-xs text-white/60 font-medium">
+                  Análisis gratuito, confidencial y sin registro.
+                </p>
+                <p className="text-xs text-[#FF2E93] font-semibold">
+                  Solo toma 3 minutos.
+                </p>
+              </div>
             </motion.form>
           ) : isPending ? (
             <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-10 gap-4"
+              key="calculating"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="flex flex-col items-center justify-center py-16 space-y-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[inset_0_0_30px_rgba(255,46,147,0.1)]"
             >
-              <Loader2 className="w-10 h-10 text-[#3A0CA3] animate-spin" />
-              <p className="text-sm font-bold text-[#3A0CA3]">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#FF2E93] to-[#4361EE] blur-xl rounded-full opacity-60 animate-pulse" />
+                <Bot className="w-12 h-12 text-white relative z-10 animate-bounce" />
+                <div className="w-16 h-16 border-t-2 border-r-2 border-[#FF2E93] rounded-full animate-spin absolute -inset-2 opacity-80" />
+                <div className="w-16 h-16 border-b-2 border-l-2 border-[#4361EE] rounded-full animate-[spin_1.5s_linear_reverse_infinite] absolute -inset-2 opacity-80" />
+              </div>
+
+              <div className="w-full max-w-[200px] h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 3, ease: "linear" }}
+                  className="h-full bg-gradient-to-r from-[#FF2E93] to-[#4361EE]"
+                />
+              </div>
+
+              <p className="text-sm font-semibold text-white animate-pulse text-center px-4">
                 Analizando tu perfil con IA...
               </p>
             </motion.div>
@@ -180,34 +246,33 @@ export function HeroSalaryForm() {
               key="result"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="space-y-5 bg-white rounded-2xl p-5 border border-[#D1C4E9] shadow-sm"
+              className="space-y-6 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-[inset_0_0_30px_rgba(67,97,238,0.1)] text-center relative overflow-hidden"
             >
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-600 mb-2">
-                  Tu salario estimado de mercado:
+              <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#FF2E93]/20 rounded-full blur-3xl" />
+              <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-[#4361EE]/20 rounded-full blur-3xl" />
+
+              <div className="relative z-10">
+                <p className="text-sm font-medium text-white/80 mb-2">
+                  Tu salario estimado de mercado podría estar entre:
                 </p>
-                <div className="text-3xl font-black font-heading text-transparent bg-clip-text bg-gradient-to-r from-[#FF2E93] to-[#3A0CA3]">
+                <div className="text-4xl font-black font-heading text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-4">
                   {fmt(result.min_salary)} – {fmt(result.max_salary)}
                 </div>
-                <p className="text-xs text-[#4361EE] font-semibold mt-2 bg-[#4361EE]/10 inline-block px-3 py-1 rounded-full">
-                  Basado en datos de {location}
-                </p>
-              </div>
 
-              {/* AI Insight */}
-              <div className="flex items-start gap-2 bg-[#F8F5FF] rounded-xl p-3 border border-[#D1C4E9]">
-                <TrendingUp className="w-4 h-4 text-[#3A0CA3] mt-0.5 shrink-0" />
-                <p className="text-xs text-[#3A0CA3] font-medium leading-relaxed">
-                  {result.insight}
-                </p>
+                <div className="p-3 bg-[#FF2E93]/10 border border-[#FF2E93]/30 rounded-xl mb-6">
+                  <p className="text-sm font-bold text-white flex items-center justify-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#FF2E93]" />
+                    {result.insight}
+                  </p>
+                </div>
               </div>
 
               <button
                 onClick={() => router.push("/salary-input")}
-                className="w-full py-3 px-4 bg-gradient-to-r from-[#FF2E93] to-[#3A0CA3] hover:scale-[1.02] text-white rounded-xl font-bold text-sm transition-all shadow-[0_4px_15px_rgba(255,46,147,0.3)] flex items-center justify-center gap-2"
+                className="relative z-10 w-full py-4 px-4 bg-white hover:bg-[#F1E9FF] text-[#3A0CA3] rounded-xl font-black text-sm transition-all shadow-[0_4px_25px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2 group"
               >
-                Análisis completo (Gratis)
-                <ArrowRight className="w-4 h-4" />
+                Continuar simulación completa (Gratis)
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform text-[#FF2E93]" />
               </button>
             </motion.div>
           ) : null}
