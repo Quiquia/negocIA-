@@ -24,6 +24,7 @@ import { submitSalaryProfile } from "./actions";
 
 type ProfileForm = {
   role: string;
+  customRole: string;
   seniority: string;
   yearsExperience: string;
   techStack: string[];
@@ -142,13 +143,17 @@ export default function SalaryInputPage() {
     },
   };
 
-  const currentRoleOptions = roleOptions[watchRole as keyof typeof roleOptions] || roleOptions["Frontend Developer"];
+  const isOtherRole = watchRole === "Otro";
+  const currentRoleOptions = isOtherRole
+    ? { techStack: [] as string[], tools: [] as string[], roleDescriptions: [] as string[] }
+    : (roleOptions[watchRole as keyof typeof roleOptions] || roleOptions["Frontend Developer"]);
 
   // Reset role-specific fields when role changes
   useEffect(() => {
     setValue("techStack", []);
     setValue("tools", []);
     setValue("roleDescription", "" as never);
+    if (watchRole !== "Otro") setValue("customRole", "");
     setCustomTechStack([]);
     setCustomTools([]);
     setTechInput("");
@@ -189,6 +194,7 @@ export default function SalaryInputPage() {
     if (currentStep === 1) {
       fieldsToValidate = [
         "role",
+        ...(isOtherRole ? ["customRole" as const] : []),
         "seniority",
         "yearsExperience",
         "techStack",
@@ -234,7 +240,7 @@ export default function SalaryInputPage() {
     // Build FormData with the keys the server action expects
     const fd = new FormData();
     fd.set("acceptedTerms", "on");
-    fd.set("roleArea", data.role);
+    fd.set("roleArea", data.role === "Otro" ? data.customRole : data.role);
     fd.set("seniority", data.seniority);
     fd.set("frontendYearsExperience", data.yearsExperience);
     fd.set("mainTechnology", data.techStack.join(", "));
@@ -268,7 +274,11 @@ export default function SalaryInputPage() {
 
       // Store submission ID and data in context for subsequent pages
       setSubmissionId(result.id!);
-      setProfileData(data as any);
+      const resolvedData = {
+        ...data,
+        role: data.role === "Otro" ? data.customRole : data.role,
+      };
+      setProfileData(resolvedData as any);
       const salary = Number(data.monthlySalary);
       const avg = Math.round(salary * 1.418);
       setCurrentSalary(salary);
@@ -401,8 +411,28 @@ export default function SalaryInputPage() {
                     <option value="UX Designer">
                       UX Designer
                     </option>
+                    <option value="Otro">Otro</option>
                   </select>
                   <ErrorMsg name="role" />
+                  {isOtherRole && (
+                    <div className="mt-3">
+                      <input
+                        type="text"
+                        placeholder="Escribe tu rol (ej. DevOps Engineer, QA Tester, Product Manager...)"
+                        {...register("customRole", {
+                          validate: (value) =>
+                            watchRole !== "Otro" ||
+                            (value && value.trim().length > 0) ||
+                            "Por favor escribe tu rol.",
+                        })}
+                        className={fieldClasses(
+                          "customRole",
+                          "w-full h-14 px-4 bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all",
+                        )}
+                      />
+                      <ErrorMsg name="customRole" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -752,27 +782,39 @@ export default function SalaryInputPage() {
                     ¿Cuál describe mejor tu rol actual?{" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  <div
-                    className={`grid grid-cols-1 gap-3 ${errors.roleDescription ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
-                  >
-                    {currentRoleOptions.roleDescriptions.map((opt) => (
-                      <label
-                        key={opt}
-                        className="relative flex items-start gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
-                      >
-                        <input
-                          type="radio"
-                          value={opt}
-                          {...register("roleDescription", { required: true })}
-                          className="w-5 h-5 accent-primary mt-0.5 shrink-0"
-                        />
-                        <span className="font-medium text-sm leading-tight pr-6 group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                          {opt}
-                        </span>
-                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
-                      </label>
-                    ))}
-                  </div>
+                  {isOtherRole ? (
+                    <input
+                      type="text"
+                      placeholder="Describe brevemente tu rol (ej. Gestión de proyectos tech, Soporte técnico...)"
+                      {...register("roleDescription", { required: "Por favor describe tu rol." })}
+                      className={fieldClasses(
+                        "roleDescription",
+                        "w-full h-14 px-4 bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all",
+                      )}
+                    />
+                  ) : (
+                    <div
+                      className={`grid grid-cols-1 gap-3 ${errors.roleDescription ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
+                    >
+                      {currentRoleOptions.roleDescriptions.map((opt) => (
+                        <label
+                          key={opt}
+                          className="relative flex items-start gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
+                        >
+                          <input
+                            type="radio"
+                            value={opt}
+                            {...register("roleDescription", { required: true })}
+                            className="w-5 h-5 accent-primary mt-0.5 shrink-0"
+                          />
+                          <span className="font-medium text-sm leading-tight pr-6 group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
+                            {opt}
+                          </span>
+                          <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
+                        </label>
+                      ))}
+                    </div>
+                  )}
                   <ErrorMsg name="roleDescription" />
                 </div>
               </div>
