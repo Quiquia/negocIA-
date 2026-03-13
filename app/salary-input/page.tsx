@@ -14,6 +14,12 @@ import { useRouter } from "next/navigation";
 import { KeyboardEvent, useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { useSalaryData } from "../providers/SalaryDataProvider";
+import {
+  latamCountries,
+  getCountryByName,
+  getCurrencyOptions,
+  detectCountryByTimezone,
+} from "../data/latam-countries";
 import { submitSalaryProfile } from "./actions";
 
 type ProfileForm = {
@@ -80,14 +86,18 @@ export default function SalaryInputPage() {
       techStack: [],
       tools: [],
       keywords: [],
+      country: "",
+      currency: "",
       negotiationConfidence: 5,
     },
   });
 
   const watchCountry = watch("country");
   const watchRole = watch("role");
-  const currencySymbol =
-    watchCountry === "Perú" ? "S/" : watchCountry === "Colombia" ? "$" : "$";
+  const selectedCountry = getCountryByName(watchCountry);
+  const currencySymbol = selectedCountry?.currency.symbol ?? "$";
+  const countryCities = selectedCountry?.cities ?? [];
+  const currencyOptions = getCurrencyOptions(watchCountry);
 
   const roleOptions = {
     "Frontend Developer": {
@@ -147,34 +157,25 @@ export default function SalaryInputPage() {
     setToolInputError(false);
   }, [watchRole, setValue]);
 
-  const peruCities = [
-    "Lima",
-    "Arequipa",
-    "Trujillo",
-    "Chiclayo",
-    "Cusco",
-    "Callao",
-    "Piura",
-    "Iquitos",
-    "Huancayo",
-    "Chimbote",
-    "Tacna",
-    "Pucallpa",
-    "Ica",
-  ];
+  // Detect country from browser timezone on mount
+  useEffect(() => {
+    const detected = detectCountryByTimezone();
+    if (detected) {
+      setValue("country", detected);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const colombiaCities = [
-    "Bogotá",
-    "Medellín",
-    "Cali",
-    "Barranquilla",
-    "Cartagena de Indias",
-    "Bucaramanga",
-    "Pereira",
-    "Santa Marta",
-    "Cúcuta",
-    "Ibagué",
-  ];
+  // Reset city and currency when country changes
+  useEffect(() => {
+    if (watchCountry) {
+      setValue("city", "");
+      const country = getCountryByName(watchCountry);
+      if (country) {
+        setValue("currency", country.currency.code);
+      }
+    }
+  }, [watchCountry, setValue]);
 
   useEffect(() => {
     const firstError = document.querySelector(".error-field");
@@ -797,27 +798,22 @@ export default function SalaryInputPage() {
                     ¿En qué país trabajas actualmente?{" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  <div
-                    className={`flex gap-4 ${errors.country ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
+                  <select
+                    {...register("country", { required: true })}
+                    className={fieldClasses(
+                      "country",
+                      "w-full h-12 sm:h-14 px-4 text-sm sm:text-base bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all",
+                    )}
                   >
-                    {["Perú", "Colombia"].map((opt) => (
-                      <label
-                        key={opt}
-                        className="relative flex-1 flex items-center justify-center gap-2 p-3 sm:p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
-                      >
-                        <input
-                          type="radio"
-                          value={opt}
-                          {...register("country", { required: true })}
-                          className="hidden"
-                        />
-                        <span className="font-bold text-sm sm:text-lg group-has-[:checked]:text-primary">
-                          {opt}
-                        </span>
-                        <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
-                      </label>
+                    <option value="" disabled>
+                      Selecciona tu país
+                    </option>
+                    {latamCountries.map((c) => (
+                      <option key={c.name} value={c.name}>
+                        {c.name}
+                      </option>
                     ))}
-                  </div>
+                  </select>
                   <ErrorMsg name="country" />
                 </div>
 
@@ -837,18 +833,11 @@ export default function SalaryInputPage() {
                     <option value="" disabled>
                       Selecciona tu ciudad
                     </option>
-                    {watchCountry === "Perú" &&
-                      peruCities.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    {watchCountry === "Colombia" &&
-                      colombiaCities.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
+                    {countryCities.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
                   </select>
                   <ErrorMsg name="city" />
                 </div>
@@ -1081,25 +1070,21 @@ export default function SalaryInputPage() {
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
-                    className={`grid grid-cols-1 md:grid-cols-3 gap-3 ${errors.currency ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
+                    className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${errors.currency ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {["PEN", "COP", "USD"].map((opt) => (
+                    {currencyOptions.map((opt) => (
                       <label
-                        key={opt}
+                        key={opt.code}
                         className="relative flex-1 flex items-center justify-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
                       >
                         <input
                           type="radio"
-                          value={opt}
+                          value={opt.code}
                           {...register("currency", { required: true })}
                           className="hidden"
                         />
                         <span className="font-bold text-sm group-has-[:checked]:text-primary">
-                          {opt === "PEN"
-                            ? "Soles (PEN)"
-                            : opt === "COP"
-                              ? "Pesos (COP)"
-                              : "Dólares (USD)"}
+                          {opt.label}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
