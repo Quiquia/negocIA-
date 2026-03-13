@@ -142,23 +142,38 @@ export function HeroSalaryForm() {
                       placeholder="Ej: DevOps, QA, Product Manager..."
                       value={formData.customRole}
                       onChange={(e) => {
-                        setFormData({ ...formData, customRole: e.target.value });
-                        if (roleError) setRoleError("");
+                        const val = e.target.value;
+                        setFormData({ ...formData, customRole: val });
+                        if (val.trim().length >= 3 && !isTechRole(val)) {
+                          setRoleError("Ingresa un rol relacionado con tecnología.");
+                        } else {
+                          setRoleError("");
+                        }
                       }}
                       className={`w-full px-4 py-3 bg-white/5 backdrop-blur-sm border rounded-xl text-sm text-white focus:outline-none transition-all duration-300 placeholder-white/30 mt-2 ${
                         roleError
                           ? "border-[#FF2E93]/70 shadow-[0_0_15px_rgba(255,46,147,0.3)]"
-                          : formData.customRole
-                            ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
-                            : "border-white/10"
+                          : formData.customRole && isTechRole(formData.customRole)
+                            ? "border-green-400/50 shadow-[0_0_15px_rgba(74,222,128,0.2)] bg-white/10"
+                            : formData.customRole
+                              ? "border-[#4361EE]/50 shadow-[0_0_15px_rgba(67,97,238,0.2)] bg-white/10"
+                              : "border-white/10"
                       } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
                     />
-                    {roleError && (
+                    {roleError ? (
                       <p className="text-xs font-semibold text-[#FF2E93] mt-1 ml-1 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
                         {roleError}
                       </p>
-                    )}
+                    ) : formData.customRole && isTechRole(formData.customRole) ? (
+                      <p className="text-xs font-semibold text-green-400 mt-1 ml-1">
+                        Rol válido
+                      </p>
+                    ) : formData.customRole ? (
+                      <p className="text-xs font-medium text-white/50 mt-1 ml-1">
+                        Ej: DevOps Engineer, QA Tester, Scrum Master, Soporte técnico...
+                      </p>
+                    ) : null}
                   </>
                 )}
               </div>
