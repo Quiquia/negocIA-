@@ -203,18 +203,20 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          <div className="hidden xl:flex items-center gap-4">
-            <Link
-              href="/salary-input"
-              className="group relative overflow-hidden inline-flex items-center justify-center gap-2 px-7 h-11 bg-foreground hover:bg-primary text-white rounded-full font-semibold text-sm transition-all duration-300 shadow-[0_4px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(255,46,147,0.35)] hover:-translate-y-0.5"
-            >
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-              <span className="relative z-10 flex items-center gap-2">
-                Analizar mi negociación
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </Link>
-          </div>
+          {pathname !== "/salary-input" && (
+            <div className="hidden xl:flex items-center gap-4">
+              <Link
+                href="/salary-input"
+                className="group relative overflow-hidden inline-flex items-center justify-center gap-2 px-7 h-11 bg-foreground hover:bg-primary text-white rounded-full font-semibold text-sm transition-all duration-300 shadow-[0_4px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(255,46,147,0.35)] hover:-translate-y-0.5"
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                <span className="relative z-10 flex items-center gap-2">
+                  Analizar mi negociación
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </Link>
+            </div>
+          )}
 
           <div className="flex xl:hidden items-center gap-4">
             <button
@@ -280,6 +282,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
                   ))}
                 </nav>
 
+                {pathname !== "/salary-input" && (
                 <div className="mt-6 pt-6 sm:mt-8 sm:pt-8 border-t border-border/50 flex flex-col pb-8">
                   <Link
                     href="/salary-input"
@@ -296,6 +299,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
                     Descubre si estás ganando lo que realmente mereces.
                   </p>
                 </div>
+                )}
               </div>
             </motion.div>
           </>
