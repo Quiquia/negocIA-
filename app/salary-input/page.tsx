@@ -20,6 +20,7 @@ import {
   getCurrencyOptions,
   detectCountryByTimezone,
 } from "../data/latam-countries";
+import { isTechRole, TECH_ROLE_ERROR } from "../data/tech-roles";
 import { submitSalaryProfile } from "./actions";
 
 type ProfileForm = {
@@ -424,10 +425,12 @@ export default function SalaryInputPage() {
                         type="text"
                         placeholder="Escribe tu rol (ej. DevOps Engineer, QA Tester, Product Manager...)"
                         {...register("customRole", {
-                          validate: (value) =>
-                            watchRole !== "Otro" ||
-                            (value && value.trim().length > 0) ||
-                            "Por favor escribe tu rol.",
+                          validate: (value) => {
+                            if (watchRole !== "Otro") return true;
+                            if (!value || !value.trim()) return "Por favor escribe tu rol.";
+                            if (!isTechRole(value)) return TECH_ROLE_ERROR;
+                            return true;
+                          },
                         })}
                         className={fieldClasses(
                           "customRole",
