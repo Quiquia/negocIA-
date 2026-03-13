@@ -145,7 +145,11 @@ export default function SalaryInputPage() {
 
   const isOtherRole = watchRole === "Otro";
   const currentRoleOptions = isOtherRole
-    ? { techStack: [] as string[], tools: [] as string[], roleDescriptions: [] as string[] }
+    ? {
+        techStack: ["Python", "JavaScript / TypeScript", "SQL", "Excel avanzado", "Java", "Git", "Docker", "AWS / GCP / Azure"],
+        tools: ["Jira / Trello", "Slack", "Notion", "Google Workspace", "Git", "CI/CD", "APIs REST", "Testing"],
+        roleDescriptions: [] as string[],
+      }
     : (roleOptions[watchRole as keyof typeof roleOptions] || roleOptions["Frontend Developer"]);
 
   // Reset role-specific fields when role changes
@@ -509,6 +513,11 @@ export default function SalaryInputPage() {
                     ¿Cuál es tu stack tecnológico principal?{" "}
                     <span className="text-rose-500">*</span>
                   </label>
+                  {isOtherRole && (
+                    <p className="text-xs text-muted-foreground -mt-1">
+                      Selecciona las que apliquen o agrega las tuyas con el campo de texto.
+                    </p>
+                  )}
                   <div
                     className={`flex flex-wrap gap-3 ${errors.techStack ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
@@ -585,8 +594,8 @@ export default function SalaryInputPage() {
                             }
                           }
                         }}
-                        placeholder="Otro..."
-                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all w-32 ${techInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
+                        placeholder={isOtherRole ? "Ej. Kotlin, Terraform..." : "Otro..."}
+                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? "w-48" : "w-32"} ${techInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
                       />
                       {techInputError && (
                         <span className="text-xs text-rose-500 pl-2">Solo letras</span>
@@ -601,6 +610,11 @@ export default function SalaryInputPage() {
                     ¿Con qué herramientas complementas tu trabajo en el día a
                     día? <span className="text-rose-500">*</span>
                   </label>
+                  {isOtherRole && (
+                    <p className="text-xs text-muted-foreground -mt-1">
+                      Selecciona las que apliquen o agrega las tuyas con el campo de texto.
+                    </p>
+                  )}
                   <div
                     className={`flex flex-wrap gap-3 ${errors.tools ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
@@ -677,8 +691,8 @@ export default function SalaryInputPage() {
                             }
                           }
                         }}
-                        placeholder="Otra..."
-                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all w-32 ${toolInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
+                        placeholder={isOtherRole ? "Ej. Figma, SAP..." : "Otra..."}
+                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? "w-48" : "w-32"} ${toolInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
                       />
                       {toolInputError && (
                         <span className="text-xs text-rose-500 pl-2">Solo letras</span>
