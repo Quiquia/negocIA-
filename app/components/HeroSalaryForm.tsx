@@ -21,7 +21,7 @@ export function HeroSalaryForm() {
   const [result, setResult] = useState<QuickEstimate | null>(null);
   const [aiMessage, setAiMessage] = useState("Analizando tu perfil...");
   const [formData, setFormData] = useState({
-    role: "",
+    role: "Frontend Developer",
     customRole: "",
     salary: "",
     experience: "",
