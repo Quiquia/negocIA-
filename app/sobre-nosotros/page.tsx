@@ -23,7 +23,7 @@ const teamMembers = [
     role: "UX/UI Designer",
     specialties: "Product Design • UX Research",
     description: "Diseña experiencias digitales intuitivas centradas en las necesidades reales de mujeres en tecnología.",
-    image: "/assets/rosmery.png",
+    image: "/assets/photo-rosmery.jpeg",
     linkedin: "https://www.linkedin.com/in/rosmery-fabian-escandon",
   },
   {
@@ -31,7 +31,7 @@ const teamMembers = [
     role: "Full Stack Developer",
     specialties: "AI Systems • Platform Engineering",
     description: "Construye plataformas escalables integrando IA y datos para resolver problemas del mercado laboral.",
-    image: "/assets/vane.png",
+    image: "/assets/photo-vanessa.png",
     linkedin: "https://www.linkedin.com/in/bequidev",
   },
   {
@@ -39,7 +39,7 @@ const teamMembers = [
     role: "Full Stack Developer",
     specialties: "Software Architecture • Backend Engineering",
     description: "Arquitecta de soluciones eficientes que impulsan las funcionalidades clave y el rendimiento de NegocIA+.",
-    image: "/assets/carolina.png",
+    image: "/assets/photo-carolina.jpeg",
     linkedin: "https://www.linkedin.com/in/carolinavargasjaramillo-analyst",
   },
   {

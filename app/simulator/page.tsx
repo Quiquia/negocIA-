@@ -211,8 +211,10 @@ export default function AiNegotiationSimulatorPage() {
       };
       setMessages((prev) => {
         const updated = [...prev, aiMsg];
-        // Refresh suggestions based on new conversation state
-        refreshSuggestions(updated);
+        // Defer: never call other setStates inside a setState updater (breaks React / App Router).
+        queueMicrotask(() => {
+          void refreshSuggestions(updated);
+        });
         return updated;
       });
     } catch {

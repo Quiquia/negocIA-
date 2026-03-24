@@ -24,6 +24,47 @@ export interface SalaryEstimate {
   profile_insights: [string, string, string];
   growth_skills: string[];
   growth_target_role: string;
+  /** Rango típico de aumento por negociación activa (%, enteros). Opcional en respuestas antiguas. */
+  negotiation_uplift_min?: number;
+  negotiation_uplift_max?: number;
+}
+
+/**
+ * Rango de mejora salarial por negociación: prioriza valores del análisis de IA;
+ * si faltan, deriva un rango coherente con la brecha y la posición vs. mercado.
+ */
+export function getNegotiationUpliftRange(estimate: SalaryEstimate): {
+  min: number;
+  max: number;
+} {
+  const rawMin = estimate.negotiation_uplift_min;
+  const rawMax = estimate.negotiation_uplift_max;
+  if (
+    typeof rawMin === "number" &&
+    typeof rawMax === "number" &&
+    Number.isFinite(rawMin) &&
+    Number.isFinite(rawMax)
+  ) {
+    const lo = Math.min(Math.round(rawMin), Math.round(rawMax));
+    const hi = Math.max(Math.round(rawMin), Math.round(rawMax));
+    return { min: lo, max: hi };
+  }
+
+  const g = Math.abs(estimate.gap_percentage);
+  switch (estimate.gap_direction) {
+    case "below": {
+      const minPct = Math.round(Math.max(8, Math.min(22, g * 0.35 + 5)));
+      const maxPct = Math.round(
+        Math.max(minPct + 7, Math.min(45, g * 0.65 + 12)),
+      );
+      return { min: minPct, max: maxPct };
+    }
+    case "at_market":
+      return { min: 12, max: 28 };
+    case "above":
+    default:
+      return { min: 6, max: 18 };
+  }
 }
 
 // --- Cliente OpenAI (lazy) ---
@@ -76,7 +117,8 @@ del mercado laboral de la región.
 3. Genera 3 insights personalizados sobre el perfil (oportunidades, fortalezas, tendencias del mercado para este perfil específico). Cada insight debe ser una oración completa en español, específica al perfil (no genérica).
 4. Sugiere 4 habilidades técnicas concretas que esta persona debería fortalecer para avanzar al siguiente nivel.
 5. Indica cuál sería el siguiente rol objetivo (ej: "Mid", "Senior", "Lead / Staff").
-6. Responde ÚNICAMENTE con un JSON válido, sin markdown ni explicaciones fuera del JSON.
+6. Estima negotiation_uplift_min y negotiation_uplift_max: porcentajes enteros (ej. 15 y 32) que reflejen un rango realista de aumento de compensación en 12-18 meses para quien negocia activamente (cambio de rol, renegociación, oferta externa), coherente con el país, seniority y la brecha salarial. negotiation_uplift_max debe ser mayor que negotiation_uplift_min.
+7. Responde ÚNICAMENTE con un JSON válido, sin markdown ni explicaciones fuera del JSON.
 
 ## Formato de respuesta (JSON)
 
@@ -88,7 +130,9 @@ del mercado laboral de la región.
   "summary": "<1-2 oraciones en español explicando la estimación>",
   "profile_insights": ["<insight 1>", "<insight 2>", "<insight 3>"],
   "growth_skills": ["<skill 1>", "<skill 2>", "<skill 3>", "<skill 4>"],
-  "growth_target_role": "<siguiente nivel>"
+  "growth_target_role": "<siguiente nivel>",
+  "negotiation_uplift_min": <entero, típico 8-25>,
+  "negotiation_uplift_max": <entero, mayor que min, típico hasta 45>
 }`;
 }
 

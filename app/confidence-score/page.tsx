@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
-import { motion } from "motion/react";
 import {
-  Download,
-  RotateCcw,
-  Trophy,
-  Target,
-  MessageSquare,
-  TrendingUp,
-  Sparkles,
-  CheckCircle2,
   AlertTriangle,
+  CheckCircle2,
+  Download,
+  MessageSquare,
+  RotateCcw,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Trophy,
 } from "lucide-react";
+import { motion } from "motion/react";
+import Link from "next/link";
+import { useEffect, useState, useTransition } from "react";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 import {
   analyzeNegotiationPerformance,
@@ -139,10 +139,7 @@ export default function ConfidenceScorePage() {
             <div className="w-56 h-56 rounded-full bg-slate-100" />
             <div className="flex flex-col gap-4 w-full max-w-sm">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-[72px] bg-slate-100 rounded-2xl"
-                />
+                <div key={i} className="h-[72px] bg-slate-100 rounded-2xl" />
               ))}
             </div>
           </div>
@@ -213,7 +210,9 @@ export default function ConfidenceScorePage() {
                       <div
                         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ${item.bg} group-hover:scale-110 transition-transform shrink-0`}
                       >
-                        <item.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${item.color}`} />
+                        <item.icon
+                          className={`w-5 h-5 sm:w-6 sm:h-6 ${item.color}`}
+                        />
                       </div>
                       <span className="font-bold text-sm sm:text-base text-slate-700">
                         {item.label}
@@ -234,17 +233,29 @@ export default function ConfidenceScorePage() {
                     <Sparkles className="w-5 h-5 text-amber-500" />
                   </div>
                   <div>
-                    <span className="text-[13px] font-extrabold text-amber-800 uppercase tracking-wider block mb-1">Oportunidad de mejora</span>
+                    <span className="text-[13px] font-extrabold text-amber-800 uppercase tracking-wider block mb-1">
+                      Oportunidad de mejora
+                    </span>
                     <p className="text-[15px] font-medium text-amber-900 leading-relaxed">
                       {result.improvements.length > 0 ? (
                         <>
-                          {result.improvements[0].replace(/\.$/, '')}{' '}
+                          {result.improvements[0].replace(/\.$/, "")}{" "}
                           <strong className="font-extrabold bg-amber-200/50 px-1 rounded">
-                            {result.improvements.length > 1 ? result.improvements[1].toLowerCase() : 'claridad al comunicar el valor que aportas al negocio'}
-                          </strong>.
+                            {result.improvements.length > 1
+                              ? result.improvements[1].toLowerCase()
+                              : "claridad al comunicar el valor que aportas al negocio"}
+                          </strong>
+                          .
                         </>
                       ) : (
-                        <>Para alcanzar el rango sugerido, necesitas fortalecer tu <strong className="font-extrabold bg-amber-200/50 px-1 rounded">claridad al comunicar el valor</strong> que aportas al negocio.</>
+                        <>
+                          Para alcanzar el rango sugerido, necesitas fortalecer
+                          tu{" "}
+                          <strong className="font-extrabold bg-amber-200/50 px-1 rounded">
+                            claridad al comunicar el valor
+                          </strong>{" "}
+                          que aportas al negocio.
+                        </>
                       )}
                     </p>
                   </div>
@@ -278,11 +289,28 @@ export default function ConfidenceScorePage() {
           <div className="w-full flex flex-col sm:flex-row items-stretch justify-center gap-4">
             <div className="flex flex-col w-full sm:w-auto">
               <div className="bg-slate-50 border border-slate-200 p-5 rounded-t-3xl border-b-0">
-                <span className="font-extrabold text-slate-800 block mb-3 text-[15px]">Tu plan personalizado incluye:</span>
+                <span className="font-extrabold text-slate-800 block mb-3 text-[15px]">
+                  Tu plan personalizado incluye:
+                </span>
                 <ul className="flex flex-col gap-2.5 text-[15px] font-medium text-slate-600">
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-5 h-5 text-primary shrink-0" /> <span className="leading-tight">Argumentos clave para negociar</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-5 h-5 text-primary shrink-0" /> <span className="leading-tight">Datos del mercado tecnológico</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-5 h-5 text-primary shrink-0" /> <span className="leading-tight">Estrategia táctica personalizada</span></li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />{" "}
+                    <span className="leading-tight">
+                      Argumentos clave para negociar
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />{" "}
+                    <span className="leading-tight">
+                      Datos del mercado tecnológico
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />{" "}
+                    <span className="leading-tight">
+                      Estrategia táctica personalizada
+                    </span>
+                  </li>
                 </ul>
               </div>
               <button
@@ -290,13 +318,18 @@ export default function ConfidenceScorePage() {
                   if (!result) return;
                   const currency = profileData?.currency || "USD";
                   const symbol =
-                    currency === "USD" ? "$" : currency === "COP" ? "COL$" : "S/";
+                    currency === "USD"
+                      ? "$"
+                      : currency === "COP"
+                        ? "COL$"
+                        : "S/";
                   generateNegotiationPDF({
                     result,
                     profile: {
                       role: profileData?.role || "Developer",
                       seniority: profileData?.seniority || "Mid",
-                      techStack: profileData?.techStack?.join(", ") || "General",
+                      techStack:
+                        profileData?.techStack?.join(", ") || "General",
                       country: profileData?.country || "Latinoamérica",
                       currentSalary: `${symbol}${currentSalary.toLocaleString()}`,
                       marketSalary: `${symbol}${averageSalary.toLocaleString()}`,
@@ -317,7 +350,9 @@ export default function ConfidenceScorePage() {
               <Link
                 href="/simulator"
                 aria-disabled={!result}
-                onClick={(e) => { if (!result) e.preventDefault(); }}
+                onClick={(e) => {
+                  if (!result) e.preventDefault();
+                }}
                 className={`h-14 sm:h-16 px-8 rounded-full bg-white border-2 border-slate-200 text-slate-700 font-extrabold text-base sm:text-lg flex items-center justify-center gap-3 transition-colors w-full ${!result ? "opacity-50 pointer-events-none" : "hover:bg-slate-50"}`}
               >
                 <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -328,36 +363,108 @@ export default function ConfidenceScorePage() {
 
           <div className="w-full mt-12 sm:mt-16 pt-10 sm:pt-12 border-t border-slate-100 flex flex-col items-center">
             <div className="text-center mb-8">
-              <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-slate-800 mb-2">¿Quieres seguir mejorando?</h3>
-              <p className="text-sm sm:text-base text-slate-500 font-medium">Continúa entrenando tus habilidades de negociación con NegocIA+</p>
+              <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-slate-800 mb-2">
+                ¿Quieres seguir mejorando?
+              </h3>
+              <p className="text-sm sm:text-base text-slate-500 font-medium">
+                Continúa entrenando tus habilidades de negociación con NegocIA+
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
               <div className="bg-slate-50/80 rounded-3xl p-6 border border-slate-200 flex flex-col">
-                <div className="font-extrabold text-lg sm:text-xl text-slate-800 mb-1">Free — Descubre tu valor</div>
-                <div className="text-slate-500 text-sm font-medium mb-6">Para empezar con seguridad</div>
+                <div className="font-extrabold text-lg sm:text-xl text-slate-800 mb-1">
+                  Free — Descubre tu valor
+                </div>
+                <div className="text-slate-500 text-sm font-medium mb-6">
+                  Para empezar con seguridad
+                </div>
                 <ul className="text-sm text-slate-600 flex flex-col gap-3 mb-6 flex-1">
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">Reality Check salarial</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">Análisis básico de mercado tecnológico</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">1 simulación de negociación por mes</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">2 intentos de simulación por voz (demo)</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">Feedback básico de comunicación</span></li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">Reality Check salarial</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Análisis básico de mercado tecnológico
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      1 simulación de negociación por mes
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      2 intentos de simulación por voz (demo)
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Feedback básico de comunicación
+                    </span>
+                  </li>
                 </ul>
                 <div className="text-center font-bold text-slate-400 text-sm py-2">
                   Plan actual
                 </div>
               </div>
               <div className="bg-gradient-to-b from-primary/[0.08] to-transparent rounded-3xl p-6 border-2 border-primary/20 relative overflow-hidden group hover:shadow-xl hover:shadow-primary/5 transition-all flex flex-col">
-                <div className="absolute top-0 right-0 bg-gradient-to-r from-primary to-accent text-white text-[10px] font-black px-3 py-1 rounded-bl-xl tracking-wider uppercase">RECOMENDADO</div>
-                <div className="font-extrabold text-lg sm:text-xl text-primary mb-1">Pro — Domina la negociación</div>
-                <div className="text-slate-600 text-sm font-medium mb-6">Para dominar cualquier escenario</div>
+                <div className="absolute top-0 right-0 bg-gradient-to-r from-primary to-accent text-white text-[10px] font-black px-3 py-1 rounded-bl-xl tracking-wider uppercase">
+                  RECOMENDADO
+                </div>
+                <div className="font-extrabold text-lg sm:text-xl text-primary mb-1">
+                  Pro — Domina la negociación
+                </div>
+                <div className="text-slate-600 text-sm font-medium mb-6">
+                  Para practicar cualquier escenario
+                </div>
                 <ul className="text-sm text-slate-700 flex flex-col gap-3 mb-6 flex-1">
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Simulaciones de negociación ilimitadas</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Simulación completa por voz</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Feedback avanzado de IA</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Evaluación de tono, claridad y seguridad</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Análisis salarial completo</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Escenarios reales adaptados a tu rol</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Plan de crecimiento profesional</span></li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Simulaciones de negociación ilimitadas
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Simulación completa por voz
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Feedback avanzado de IA
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Evaluación de tono, claridad y seguridad
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Análisis salarial completo
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Escenarios reales adaptados a tu rol
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Plan de crecimiento profesional
+                    </span>
+                  </li>
                 </ul>
                 <button className="w-full py-3 bg-white text-primary font-bold rounded-xl border border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all shadow-sm mt-auto">
                   Probar Pro

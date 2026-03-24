@@ -1,6 +1,12 @@
 "use client";
 
-import { UserCircle, Brain, FileText, MessagesSquare, ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Brain,
+  FileText,
+  MessagesSquare,
+  UserCircle,
+} from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 
@@ -31,7 +37,7 @@ const steps = [
     icon: MessagesSquare,
     title: "Entrena tu negociación",
     description:
-      "Practica con nuestro simulador de negociación impulsado por IA. Recibe coaching en tiempo real y desarrolla la confianza para pedir lo que mereces.",
+      "Practica con nuestro simulador de negociación impulsado por IA. Recibe coaching en tiempo real y desarrolla la confianza para acordar tu valor en el mercado.",
   },
 ];
 

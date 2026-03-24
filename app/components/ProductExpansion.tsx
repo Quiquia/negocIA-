@@ -4,10 +4,9 @@ import {
   ArrowRight,
   Bot,
   Check,
-  Quote,
   Sparkles,
   Star,
-  Target,
+  Target
 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -72,52 +71,52 @@ const confidenceCards = [
   },
 ];
 
-const plans = [
-  {
-    name: "Free",
-    subtitle: "Descubre tu valor",
-    price: "$0",
-    period: "",
-    features: [
-      "Reality Check salarial",
-      "Análisis básico de mercado tecnológico",
-      "1 simulación de negociación por mes",
-      "2 intentos de simulación por voz (demo)",
-    ],
-    cta: "Comenzar gratis",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    subtitle: "Domina la negociación",
-    price: "$15",
-    period: "/ mes",
-    features: [
-      "Simulaciones de negociación ilimitadas",
-      "Simulación completa por voz",
-      "Feedback avanzado de IA",
-      "Evaluación de tono, claridad y seguridad",
-      "Análisis salarial completo",
-    ],
-    cta: "Empezar con Pro",
-    highlighted: true,
-  },
-  {
-    name: "Premium",
-    subtitle: "Acompañamiento experto",
-    price: "$49",
-    period: "/ mes",
-    features: [
-      "Todo lo incluido en Pro",
-      "Coaching personalizado",
-      "Preparación para negociación real",
-      "Mentoría profesional",
-      "Revisión de estrategia salarial",
-    ],
-    cta: "Ir Premium",
-    highlighted: false,
-  },
-];
+// const plans = [
+// {
+//   name: "Free",
+//   subtitle: "Explora el mercado",
+//   price: "$0",
+//   period: "",
+//   features: [
+//     "Reality Check salarial",
+//     "Análisis básico de mercado tecnológico",
+//     "1 simulación de negociación por mes",
+//     "2 intentos de simulación por voz (demo)",
+//   ],
+//   cta: "Comenzar gratis",
+//   highlighted: false,
+// },
+// {
+//   name: "Pro",
+//   subtitle: "Entrena tu negociación",
+//   price: "$15",
+//   period: "/ mes",
+//   features: [
+//     "Simulaciones de negociación ilimitadas",
+//     "Simulación completa por voz",
+//     "Feedback avanzado de IA",
+//     "Evaluación de tono, claridad y seguridad",
+//     "Análisis salarial completo",
+//   ],
+//   cta: "Empezar con Pro",
+//   highlighted: true,
+// },
+// {
+//   name: "Premium",
+//   subtitle: "Acompañamiento experto",
+//   price: "$49",
+//   period: "/ mes",
+//   features: [
+//     "Todo lo incluido en Pro",
+//     "Coaching personalizado",
+//     "Preparación para negociación real",
+//     "Mentoría profesional",
+//     "Revisión de estrategia salarial",
+//   ],
+//   cta: "Ir Premium",
+//   highlighted: false,
+// },
+// ];
 
 const testimonials = [
   {
@@ -326,7 +325,7 @@ export function ProductExpansion() {
       </section>
 
       {/* Pricing Plans — light bg */}
-      <section className="w-full py-24 px-6 md:px-12 lg:px-24 bg-white text-foreground">
+      {/* <section className="w-full py-24 px-6 md:px-12 lg:px-24 bg-white text-foreground">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <motion.h2
@@ -346,9 +345,9 @@ export function ProductExpansion() {
             >
               Elige el nivel de acompañamiento que necesitas.
             </motion.p>
-          </div>
+          </div> */}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             {plans.map((plan, i) => (
               <motion.div
                 key={i}
@@ -418,12 +417,12 @@ export function ProductExpansion() {
                 </Link>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
+          </div> */}
+        {/* </div> */}
+      {/* </section> */}
 
       {/* Success Stories */}
-      <section className="w-full py-24 px-6 md:px-12 lg:px-24 relative overflow-hidden">
+      {/* <section className="w-full py-24 px-6 md:px-12 lg:px-24 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center space-y-4 mb-16">
             <motion.div
@@ -500,7 +499,7 @@ export function ProductExpansion() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

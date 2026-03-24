@@ -3,12 +3,12 @@
 import {
   ArrowRight,
   BarChart3,
+  Briefcase,
   CheckCircle2,
   CircleAlert,
   Lock,
   MapPin,
   Monitor,
-  Briefcase,
   Search,
   Settings,
   Sparkles,
@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +24,25 @@ import { useEffect, useMemo, useState } from "react";
 import { HeroSalaryForm } from "./components/HeroSalaryForm";
 import { MarketIntelligence } from "./components/MarketIntelligence";
 import { ProductExpansion } from "./components/ProductExpansion";
+import {
+  fetchComparisonProfiles,
+  type ComparisonIconKey,
+  type ComparisonProfileDTO,
+} from "./components/comparison-profiles-actions";
+
+const COMPARISON_ICONS: Record<ComparisonIconKey, LucideIcon> = {
+  monitor: Monitor,
+  search: Search,
+  "bar-chart-3": BarChart3,
+  settings: Settings,
+  briefcase: Briefcase,
+};
+
+/** Deterministic pseudo-random in [0, 1) from index — same on server and client (avoids hydration mismatch). */
+function seeded01(i: number, salt: number) {
+  const x = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+  return x - Math.floor(x);
+}
 
 // Particle component for subtle hero animation
 function Particles() {
@@ -30,13 +50,13 @@ function Particles() {
     () =>
       Array.from({ length: 30 }, (_, i) => ({
         id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 3 + 1,
-        duration: Math.random() * 6 + 4,
-        delay: Math.random() * 4,
+        x: seeded01(i, 1) * 100,
+        y: seeded01(i, 2) * 100,
+        size: seeded01(i, 3) * 3 + 1,
+        duration: seeded01(i, 4) * 6 + 4,
+        delay: seeded01(i, 5) * 4,
       })),
-    []
+    [],
   );
 
   return (
@@ -67,55 +87,43 @@ function Particles() {
   );
 }
 
-const COMPARISON_PROFILES = [
-  {
-    role: "Frontend Developer",
-    icon: Monitor,
-    salaryAvg: "$3,800 USD",
-    gap: "+18% por especialización React",
-    region: "LatAm (Remoto)",
-  },
-  {
-    role: "Backend Developer",
-    icon: Search,
-    salaryAvg: "$4,500 USD",
-    gap: "+22% por arquitectura cloud",
-    region: "Remoto Latinoamérica",
-  },
-  {
-    role: "Data Analyst",
-    icon: BarChart3,
-    salaryAvg: "$3,200 USD",
-    gap: "+15% por visualización avanzada",
-    region: "Colombia & México",
-  },
-  {
-    role: "UX Designer",
-    icon: Settings,
-    salaryAvg: "$3,500 USD",
-    gap: "+20% por research UX",
-    region: "Startups (Global)",
-  },
-  {
-    role: "Product Manager",
-    icon: Briefcase,
-    salaryAvg: "$4,200 USD",
-    gap: "+30% por liderazgo técnico",
-    region: "Global (Startups)",
-  },
-];
-
 export default function Home() {
   const router = useRouter();
+  const [comparisonProfiles, setComparisonProfiles] = useState<
+    ComparisonProfileDTO[]
+  >([]);
+  const [comparisonLoading, setComparisonLoading] = useState(true);
   const [activeProfile, setActiveProfile] = useState(0);
   const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setComparisonLoading(true);
+      const data = await fetchComparisonProfiles();
+      if (!cancelled) {
+        setComparisonProfiles(data);
+        setComparisonLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (comparisonProfiles.length > 0) setActiveProfile(0);
+  }, [comparisonProfiles.length]);
+
+  useEffect(() => {
+    if (comparisonProfiles.length === 0) return;
     const timer = setInterval(() => {
-      setActiveProfile((prev) => (prev + 1) % COMPARISON_PROFILES.length);
+      setActiveProfile(
+        (prev) => (prev + 1) % comparisonProfiles.length
+      );
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [comparisonProfiles.length]);
 
   const handleAnalyzeClick = () => {
     setIsNavigating(true);
@@ -139,7 +147,8 @@ export default function Home() {
               transition={{ delay: 0.1 }}
               className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading leading-[1.1] tracking-tight drop-shadow-lg"
             >
-              ¿Te están pagando lo que realmente vales en tecnología?
+              Llega a tu próxima negociación con la seguridad de conocer el
+              mercado
             </motion.h1>
 
             <motion.p
@@ -216,9 +225,7 @@ export default function Home() {
                 <TrendingUp className="w-4 h-4 text-green-400" />
                 <div className="text-xs">
                   <p className="font-bold text-white">Demanda de mercado</p>
-                  <p className="text-green-400 font-semibold">
-                    +15% este mes
-                  </p>
+                  <p className="text-green-400 font-semibold">+15% este mes</p>
                 </div>
               </motion.div>
             </div>
@@ -332,8 +339,8 @@ export default function Home() {
           <p className="text-muted-foreground text-lg leading-relaxed">
             En Latinoamérica, las mujeres en tecnología ganan en promedio un 20%
             menos que sus pares masculinos por el mismo trabajo. NegocIA+ existe
-            para cambiar eso, brindándote datos reales, herramientas de
-            negociación y la confianza que necesitas para pedir lo que mereces.
+            para cambiar eso, brindándote herramientas para comunicar tu valor y
+            alcanzar acuerdos que impulsen tu crecimiento profesional.
           </p>
         </motion.div>
       </section>
@@ -354,127 +361,154 @@ export default function Home() {
               Comparaciones reales en tecnología
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Explora cómo otras mujeres en tecnología están posicionando su salario.
+              Explora cómo otras mujeres en tecnología están posicionando su
+              salario.
             </p>
           </motion.div>
 
           <div className="grid lg:grid-cols-[1fr_1.4fr] gap-6 items-start">
             {/* Role selector buttons */}
             <div className="flex flex-col gap-2.5">
-              {COMPARISON_PROFILES.map((profile, i) => {
-                const Icon = profile.icon;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => setActiveProfile(i)}
-                    className={`flex items-center gap-3.5 text-left px-5 py-4 rounded-xl font-semibold transition-all text-sm md:text-base ${
-                      activeProfile === i
-                        ? "bg-[#FF2E93]/15 border border-[#FF2E93]/40 text-white shadow-[0_0_20px_rgba(255,46,147,0.15)]"
-                        : "bg-white/[0.03] text-white/60 hover:bg-white/[0.06] hover:text-white/80 border border-white/[0.06]"
-                    }`}
-                  >
+              {comparisonLoading
+                ? Array.from({ length: 5 }).map((_, i) => (
                     <div
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                        activeProfile === i
-                          ? "bg-[#FF2E93]/20 text-[#FF2E93]"
-                          : "bg-white/[0.06] text-white/40"
-                      }`}
-                    >
-                      <Icon className="w-4.5 h-4.5" />
-                    </div>
-                    <span className="flex-1">{profile.role}</span>
-                    {activeProfile === i && (
-                      <span className="w-2 h-2 rounded-full bg-[#FF2E93] shrink-0" />
-                    )}
-                  </button>
-                );
-              })}
+                      key={i}
+                      className="h-[60px] rounded-xl bg-white/[0.06] animate-pulse border border-white/[0.06]"
+                    />
+                  ))
+                : comparisonProfiles.map((profile, i) => {
+                    const Icon = COMPARISON_ICONS[profile.icon_key] ?? Monitor;
+                    return (
+                      <button
+                        key={`${profile.role}-${i}`}
+                        type="button"
+                        onClick={() => setActiveProfile(i)}
+                        className={`flex items-center gap-3.5 text-left px-5 py-4 rounded-xl font-semibold transition-all text-sm md:text-base ${
+                          activeProfile === i
+                            ? "bg-[#FF2E93]/15 border border-[#FF2E93]/40 text-white shadow-[0_0_20px_rgba(255,46,147,0.15)]"
+                            : "bg-white/[0.03] text-white/60 hover:bg-white/[0.06] hover:text-white/80 border border-white/[0.06]"
+                        }`}
+                      >
+                        <div
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                            activeProfile === i
+                              ? "bg-[#FF2E93]/20 text-[#FF2E93]"
+                              : "bg-white/[0.06] text-white/40"
+                          }`}
+                        >
+                          <Icon className="w-4.5 h-4.5" />
+                        </div>
+                        <span className="flex-1">{profile.role}</span>
+                        {activeProfile === i && (
+                          <span className="w-2 h-2 rounded-full bg-[#FF2E93] shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
             </div>
 
             {/* Dynamic insight card */}
             <AnimatePresence mode="wait">
-              <motion.div
-                key={activeProfile}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white/[0.03] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 md:p-8 space-y-5"
-              >
-                {/* AI badge */}
-                <div className="flex">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10 text-sm font-medium text-white/80">
-                    <Sparkles className="w-4 h-4 text-[#A78BFA]" />
-                    Análisis de Mercado AI
-                  </div>
-                </div>
-
-                {/* Salary & Gap cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-[1.2fr_1fr] gap-4">
-                  {/* Salary card */}
-                  <div className="bg-[#3A0CA3]/30 border border-[#3A0CA3]/40 rounded-xl p-5">
-                    <p className="text-xs font-semibold text-white/50 mb-1.5">
-                      Salario promedio analizado
-                    </p>
-                    <p className="text-2xl md:text-3xl font-black font-heading text-white">
-                      {COMPARISON_PROFILES[activeProfile].salaryAvg}
-                    </p>
-                  </div>
-
-                  {/* Gap card */}
-                  <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
-                    <p className="text-xs font-semibold text-white/50 mb-1.5 flex items-center gap-1.5">
-                      <CircleAlert className="w-3.5 h-3.5 text-white/40" />
-                      Brecha salarial detectada
-                    </p>
-                    <p className="text-lg md:text-xl font-bold font-heading text-[#FF2E93] leading-tight">
-                      {COMPARISON_PROFILES[activeProfile].gap}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Region card */}
-                <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#4361EE]/20 border border-[#4361EE]/30 flex items-center justify-center shrink-0">
-                    <MapPin className="w-5 h-5 text-[#4361EE]" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-white/50">
-                      Región con mayor crecimiento
-                    </p>
-                    <p className="text-base font-bold text-white">
-                      {COMPARISON_PROFILES[activeProfile].region}
-                    </p>
-                  </div>
-                </div>
-
-                {/* CTA button */}
-                <button
-                  onClick={handleAnalyzeClick}
-                  disabled={isNavigating}
-                  className="w-full h-13 flex items-center justify-center gap-2 rounded-full bg-white/[0.06] border border-white/10 text-white font-bold text-sm hover:bg-white/10 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+              {comparisonLoading || comparisonProfiles.length === 0 ? (
+                <motion.div
+                  key="skeleton"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="bg-white/[0.03] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 md:p-8 space-y-5"
                 >
-                  {isNavigating ? (
-                    <>
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{
-                          duration: 1,
-                          repeat: Infinity,
-                          ease: "linear",
-                        }}
-                        className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                      />
-                      Cargando...
-                    </>
-                  ) : (
-                    <>
-                      Analizar mi perfil específico
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </motion.div>
+                  <div className="h-9 w-48 rounded-full bg-white/[0.08] animate-pulse" />
+                  <div className="grid grid-cols-1 sm:grid-cols-[1.2fr_1fr] gap-4">
+                    <div className="h-28 rounded-xl bg-white/[0.06] animate-pulse" />
+                    <div className="h-28 rounded-xl bg-white/[0.06] animate-pulse" />
+                  </div>
+                  <div className="h-24 rounded-xl bg-white/[0.06] animate-pulse" />
+                  <div className="h-12 rounded-full bg-white/[0.06] animate-pulse" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={activeProfile}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-white/[0.03] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 md:p-8 space-y-5"
+                >
+                  {/* AI badge */}
+                  <div className="flex">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10 text-sm font-medium text-white/80">
+                      <Sparkles className="w-4 h-4 text-[#A78BFA]" />
+                      Análisis de Mercado AI
+                    </div>
+                  </div>
+
+                  {/* Salary & Gap cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-[1.2fr_1fr] gap-4">
+                    {/* Salary card */}
+                    <div className="bg-[#3A0CA3]/30 border border-[#3A0CA3]/40 rounded-xl p-5">
+                      <p className="text-xs font-semibold text-white/50 mb-1.5">
+                        Salario promedio analizado
+                      </p>
+                      <p className="text-2xl md:text-3xl font-black font-heading text-white">
+                        {comparisonProfiles[activeProfile]?.salary_avg}
+                      </p>
+                    </div>
+
+                    {/* Gap card */}
+                    <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
+                      <p className="text-xs font-semibold text-white/50 mb-1.5 flex items-center gap-1.5">
+                        <CircleAlert className="w-3.5 h-3.5 text-white/40" />
+                        Brecha salarial detectada
+                      </p>
+                      <p className="text-lg md:text-xl font-bold font-heading text-[#FF2E93] leading-tight">
+                        {comparisonProfiles[activeProfile]?.gap}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Region card */}
+                  <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-[#4361EE]/20 border border-[#4361EE]/30 flex items-center justify-center shrink-0">
+                      <MapPin className="w-5 h-5 text-[#4361EE]" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-white/50">
+                        Región con mayor crecimiento
+                      </p>
+                      <p className="text-base font-bold text-white">
+                        {comparisonProfiles[activeProfile]?.region}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* CTA button */}
+                  <button
+                    type="button"
+                    onClick={handleAnalyzeClick}
+                    disabled={isNavigating}
+                    className="w-full h-13 flex items-center justify-center gap-2 rounded-full bg-white/[0.06] border border-white/10 text-white font-bold text-sm hover:bg-white/10 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {isNavigating ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
+                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                        />
+                        Cargando...
+                      </>
+                    ) : (
+                      <>
+                        Analizar mi perfil específico
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
         </div>

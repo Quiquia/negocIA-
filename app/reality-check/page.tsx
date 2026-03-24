@@ -1,6 +1,9 @@
 "use client";
 
-import type { SalaryEstimate } from "@/core/lib/salary-estimator";
+import {
+  getNegotiationUpliftRange,
+  type SalaryEstimate,
+} from "@/core/lib/salary-estimator";
 import {
   AlertCircle,
   ArrowRight,
@@ -23,6 +26,7 @@ import {
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { getCurrencyDisplayForCountryAndCode } from "../data/latam-countries";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 import { analyzeProfile } from "./actions";
 
@@ -40,15 +44,29 @@ export default function RealityCheckPage() {
   const [isPending, startTransition] = useTransition();
   const [estimate, setEstimate] = useState<SalaryEstimate | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  /** Moneda guardada en Supabase (fuente de verdad si el contexto se pierde al refrescar). */
+  const [salaryCurrencyFromDb, setSalaryCurrencyFromDb] = useState<string | null>(
+    null
+  );
+  const [countryFromDb, setCountryFromDb] = useState<string | null>(null);
 
-  // Derived from context (form data)
-  const currency = profileData?.currency || "PEN";
-  const currencySymbol =
-    currency === "USD" ? "$" : currency === "COP" ? "COL$" : "S/";
+  // Prioridad: BD del submission > contexto del formulario > moneda del JSON de la IA
+  const currencyCode =
+    salaryCurrencyFromDb ??
+    profileData?.currency ??
+    estimate?.currency ??
+    "USD";
+
+  const countryResolved =
+    countryFromDb ?? profileData?.country ?? undefined;
+
+  const { symbol: currencySymbol, label: currencyLabel } =
+    getCurrencyDisplayForCountryAndCode(countryResolved, currencyCode);
+
   const role = profileData?.role || "Frontend Developer";
   const seniority = profileData?.seniority || "Mid";
   const city = profileData?.city || "Lima";
-  const country = profileData?.country || "Perú";
+  const country = countryResolved || profileData?.country || "Perú";
   const techStack = profileData?.techStack?.join(" / ") || "React / TypeScript";
 
   // Only show real data from AI — no fake multipliers
@@ -86,6 +104,12 @@ export default function RealityCheckPage() {
       const result = await analyzeProfile(submissionId);
       if (result.success) {
         setEstimate(result.estimate);
+        if (result.submission.salary_currency) {
+          setSalaryCurrencyFromDb(result.submission.salary_currency);
+        }
+        if (result.submission.country) {
+          setCountryFromDb(result.submission.country);
+        }
         // Update context so downstream pages have AI data
         if (result.submission.monthly_salary_amount) {
           setCurrentSalary(result.submission.monthly_salary_amount);
@@ -122,6 +146,10 @@ export default function RealityCheckPage() {
   const insights = estimate?.profile_insights ?? fallbackInsights;
   const growthSkills = estimate?.growth_skills ?? fallbackSkills;
   const targetRole = estimate?.growth_target_role ?? fallbackTargetRole;
+
+  const negotiationRange = estimate
+    ? getNegotiationUpliftRange(estimate)
+    : { min: 18, max: 35 };
 
   const insightIcons = [
     <Lightbulb key="lb" className="w-6 h-6 text-yellow-500 mb-4" />,
@@ -196,9 +224,15 @@ export default function RealityCheckPage() {
       >
         <div className="absolute top-0 inset-x-0 h-3 bg-gradient-to-r from-primary via-accent to-secondary rounded-t-[2.5rem]" />
 
-        <h2 className="text-lg sm:text-2xl md:text-3xl font-bold font-heading text-foreground mb-6 sm:mb-12 text-center">
-          Tu salario comparado con el mercado
-        </h2>
+        <div className="text-center mb-6 sm:mb-10">
+          <h2 className="text-lg sm:text-2xl md:text-3xl font-bold font-heading text-foreground">
+            Tu salario comparado con el mercado
+          </h2>
+          <p className="mt-2 text-xs sm:text-sm text-muted-foreground font-medium">
+            Montos en {currencyLabel}
+            {countryResolved ? ` · ${countryResolved}` : ""}
+          </p>
+        </div>
 
         {!hasAiData && isPending ? (
           /* Skeleton while AI is loading */
@@ -374,8 +408,8 @@ export default function RealityCheckPage() {
           <p className="text-amber-800 font-medium leading-relaxed text-center md:text-left">
             Las profesionales {role.split(" ")[0]} con{" "}
             {techStack.split(" / ")[0]} y nivel {seniority} que negocian
-            activamente su salario suelen aumentar su compensación entre 18% y
-            35%.
+            activamente su salario suelen aumentar su compensación entre{" "}
+            {negotiationRange.min}% y {negotiationRange.max}%.
           </p>
         </div>
       </motion.div>

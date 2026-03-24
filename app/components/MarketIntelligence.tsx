@@ -1,34 +1,56 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  AreaChart, Area
-} from 'recharts';
-import { TrendingUp, RefreshCw, AlertCircle, Database, LineChart as ChartIcon, Code2, Globe2, Briefcase, Sparkles } from 'lucide-react';
+  AlertCircle,
+  Briefcase,
+  LineChart as ChartIcon,
+  Code2,
+  Database,
+  Globe2,
+  RefreshCw,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
+import { motion } from "motion/react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  fetchMarketIntelligenceSnapshot,
+  type MarketIntelligenceSnapshot,
+} from "./market-intelligence-actions";
+import { MARKET_REFERENCE_SOURCES } from "./market-intelligence-sources";
 
-const salaryData = [
-  { level: 'Junior', Peru: 1200, Colombia: 1300 },
-  { level: 'Mid', Peru: 2100, Colombia: 2300 },
-  { level: 'Senior', Peru: 3400, Colombia: 3600 },
-];
+function pickTechIcon(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("type") || n.includes("sql")) return Database;
+  if (
+    n.includes("next") ||
+    n.includes("node") ||
+    n.includes("vue") ||
+    n.includes("angular") ||
+    n.includes("react")
+  )
+    return Code2;
+  return Globe2;
+}
 
-const trendData = [
-  { year: '2024', salary: 2800 },
-  { year: '2025', salary: 3200 },
-  { year: '2026', salary: 3800 },
-];
-
-const techRanking = [
-  { name: 'React', growth: '+18%', icon: Code2 },
-  { name: 'Next.js', growth: '+24%', icon: Globe2 },
-  { name: 'TypeScript', growth: '+20%', icon: Database },
-  { name: 'Vue', growth: '+12%', icon: Code2 },
-  { name: 'Angular', growth: '+8%', icon: Globe2 },
-];
-
-function AnimatedCounter({ end, duration = 2 }: { end: number, duration?: number }) {
+function AnimatedCounter({
+  end,
+  duration = 2,
+}: {
+  end: number;
+  duration?: number;
+}) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -49,15 +71,49 @@ function AnimatedCounter({ end, duration = 2 }: { end: number, duration?: number
 }
 
 export function MarketIntelligence() {
-  const [activeTab, setActiveTab] = useState('latam');
+  const [activeTab, setActiveTab] = useState<"latam" | "global">("latam");
+  const [snapshot, setSnapshot] = useState<MarketIntelligenceSnapshot | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
   const [isLive, setIsLive] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const data = await fetchMarketIntelligenceSnapshot();
+      if (!cancelled) {
+        setSnapshot(data);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     const interval = setInterval(() => {
-      setIsLive(prev => !prev);
+      setIsLive((prev) => !prev);
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const data = snapshot;
+
+  const barRows = useMemo(() => {
+    if (!data) return [];
+    return activeTab === "latam" ? data.bar_latam : data.bar_global;
+  }, [data, activeTab]);
+
+  const techRanking = useMemo(() => {
+    if (!data?.tech_stack_ranking?.length) return [];
+    return data.tech_stack_ranking.map((tech) => ({
+      ...tech,
+      icon: pickTechIcon(tech.name),
+    }));
+  }, [data]);
 
   return (
     <section className="w-full py-24 px-6 md:px-12 lg:px-24 bg-[#080B1A] relative z-20 overflow-hidden text-white font-sans">
@@ -72,8 +128,12 @@ export function MarketIntelligence() {
             viewport={{ once: true }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-[#F1E9FF]"
           >
-            <span className={`w-2 h-2 rounded-full bg-[#FF2E93] ${isLive ? 'animate-pulse' : ''}`} />
-            Datos actualizados recientemente
+            <span
+              className={`w-2 h-2 rounded-full bg-[#FF2E93] ${isLive ? "animate-pulse" : ""}`}
+            />
+            {loading
+              ? "Generando inteligencia de mercado…"
+              : "Datos actualizados recientemente"}
           </motion.div>
 
           <h2 className="text-3xl md:text-5xl font-extrabold font-heading text-white">
@@ -86,19 +146,38 @@ export function MarketIntelligence() {
             </div>
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
               <div className="text-center md:text-left flex-1">
-                <p className="text-lg md:text-xl text-[#F1E9FF]/80 font-medium mb-2">Brecha salarial estimada para mujeres en tecnología en LATAM</p>
-                <p className="text-[#F1E9FF]/60 text-sm">Basado en datos de mercado actuales</p>
+                <p className="text-lg md:text-xl text-[#F1E9FF]/80 font-medium mb-2">
+                  Brecha salarial estimada para mujeres en tecnología en LATAM
+                </p>
+                <p className="text-[#F1E9FF]/60 text-sm">
+                  Estimación con IA según rol y mercado actual
+                </p>
               </div>
-              <div className="flex flex-col items-center justify-center">
-                <div className="text-7xl md:text-8xl font-black font-heading text-transparent bg-clip-text bg-gradient-to-r from-[#FF2E93] to-[#4361EE] drop-shadow-lg">
-                  <AnimatedCounter end={17} />%
-                </div>
+              <div className="flex flex-col items-center justify-center min-h-[5rem] min-w-[8rem]">
+                {loading || !data ? (
+                  <div className="h-16 w-28 rounded-xl bg-white/10 animate-pulse" />
+                ) : (
+                  <div className="text-7xl md:text-8xl font-black font-heading text-transparent bg-clip-text bg-gradient-to-r from-[#FF2E93] to-[#4361EE] drop-shadow-lg">
+                    <AnimatedCounter
+                      key={data.pay_gap_women_percent}
+                      end={data.pay_gap_women_percent}
+                    />
+                    %
+                  </div>
+                )}
               </div>
             </div>
             <div className="mt-8 pt-8 border-t border-white/10">
               <p className="text-xl md:text-2xl font-medium text-white text-center">
-                <span className="text-[#FF2E93] font-bold">&quot;En tecnología, las mujeres pueden ganar hasta 17% menos</span> <br className="hidden md:block" />
-                que sus colegas hombres en roles similares.&quot;
+                {loading || !data ? (
+                  <span className="inline-block h-8 w-full max-w-2xl mx-auto rounded-lg bg-white/10 animate-pulse" />
+                ) : (
+                  <>
+                    <span className="text-[#FF2E93] font-bold">
+                      &quot;{data.pay_gap_quote}&quot;
+                    </span>
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -110,7 +189,7 @@ export function MarketIntelligence() {
               Inteligencia salarial del mercado tecnológico
             </h2>
             <p className="text-xl text-[#F1E9FF]/70">
-              Datos reales para tomar mejores decisiones profesionales
+              Datos generados con IA para tomar mejores decisiones profesionales
             </p>
           </div>
 
@@ -125,31 +204,104 @@ export function MarketIntelligence() {
                 <div>
                   <h3 className="text-2xl font-bold font-heading flex items-center gap-3">
                     <ChartIcon className="w-6 h-6 text-[#4361EE]" />
-                    Frontend Developer Salary Analysis
+                    {loading || !data ? (
+                      <span className="inline-block h-8 w-64 rounded-lg bg-white/10 animate-pulse" />
+                    ) : (
+                      `${data.role_title} — análisis salarial`
+                    )}
                   </h3>
-                  <p className="text-[#F1E9FF]/60 mt-1">Comparativa por nivel de experiencia (USD)</p>
+                  <p className="text-[#F1E9FF]/60 mt-1">
+                    Comparativa por nivel de experiencia (USD)
+                  </p>
                 </div>
-                <div className="flex items-center gap-2 bg-[#3A0CA3]/30 p-1.5 rounded-lg border border-[#4361EE]/30">
-                  <button className="px-4 py-1.5 text-sm font-medium bg-[#4361EE] text-white rounded-md shadow-lg">LATAM</button>
-                  <button className="px-4 py-1.5 text-sm font-medium text-[#F1E9FF]/60 hover:text-white transition-colors">Global</button>
+                <div className="flex items-center  justify-center gap-2 bg-[#3A0CA3]/30 p-1.5 rounded-lg border border-[#4361EE]/30">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("latam")}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors w-[50%] ${
+                      activeTab === "latam"
+                        ? "bg-[#4361EE] text-white shadow-lg"
+                        : "text-[#F1E9FF]/60 hover:text-white"
+                    }`}
+                  >
+                    LATAM
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("global")}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors w-[50%] ${
+                      activeTab === "global"
+                        ? "bg-[#4361EE] text-white shadow-lg"
+                        : "text-[#F1E9FF]/60 hover:text-white"
+                    }`}
+                  >
+                    Global
+                  </button>
                 </div>
               </div>
-              <div className="w-full">
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart id="market-salary-bar" data={salaryData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }} accessibilityLayer={false}>
-                    <CartesianGrid key="grid" strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                    <XAxis key="xaxis" dataKey="level" stroke="rgba(255,255,255,0.5)" tick={{fill: 'rgba(255,255,255,0.7)'}} axisLine={false} tickLine={false} />
-                    <YAxis key="yaxis" stroke="rgba(255,255,255,0.5)" tick={{fill: 'rgba(255,255,255,0.7)'}} axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
-                    <Tooltip
-                      key="tooltip"
-                      cursor={{fill: 'rgba(255,255,255,0.02)'}}
-                      contentStyle={{ backgroundColor: '#0F172A', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }}
-                      itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-                    />
-                    <Bar key="bar-peru" dataKey="Peru" name="Perú" fill="#4361EE" radius={[4, 4, 0, 0]} animationDuration={2000} />
-                    <Bar key="bar-colombia" dataKey="Colombia" name="Colombia" fill="#FF2E93" radius={[4, 4, 0, 0]} animationDuration={2000} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="w-full min-h-[300px]">
+                {loading || !data ? (
+                  <div className="h-[300px] rounded-2xl bg-white/5 animate-pulse" />
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      id="market-salary-bar"
+                      data={barRows}
+                      margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                      accessibilityLayer={false}
+                    >
+                      <CartesianGrid
+                        key="grid"
+                        strokeDasharray="3 3"
+                        stroke="rgba(255,255,255,0.05)"
+                        vertical={false}
+                      />
+                      <XAxis
+                        key="xaxis"
+                        dataKey="level"
+                        stroke="rgba(255,255,255,0.5)"
+                        tick={{ fill: "rgba(255,255,255,0.7)" }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        key="yaxis"
+                        stroke="rgba(255,255,255,0.5)"
+                        tick={{ fill: "rgba(255,255,255,0.7)" }}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(value) => `$${value}`}
+                      />
+                      <Tooltip
+                        key="tooltip"
+                        cursor={{ fill: "rgba(255,255,255,0.02)" }}
+                        contentStyle={{
+                          backgroundColor: "#0F172A",
+                          borderColor: "rgba(255,255,255,0.1)",
+                          borderRadius: "12px",
+                          color: "#fff",
+                        }}
+                        itemStyle={{ color: "#fff", fontWeight: "bold" }}
+                      />
+                      <Bar
+                        key="bar-v1"
+                        dataKey="v1"
+                        name={data.bar_series_label_1}
+                        fill="#4361EE"
+                        radius={[4, 4, 0, 0]}
+                        animationDuration={2000}
+                      />
+                      <Bar
+                        key="bar-v2"
+                        dataKey="v2"
+                        name={data.bar_series_label_2}
+                        fill="#FF2E93"
+                        radius={[4, 4, 0, 0]}
+                        animationDuration={2000}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </motion.div>
 
@@ -165,32 +317,95 @@ export function MarketIntelligence() {
                   <TrendingUp className="w-5 h-5 text-[#FF2E93]" />
                   Crecimiento salarial
                 </h3>
-                <p className="text-[#F1E9FF]/60 text-sm mt-1">Tendencia últimos 3 años</p>
+                <p className="text-[#F1E9FF]/60 text-sm mt-1">
+                  Tendencia últimos 3 años
+                </p>
               </div>
-              <div className="flex-1 w-full relative">
-                <ResponsiveContainer width="100%" height={150}>
-                  <AreaChart id="market-trend-area" data={trendData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} accessibilityLayer={false}>
-                    <defs key="defs">
-                      <linearGradient id="colorSalary" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#4361EE" stopOpacity={0.5}/>
-                        <stop offset="95%" stopColor="#4361EE" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid key="grid" strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                    <XAxis key="xaxis" dataKey="year" stroke="rgba(255,255,255,0.5)" tick={{fill: 'rgba(255,255,255,0.7)', fontSize: 12}} axisLine={false} tickLine={false} />
-                    <Tooltip
-                      key="tooltip"
-                      contentStyle={{ backgroundColor: '#0F172A', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px' }}
-                      formatter={(value: number) => [`$${value}`, 'Salario Promedio']}
-                    />
-                    <Area key="area" type="monotone" dataKey="salary" stroke="#4361EE" strokeWidth={3} fillOpacity={1} fill="url(#colorSalary)" animationDuration={2000} />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div className="flex-1 w-full relative min-h-[150px]">
+                {loading || !data ? (
+                  <div className="h-[150px] rounded-xl bg-white/5 animate-pulse" />
+                ) : (
+                  <ResponsiveContainer width="100%" height={150}>
+                    <AreaChart
+                      id="market-trend-area"
+                      data={data.salary_trend}
+                      margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+                      accessibilityLayer={false}
+                    >
+                      <defs key="defs">
+                        <linearGradient
+                          id="colorSalary"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#4361EE"
+                            stopOpacity={0.5}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#4361EE"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        key="grid"
+                        strokeDasharray="3 3"
+                        stroke="rgba(255,255,255,0.05)"
+                        vertical={false}
+                      />
+                      <XAxis
+                        key="xaxis"
+                        dataKey="year"
+                        stroke="rgba(255,255,255,0.5)"
+                        tick={{
+                          fill: "rgba(255,255,255,0.7)",
+                          fontSize: 12,
+                        }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <Tooltip
+                        key="tooltip"
+                        contentStyle={{
+                          backgroundColor: "#0F172A",
+                          borderColor: "rgba(255,255,255,0.1)",
+                          borderRadius: "12px",
+                        }}
+                        formatter={(value: number) => [
+                          `$${value}`,
+                          "Salario promedio",
+                        ]}
+                      />
+                      <Area
+                        key="area"
+                        type="monotone"
+                        dataKey="salary"
+                        stroke="#4361EE"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorSalary)"
+                        animationDuration={2000}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </div>
               <div className="mt-4 p-4 bg-[#4361EE]/10 border border-[#4361EE]/20 rounded-xl">
-                <p className="text-sm text-white/90">
-                  <span className="font-bold text-[#4361EE]">El salario promedio ha crecido 21%</span> en los últimos 3 años en roles tech.
-                </p>
+                {loading || !data ? (
+                  <div className="h-12 rounded-lg bg-white/10 animate-pulse" />
+                ) : (
+                  <p className="text-sm text-white/90">
+                    <span className="font-bold text-[#4361EE]">
+                      El salario promedio ha crecido {data.growth_narrative_percent}%
+                    </span>{" "}
+                    {data.growth_narrative_suffix}
+                  </p>
+                )}
               </div>
             </motion.div>
 
@@ -206,27 +421,61 @@ export function MarketIntelligence() {
                   <Briefcase className="w-5 h-5 text-[#3A0CA3]" />
                   Modalidad de trabajo
                 </h3>
-                <p className="text-[#F1E9FF]/60 text-sm mt-1">Salario promedio por modalidad</p>
+                <p className="text-[#F1E9FF]/60 text-sm mt-1">
+                  Salario promedio por modalidad (estimado)
+                </p>
               </div>
               <div className="space-y-4">
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/10 relative overflow-hidden group hover:border-[#FF2E93]/50 transition-colors">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF2E93]/10 rounded-full blur-2xl -mr-10 -mt-10" />
-                  <p className="text-sm text-white/60 mb-1 relative z-10">Full-time (Planilla)</p>
-                  <p className="text-2xl font-bold text-white relative z-10">$3,200 <span className="text-sm font-normal text-white/50">USD/mes</span></p>
-                </div>
-                <div className="p-4 bg-white/5 rounded-2xl border border-[#4361EE]/40 relative overflow-hidden group hover:border-[#4361EE]/80 transition-colors">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#4361EE]/20 rounded-full blur-2xl -mr-10 -mt-10" />
-                  <p className="text-sm text-[#4361EE] font-medium mb-1 relative z-10">Freelance</p>
-                  <p className="text-2xl font-bold text-white relative z-10">$4,100 <span className="text-sm font-normal text-white/50">USD/mes</span></p>
-                </div>
+                {loading || !data ? (
+                  <>
+                    <div className="h-24 rounded-2xl bg-white/5 animate-pulse" />
+                    <div className="h-24 rounded-2xl bg-white/5 animate-pulse" />
+                  </>
+                ) : (
+                  data.work_modes.map((wm, idx) => (
+                    <div
+                      key={`${wm.label}-${idx}`}
+                      className={`p-4 bg-white/5 rounded-2xl border relative overflow-hidden group transition-colors ${
+                        wm.highlight
+                          ? "border-[#4361EE]/40 hover:border-[#4361EE]/80"
+                          : "border-white/10 hover:border-[#FF2E93]/50"
+                      }`}
+                    >
+                      <div
+                        className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl -mr-10 -mt-10 ${
+                          wm.highlight
+                            ? "bg-[#4361EE]/20"
+                            : "bg-[#FF2E93]/10"
+                        }`}
+                      />
+                      <p
+                        className={`text-sm mb-1 relative z-10 ${
+                          wm.highlight
+                            ? "text-[#4361EE] font-medium"
+                            : "text-white/60"
+                        }`}
+                      >
+                        {wm.label}
+                      </p>
+                      <p className="text-2xl font-bold text-white relative z-10">
+                        ${wm.salary_usd.toLocaleString()}{" "}
+                        <span className="text-sm font-normal text-white/50">
+                          USD/mes
+                        </span>
+                      </p>
+                    </div>
+                  ))
+                )}
               </div>
               <div className="mt-6 pt-6 border-t border-white/10 flex items-start gap-3">
                 <div className="p-1.5 bg-[#FF2E93]/20 rounded-md shrink-0 mt-0.5">
                   <TrendingUp className="w-4 h-4 text-[#FF2E93]" />
                 </div>
-                <p className="text-sm text-[#F1E9FF]/80">
-                  Freelance Frontend Developers pueden ganar hasta <span className="font-bold text-white">28% más</span> por proyecto.
-                </p>
+                {loading || !data ? (
+                  <div className="h-14 flex-1 rounded-lg bg-white/10 animate-pulse" />
+                ) : (
+                  <p className="text-sm text-[#F1E9FF]/80">{data.work_modes_insight}</p>
+                )}
               </div>
             </motion.div>
 
@@ -241,57 +490,112 @@ export function MarketIntelligence() {
                 <div>
                   <h3 className="text-2xl font-bold font-heading flex items-center gap-3">
                     <Code2 className="w-6 h-6 text-[#FF2E93]" />
-                    Tecnologías mejor pagadas en Frontend
+                    Tecnologías mejor pagadas
                   </h3>
-                  <p className="text-[#F1E9FF]/60 mt-1">Ranking basado en demanda y compensación actual</p>
+                  <p className="text-[#F1E9FF]/60 mt-1">
+                    Ranking según demanda y compensación (IA)
+                  </p>
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4361EE]/20 border border-[#4361EE]/30 text-[#4361EE] text-sm font-medium">
-                  <RefreshCw className={`w-3 h-3 ${isLive ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
-                  Demanda +18% últimos 12 meses
+                  <RefreshCw
+                    className={`w-3 h-3 ${isLive ? "animate-spin" : ""}`}
+                    style={{ animationDuration: "3s" }}
+                  />
+                  {loading || !data ? "…" : data.demand_headline}
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                {techRanking.map((tech, i) => (
-                  <div key={i} className="p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors flex flex-col items-center justify-center text-center gap-3 relative overflow-hidden group">
-                    <div className={`absolute top-0 right-0 w-16 h-16 rounded-full blur-xl -mr-8 -mt-8 transition-opacity ${i === 0 || i === 1 ? 'bg-[#FF2E93]/30 opacity-100' : 'bg-[#4361EE]/20 opacity-0 group-hover:opacity-100'}`} />
-                    <div className="w-12 h-12 rounded-full bg-black/30 border border-white/10 flex items-center justify-center relative z-10 shadow-inner">
-                      <span className="font-bold text-white/50 absolute -top-2 -left-2 text-xs">#{i+1}</span>
-                      <tech.icon className={`w-5 h-5 ${i === 0 ? 'text-[#FF2E93]' : i === 1 ? 'text-[#4361EE]' : 'text-white/70'}`} />
+                {loading || !data ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-36 rounded-2xl bg-white/5 animate-pulse"
+                    />
+                  ))
+                ) : (
+                  techRanking.map((tech, i) => (
+                    <div
+                      key={`${tech.name}-${i}`}
+                      className="p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors flex flex-col items-center justify-center text-center gap-3 relative overflow-hidden group"
+                    >
+                      <div
+                        className={`absolute top-0 right-0 w-16 h-16 rounded-full blur-xl -mr-8 -mt-8 transition-opacity ${
+                          i === 0 || i === 1
+                            ? "bg-[#FF2E93]/30 opacity-100"
+                            : "bg-[#4361EE]/20 opacity-0 group-hover:opacity-100"
+                        }`}
+                      />
+                      <div className="w-12 h-12 rounded-full bg-black/30 border border-white/10 flex items-center justify-center relative z-10 shadow-inner">
+                        <span className="font-bold text-white/50 absolute -top-2 -left-2 text-xs">
+                          #{i + 1}
+                        </span>
+                        <tech.icon
+                          className={`w-5 h-5 ${
+                            i === 0
+                              ? "text-[#FF2E93]"
+                              : i === 1
+                                ? "text-[#4361EE]"
+                                : "text-white/70"
+                          }`}
+                        />
+                      </div>
+                      <div className="relative z-10">
+                        <p className="font-bold text-white mb-1">{tech.name}</p>
+                        <p className="text-xs font-medium text-green-400">
+                          {tech.demand_growth} demanda
+                        </p>
+                      </div>
                     </div>
-                    <div className="relative z-10">
-                      <p className="font-bold text-white mb-1">{tech.name}</p>
-                      <p className="text-xs font-medium text-green-400">{tech.growth} demanda</p>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </motion.div>
           </div>
 
           <div className="flex flex-col items-center text-center mt-4 space-y-2">
-            <p className="text-xs text-[#F1E9FF]/50">* Análisis salarial personalizado basado en múltiples factores clave:</p>
+            <p className="text-xs text-[#F1E9FF]/50">
+              * Estimaciones generadas con IA; no constituyen asesoría legal ni
+              financiera.
+            </p>
             <div className="flex flex-wrap justify-center gap-3 text-[11px] text-[#F1E9FF]/40">
-              <span className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-[#FF2E93]"></span>Datos del mercado tecnológico</span>
-              <span className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-[#4361EE]"></span>Nivel de experiencia</span>
-              <span className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-[#FF2E93]"></span>Stack tecnológico</span>
-              <span className="flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-[#4361EE]"></span>Ubicación geográfica</span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-[#FF2E93]" />
+                Datos del mercado tecnológico
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-[#4361EE]" />
+                Nivel de experiencia
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-[#FF2E93]" />
+                Stack tecnológico
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-[#4361EE]" />
+                Ubicación geográfica
+              </span>
             </div>
           </div>
 
           <div className="pt-8 flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left text-sm text-[#F1E9FF]/40 border-t border-white/5">
-            <span className="font-semibold uppercase tracking-wider text-white/50">Fuentes de datos:</span>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2">
-              <span className="hover:text-white/70 transition-colors cursor-default">Stack Overflow Developer Survey</span>
-              <span className="hidden md:inline">•</span>
-              <span className="hover:text-white/70 transition-colors cursor-default">Glassdoor Market Reports</span>
-              <span className="hidden md:inline">•</span>
-              <span className="hover:text-white/70 transition-colors cursor-default">GitHub Developer Trends</span>
-              <span className="hidden md:inline">•</span>
-              <span className="hover:text-white/70 transition-colors cursor-default">LATAM Tech Salary Studies</span>
-              <span className="hidden md:inline">•</span>
+            <span className="font-semibold uppercase tracking-wider text-white/50 shrink-0">
+              Marco de referencia (Frontend):
+            </span>
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2">
+              {MARKET_REFERENCE_SOURCES.map((name, i) => (
+                <span key={name} className="inline-flex items-center gap-x-4">
+                  {i > 0 && (
+                    <span className="hidden md:inline opacity-50">•</span>
+                  )}
+                  <span className="hover:text-white/70 transition-colors cursor-default">
+                    {name}
+                  </span>
+                </span>
+              ))}
+              <span className="hidden md:inline opacity-50">•</span>
               <span className="flex items-center gap-1 text-[#FF2E93]/80 font-medium">
                 <Sparkles className="w-3 h-3" />
-                Aggregated NegocIA+ Data
+                Síntesis NegocIA+
               </span>
             </div>
           </div>
