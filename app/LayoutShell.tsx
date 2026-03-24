@@ -28,7 +28,8 @@ function FooterSection({
   title: string;
   children: React.ReactNode;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  /** Abierto por defecto: el HTML del servidor coincide con escritorio y evita hidratar vacío. */
+  const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -269,7 +270,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}
-            initial={{ opacity: 0, y: 10 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}

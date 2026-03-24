@@ -29,6 +29,7 @@ import {
   type ComparisonIconKey,
   type ComparisonProfileDTO,
 } from "./components/comparison-profiles-actions";
+import { getSalarySubmissionsCount } from "./home-actions";
 
 const COMPARISON_ICONS: Record<ComparisonIconKey, LucideIcon> = {
   monitor: Monitor,
@@ -42,6 +43,17 @@ const COMPARISON_ICONS: Record<ComparisonIconKey, LucideIcon> = {
 function seeded01(i: number, salt: number) {
   const x = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
   return x - Math.floor(x);
+}
+
+function formatEsInteger(n: number) {
+  return new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 }).format(n);
+}
+
+/** Etiqueta compacta tipo +5k para el avatar extra */
+function formatCompactPlus(n: number) {
+  if (n >= 1_000_000) return `+${Math.floor(n / 1_000_000)}M`;
+  if (n >= 1_000) return `+${Math.floor(n / 1_000)}k`;
+  return `+${n}`;
 }
 
 // Particle component for subtle hero animation
@@ -95,6 +107,18 @@ export default function Home() {
   const [comparisonLoading, setComparisonLoading] = useState(true);
   const [activeProfile, setActiveProfile] = useState(0);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [submissionCount, setSubmissionCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const count = await getSalarySubmissionsCount();
+      if (!cancelled) setSubmissionCount(count);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -171,7 +195,10 @@ export default function Home() {
               {[
                 {
                   icon: CheckCircle2,
-                  text: "+5,000 análisis salariales realizados",
+                  text:
+                    submissionCount === null
+                      ? "Cargando análisis realizados…"
+                      : `+${formatEsInteger(submissionCount)} análisis salariales realizados`,
                 },
                 {
                   icon: BarChart3,
@@ -309,13 +336,15 @@ export default function Home() {
                 className="w-10 h-10 rounded-full border-2 border-white object-cover"
               />
             ))}
-            <div className="w-10 h-10 rounded-full border-2 border-white bg-primary flex items-center justify-center text-white text-xs font-bold">
-              +5k
+            <div className="w-10 h-10 rounded-full border-2 border-white bg-primary flex items-center justify-center text-white text-xs font-bold min-w-10">
+              {submissionCount === null ? "…" : formatCompactPlus(submissionCount)}
             </div>
           </div>
           <p className="text-sm md:text-base text-muted-foreground text-center sm:text-left">
             <span className="font-semibold text-foreground">
-              Más de 5,000 mujeres en tecnología
+              {submissionCount === null
+                ? "Más de … mujeres en tecnología"
+                : `Más de ${formatEsInteger(submissionCount)} mujeres en tecnología`}
             </span>{" "}
             ya han analizado su salario con NegocIA+
           </p>

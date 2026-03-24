@@ -1,8 +1,7 @@
 "use client";
 
-import { Languages } from "lucide-react";
-import { useLanguage, type Locale } from "../providers/LanguageProvider";
 import { cn } from "@/app/components/ui/utils";
+import { useLanguage, type Locale } from "../providers/LanguageProvider";
 
 const OPTIONS: { value: Locale; label: string }[] = [
   { value: "es", label: "ES" },
@@ -22,10 +21,7 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
       role="group"
       aria-label="Seleccionar idioma"
     >
-      <Languages
-        className="w-4 h-4 text-muted-foreground shrink-0 hidden sm:block"
-        aria-hidden
-      />
+    
       <div className="flex rounded-full p-1 bg-muted/60 border border-border/80 shadow-inner">
         {OPTIONS.map(({ value, label }) => {
           const active = locale === value;

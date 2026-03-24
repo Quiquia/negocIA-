@@ -16,6 +16,8 @@ import {
 import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { getSalarySubmissionsCount } from "../home-actions";
 
 const teamMembers = [
   {
@@ -23,7 +25,7 @@ const teamMembers = [
     role: "UX/UI Designer",
     specialties: "Product Design • UX Research",
     description: "Diseña experiencias digitales intuitivas centradas en las necesidades reales de mujeres en tecnología.",
-    image: "/assets/photo-rosmery.jpeg",
+    image: "/assets/photo-rosmery.webp",
     linkedin: "https://www.linkedin.com/in/rosmery-fabian-escandon",
   },
   {
@@ -31,7 +33,7 @@ const teamMembers = [
     role: "Full Stack Developer",
     specialties: "AI Systems • Platform Engineering",
     description: "Construye plataformas escalables integrando IA y datos para resolver problemas del mercado laboral.",
-    image: "/assets/photo-vanessa.png",
+    image: "/assets/photo-vanessa.webp",
     linkedin: "https://www.linkedin.com/in/bequidev",
   },
   {
@@ -39,7 +41,7 @@ const teamMembers = [
     role: "Full Stack Developer",
     specialties: "Software Architecture • Backend Engineering",
     description: "Arquitecta de soluciones eficientes que impulsan las funcionalidades clave y el rendimiento de NegocIA+.",
-    image: "/assets/photo-carolina.jpeg",
+    image: "/assets/photo-carolina.webp",
     linkedin: "https://www.linkedin.com/in/carolinavargasjaramillo-analyst",
   },
   {
@@ -47,7 +49,7 @@ const teamMembers = [
     role: "Communications Strategist",
     specialties: "Storytelling • Community Strategy",
     description: "Amplifica el impacto de la plataforma, conectando nuestra misión con la comunidad tecnológica.",
-    image: "/assets/ale.png",
+    image: "/assets/photo-alexandra.webp",
     linkedin: "https://www.linkedin.com/in/alexandra-canchis-angulo-b2340b2a0",
   },
   {
@@ -55,7 +57,7 @@ const teamMembers = [
     role: "Product Strategist",
     specialties: "Product Vision • Market Strategy",
     description: "Lidera la visión estratégica para consolidar una herramienta de inteligencia salarial líder en Latam.",
-    image: "/assets/lucia.png",
+    image: "/assets/photo-lucia.webp",
     linkedin: "https://www.linkedin.com/in/luciagilv",
   },
 ];
@@ -123,13 +125,40 @@ const roadmap = [
   },
 ];
 
-const stats = [
-  { value: "+5,000", label: "Usuarias proyectadas", icon: Users },
-  { value: "Latam", label: "Cobertura regional", icon: Globe },
-  { value: "100%", label: "Gratuito y accesible", icon: Sparkles },
-];
+function formatEsInteger(n: number) {
+  return new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 }).format(n);
+}
 
 export default function SobreNosotrosPage() {
+  const [submissionCount, setSubmissionCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const count = await getSalarySubmissionsCount();
+      if (!cancelled) setSubmissionCount(count);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const stats = useMemo(
+    () => [
+      {
+        value:
+          submissionCount === null
+            ? "…"
+            : `+${formatEsInteger(submissionCount)}`,
+        label: "Análisis realizados",
+        icon: Users,
+      },
+      { value: "Latam", label: "Cobertura regional", icon: Globe },
+      { value: "100%", label: "Gratuito y accesible", icon: Sparkles },
+    ],
+    [submissionCount],
+  );
+
   return (
     <main className="min-h-screen bg-white">
       {/* Hero */}
