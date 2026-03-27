@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { AlertCircle, Briefcase, ChevronRight, Clock, DollarSign, Sparkles, TrendingUp } from "lucide-react";
 import { motion } from "motion/react";
-import { TrendingUp, AlertCircle, Sparkles, Briefcase, ChevronRight, DollarSign, Clock } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import Link from "next/link";
+import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 
 export default function SalaryImpactPage() {
@@ -152,7 +152,7 @@ export default function SalaryImpactPage() {
           href="/simulator"
           className="w-full h-16 rounded-full bg-white text-primary font-extrabold text-xl flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(255,46,147,0.4)] hover:scale-105 transition-transform"
         >
-          Practicar negociación con IA
+          Practicar con IA
           <ChevronRight className="w-6 h-6" />
         </Link>
       </motion.div>

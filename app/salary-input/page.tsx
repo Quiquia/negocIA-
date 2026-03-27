@@ -11,16 +11,22 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { KeyboardEvent, useEffect, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
-import { useSalaryData } from "../providers/SalaryDataProvider";
 import {
-  latamCountries,
+  KeyboardEvent,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
+import { useForm } from "react-hook-form";
+import {
+  detectCountryByTimezone,
   getCountryByName,
   getCurrencyOptions,
-  detectCountryByTimezone,
+  latamCountries,
 } from "../data/latam-countries";
 import { isTechRole, TECH_ROLE_ERROR } from "../data/tech-roles";
+import { useSalaryData } from "../providers/SalaryDataProvider";
 import { submitSalaryProfile } from "./actions";
 
 type ProfileForm = {
@@ -94,8 +100,49 @@ export default function SalaryInputPage() {
     },
   });
 
+  const formValues = watch();
   const watchCountry = watch("country");
   const watchRole = watch("role");
+
+  const canProceedToNext = useMemo(() => {
+    const v = formValues;
+    if (currentStep === 1) {
+      if (!v.seniority?.trim()) return false;
+      if (!v.yearsExperience?.trim()) return false;
+      const techOk = Array.isArray(v.techStack) && v.techStack.length > 0;
+      const toolsOk = Array.isArray(v.tools) && v.tools.length > 0;
+      if (!techOk || !toolsOk) return false;
+      if (!v.englishLevel?.trim()) return false;
+      if (!v.englishUsage?.trim()) return false;
+      if (!v.roleDescription?.trim()) return false;
+      if (v.role === "Otro") {
+        const cr = v.customRole?.trim();
+        if (!cr || !isTechRole(cr)) return false;
+      }
+      return true;
+    }
+    if (currentStep === 2) {
+      return !!(
+        v.country?.trim() &&
+        v.city?.trim() &&
+        v.workMode?.trim() &&
+        v.companyType?.trim() &&
+        v.contractType?.trim() &&
+        v.workSchedule?.trim() &&
+        v.companyOrigin?.trim()
+      );
+    }
+    if (currentStep === 3) {
+      const raw = v.monthlySalary;
+      const n = typeof raw === "number" ? raw : Number(raw);
+      if (!Number.isFinite(n) || n < 50) return false;
+      if (!v.currency?.trim() || !v.salaryType?.trim() || !v.hasBonus?.trim()) {
+        return false;
+      }
+      return true;
+    }
+    return true;
+  }, [currentStep, formValues]);
   const selectedCountry = getCountryByName(watchCountry);
   const currencySymbol = selectedCountry?.currency.symbol ?? "$";
   const countryCities = selectedCountry?.cities ?? [];
@@ -1350,7 +1397,8 @@ export default function SalaryInputPage() {
               <button
                 type="button"
                 onClick={handleNext}
-                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 px-8 rounded-full bg-primary text-white font-extrabold text-lg shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all sm:ml-auto"
+                disabled={!canProceedToNext}
+                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 px-8 rounded-full bg-primary text-white font-extrabold text-lg shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all sm:ml-auto disabled:opacity-45 disabled:pointer-events-none disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
                 Siguiente
                 <ArrowRight className="w-5 h-5" />

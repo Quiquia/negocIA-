@@ -620,7 +620,7 @@ export default function RealityCheckPage() {
                 onClick={() => router.push("/simulator")}
                 className="w-full h-14 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold text-lg shadow-lg shadow-primary/25 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
               >
-                Practicar negociación con IA
+                Practicar con IA
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>

@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { ArrowRight, CheckCircle2, Play, ShieldAlert, Sparkles, TrendingUp } from "lucide-react";
 import { motion } from "motion/react";
-import { CheckCircle2, TrendingUp, ShieldAlert, ArrowRight, Play, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function NegotiationStrategyPage() {
   const strategies = [
@@ -80,7 +80,7 @@ export default function NegotiationStrategyPage() {
           className="w-full h-16 rounded-full bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-3 shadow-2xl shadow-primary/30 hover:bg-primary/90 hover:-translate-y-1 transition-all"
         >
           <Play className="w-6 h-6 fill-secondary text-secondary" />
-          Practicar negociación con IA
+          Practicar con IA
           <ArrowRight className="w-5 h-5 ml-2" />
         </Link>
         <p className="text-sm font-medium text-muted-foreground mt-4 text-center">
