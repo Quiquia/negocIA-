@@ -36,7 +36,7 @@ export default function SalaryImpactPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] py-12 px-4 sm:px-6 max-w-5xl mx-auto w-full">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12 w-full bg-gradient-to-r from-secondary to-[#200560] rounded-[3rem] p-10 md:p-16 text-white shadow-2xl relative overflow-hidden"
       >
@@ -57,7 +57,7 @@ export default function SalaryImpactPage() {
 
       <div className="grid md:grid-cols-2 gap-6 w-full mb-10">
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
+          initial={false}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
           className="bg-white border-2 border-border p-8 rounded-[2rem] shadow-lg flex flex-col relative overflow-hidden group hover:border-[#9333EA] transition-colors"
@@ -79,7 +79,7 @@ export default function SalaryImpactPage() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
+          initial={false}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
           className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 p-8 rounded-[2rem] shadow-lg flex flex-col relative overflow-hidden group hover:border-blue-400 transition-colors"
@@ -102,7 +102,7 @@ export default function SalaryImpactPage() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
         className="w-full bg-white p-8 md:p-12 rounded-[2rem] shadow-xl border border-gray-100 mb-12 relative overflow-hidden"
@@ -137,7 +137,7 @@ export default function SalaryImpactPage() {
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={false}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.6 }}
         className="flex flex-col items-center w-full max-w-2xl text-center bg-gradient-to-r from-primary to-[#FF5EAB] p-10 rounded-[2rem] text-white shadow-[0_0_20px_rgba(255,46,147,0.4)]"

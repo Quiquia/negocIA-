@@ -162,7 +162,7 @@ export default function RealityCheckPage() {
     <div className="flex flex-col items-center min-h-[80vh] py-8 sm:py-12 px-4 sm:px-6 max-w-5xl mx-auto w-full">
       {/* SCREEN HEADER */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center mb-8 sm:mb-10 w-full"
@@ -197,7 +197,7 @@ export default function RealityCheckPage() {
       {/* AI LOADING INDICATOR */}
       {isPending && (
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           className="w-full bg-accent/5 border border-accent/20 p-6 rounded-2xl mb-8 flex items-center justify-center gap-3"
         >
@@ -218,7 +218,7 @@ export default function RealityCheckPage() {
 
       {/* SECTION 1 — TU SALARIO VS EL MERCADO */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
         className="w-full bg-white border border-border p-5 sm:p-8 md:p-12 rounded-2xl sm:rounded-[2.5rem] shadow-xl shadow-primary/5 mb-6 sm:mb-8 relative overflow-visible"
@@ -273,7 +273,7 @@ export default function RealityCheckPage() {
 
                 {/* User salary marker + tooltip */}
                 <motion.div
-                  initial={{ left: "50%" }}
+                  initial={false}
                   animate={{ left: markerPosition }}
                   transition={{
                     duration: 1.5,
@@ -394,7 +394,7 @@ export default function RealityCheckPage() {
 
       {/* PERSONALIZED INSIGHT */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
         className="w-full bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 p-6 md:p-8 rounded-[2rem] shadow-sm mb-8 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6"
@@ -417,7 +417,7 @@ export default function RealityCheckPage() {
 
       {/* SECTION 2 — FUENTE */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         className="w-full bg-muted/20 border border-border p-6 md:p-8 rounded-[2rem] mb-8"
@@ -467,7 +467,7 @@ export default function RealityCheckPage() {
 
       {/* SECTION 3 — INSIGHT DE IA */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
         className="w-full mb-8"
@@ -510,7 +510,7 @@ export default function RealityCheckPage() {
 
       {/* SECTION 4 — CRECIMIENTO PROFESIONAL */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
         className="w-full bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/10 p-8 rounded-[2rem] mb-8"
@@ -554,7 +554,7 @@ export default function RealityCheckPage() {
       {/* SECTION 5 — ALERTA DE NEGOCIACIÓN */}
       {needsNegotiationHelp && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
           className="w-full bg-rose-50 border border-rose-200 p-8 rounded-[2rem] mb-12 flex flex-col md:flex-row items-center justify-between gap-6"
@@ -582,7 +582,7 @@ export default function RealityCheckPage() {
 
       {/* SECTION 6 — OPCIONES DE ACCIÓN */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
         className="w-full"

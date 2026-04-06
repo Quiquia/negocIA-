@@ -113,7 +113,7 @@ export default function ConfidenceScorePage() {
   return (
     <div className="flex flex-col items-center justify-center py-8 sm:py-12 px-2 sm:px-4 max-w-4xl mx-auto w-full min-h-[70vh]">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={false}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, type: "spring" }}
         className="w-full bg-white border border-border rounded-[2rem] sm:rounded-[3rem] p-4 sm:p-8 md:p-14 shadow-xl relative overflow-hidden"
@@ -148,7 +148,7 @@ export default function ConfidenceScorePage() {
           <>
             <div className="flex flex-col md:flex-row gap-6 sm:gap-8 lg:gap-16 items-center justify-center mb-8 sm:mb-12 relative z-10">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 className="relative flex flex-col items-center justify-center w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-white shadow-xl border border-slate-100"
@@ -166,7 +166,7 @@ export default function ConfidenceScorePage() {
                     strokeWidth="8"
                   />
                   <motion.circle
-                    initial={{ strokeDasharray: "0 1000" }}
+                    initial={false}
                     animate={{ strokeDasharray: dashArray }}
                     transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
                     cx="50"
@@ -202,7 +202,7 @@ export default function ConfidenceScorePage() {
                 {scores.map((item, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={false}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                     className="bg-white p-3 sm:p-4 rounded-2xl flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-shadow group"
@@ -225,7 +225,7 @@ export default function ConfidenceScorePage() {
                   </motion.div>
                 ))}
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
                   className="mt-4 bg-amber-50 border border-amber-200 p-5 rounded-3xl flex gap-4 shadow-sm"
@@ -266,7 +266,7 @@ export default function ConfidenceScorePage() {
 
             {/* AI Summary */}
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
               className="bg-primary/5 rounded-2xl sm:rounded-[2rem] p-4 sm:p-8 mb-8 sm:mb-12 flex items-start gap-3 sm:gap-4 max-w-2xl mx-auto border border-primary/10 shadow-inner"
@@ -282,7 +282,7 @@ export default function ConfidenceScorePage() {
         )}
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
           className="flex flex-col items-center gap-6 relative z-10 w-full max-w-3xl mx-auto"

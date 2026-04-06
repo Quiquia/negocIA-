@@ -39,7 +39,7 @@ export default function CareerGrowthPage() {
   return (
     <div className="flex flex-col py-12 px-4 max-w-5xl mx-auto w-full">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center mb-12"
@@ -60,7 +60,7 @@ export default function CareerGrowthPage() {
           {recommendations.map((rec, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
               className="bg-card border border-border/60 rounded-3xl p-6 md:p-8 hover:shadow-lg hover:border-secondary transition-all"
@@ -75,7 +75,7 @@ export default function CareerGrowthPage() {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
         >
@@ -101,7 +101,7 @@ export default function CareerGrowthPage() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={false}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
           className="flex justify-center"

@@ -165,7 +165,7 @@ export default function SobreNosotrosPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-[#3A0CA3] to-[#4361EE] py-20 px-6 text-white">
         <div className="mx-auto max-w-5xl text-center">
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="font-heading text-4xl font-bold md:text-5xl"
@@ -173,7 +173,7 @@ export default function SobreNosotrosPage() {
             Sobre NegocIA+
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-4 text-lg text-white/80 md:text-xl"
@@ -188,7 +188,7 @@ export default function SobreNosotrosPage() {
       <section className="mx-auto max-w-5xl px-6 py-16">
         <div className="grid gap-8 md:grid-cols-2">
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
+            initial={false}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
@@ -208,7 +208,7 @@ export default function SobreNosotrosPage() {
             </p>
           </motion.div>
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
+            initial={false}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
@@ -234,7 +234,7 @@ export default function SobreNosotrosPage() {
       <section className="bg-gray-50 px-6 py-16">
         <div className="mx-auto max-w-5xl">
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center font-heading text-3xl font-bold text-gray-900"
@@ -249,7 +249,7 @@ export default function SobreNosotrosPage() {
             {problems.map((problem, i) => (
               <motion.div
                 key={problem.title}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
@@ -273,7 +273,7 @@ export default function SobreNosotrosPage() {
       <section className="bg-gradient-to-b from-[#F3F0FF] to-white px-6 py-20">
         <div className="mx-auto max-w-6xl">
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center font-heading text-3xl md:text-4xl font-bold text-[#0F172A]"
@@ -289,7 +289,7 @@ export default function SobreNosotrosPage() {
             {teamMembers.slice(0, 3).map((member, i) => (
               <motion.div
                 key={member.name}
-                initial={{ opacity: 0, y: 30 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
@@ -339,7 +339,7 @@ export default function SobreNosotrosPage() {
             {teamMembers.slice(3).map((member, i) => (
               <motion.div
                 key={member.name}
-                initial={{ opacity: 0, y: 30 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: (i + 3) * 0.1 }}
@@ -390,7 +390,7 @@ export default function SobreNosotrosPage() {
       <section className="bg-gradient-to-br from-[#3A0CA3] to-[#4361EE] px-6 py-16 text-white">
         <div className="mx-auto max-w-5xl">
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center font-heading text-3xl font-bold"
@@ -401,7 +401,7 @@ export default function SobreNosotrosPage() {
             {roadmap.map((phase, i) => (
               <motion.div
                 key={phase.year}
-                initial={{ opacity: 0, y: 30 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.15 }}
@@ -436,7 +436,7 @@ export default function SobreNosotrosPage() {
           {stats.map((stat, i) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={false}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
@@ -457,7 +457,7 @@ export default function SobreNosotrosPage() {
       <section className="bg-gray-50 px-6 py-16">
         <div className="mx-auto max-w-3xl text-center">
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="font-heading text-3xl font-bold text-gray-900"

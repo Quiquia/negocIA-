@@ -102,7 +102,7 @@ export function HeroSalaryForm() {
           {!result && !isPending ? (
             <motion.form
               key="form"
-              initial={{ opacity: 0, x: -10 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               onSubmit={handleSubmit}
@@ -295,7 +295,7 @@ export function HeroSalaryForm() {
           ) : isPending ? (
             <motion.div
               key="calculating"
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex flex-col items-center justify-center py-16 space-y-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[inset_0_0_30px_rgba(255,46,147,0.1)]"
@@ -309,7 +309,7 @@ export function HeroSalaryForm() {
 
               <div className="w-full max-w-[200px] h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
-                  initial={{ width: "0%" }}
+                  initial={false}
                   animate={{ width: "100%" }}
                   transition={{ duration: 3, ease: "linear" }}
                   className="h-full bg-gradient-to-r from-[#FF2E93] to-[#4361EE]"
@@ -323,7 +323,7 @@ export function HeroSalaryForm() {
           ) : result ? (
             <motion.div
               key="result"
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
               className="space-y-6 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-[inset_0_0_30px_rgba(67,97,238,0.1)] text-center relative overflow-hidden"
             >

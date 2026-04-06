@@ -84,7 +84,7 @@ export default function CasosDeExitoPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-[#3A0CA3] to-[#4361EE] px-6 py-20 text-white">
         <div className="mx-auto max-w-5xl text-center">
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="font-heading text-4xl font-bold md:text-5xl"
@@ -92,7 +92,7 @@ export default function CasosDeExitoPage() {
             Casos de éxito
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-4 text-lg text-white/80 md:text-xl"
@@ -109,7 +109,7 @@ export default function CasosDeExitoPage() {
           {globalStats.map((stat, i) => (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
@@ -131,7 +131,7 @@ export default function CasosDeExitoPage() {
           {cases.map((item, i) => (
             <motion.article
               key={item.name}
-              initial={{ opacity: 0, y: 30 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
@@ -195,7 +195,7 @@ export default function CasosDeExitoPage() {
       <section className="bg-gray-900 px-6 py-16 text-white">
         <div className="mx-auto max-w-3xl text-center">
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="font-heading text-3xl font-bold"

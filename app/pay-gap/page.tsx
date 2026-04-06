@@ -18,7 +18,7 @@ export default function PayGapVisualizationPage() {
   return (
     <div className="flex flex-col items-center py-12 px-4 max-w-4xl mx-auto w-full min-h-[70vh]">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center mb-12"
@@ -36,7 +36,7 @@ export default function PayGapVisualizationPage() {
 
       <div className="w-full grid md:grid-cols-5 gap-8 lg:gap-12 items-center">
         <motion.div
-          initial={{ opacity: 0, x: -30 }}
+          initial={false}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
           className="md:col-span-3 bg-card border border-border/60 rounded-[2.5rem] p-6 md:p-10 shadow-lg shadow-primary/5 h-[400px] md:h-[500px]"
@@ -83,7 +83,7 @@ export default function PayGapVisualizationPage() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, x: 30 }}
+          initial={false}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
           className="md:col-span-2 flex flex-col gap-6"

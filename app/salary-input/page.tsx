@@ -397,7 +397,7 @@ export default function SalaryInputPage() {
         <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-primary"
-            initial={{ width: `${((currentStep - 1) / totalSteps) * 100}%` }}
+            initial={false}
             animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
             transition={{ duration: 0.3 }}
           />
@@ -417,7 +417,7 @@ export default function SalaryInputPage() {
 
       <motion.div
         key={currentStep}
-        initial={{ opacity: 0, x: 20 }}
+        initial={false}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
         transition={{ duration: 0.4 }}

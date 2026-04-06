@@ -54,7 +54,7 @@ export default function FaqPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-[#3A0CA3] to-[#4361EE] px-6 py-20 text-white">
         <div className="mx-auto max-w-5xl text-center">
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="font-heading text-4xl font-bold md:text-5xl"
@@ -62,7 +62,7 @@ export default function FaqPage() {
             Preguntas frecuentes
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-4 text-lg text-white/80 md:text-xl"
@@ -96,7 +96,7 @@ export default function FaqPage() {
             return (
               <motion.div
                 key={faq.question}
-                initial={{ opacity: 0, y: 15 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
@@ -118,7 +118,7 @@ export default function FaqPage() {
                 <AnimatePresence initial={false}>
                   {isOpen && (
                     <motion.div
-                      initial={{ height: 0, opacity: 0 }}
+                      initial={false}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25, ease: "easeInOut" }}
@@ -145,7 +145,7 @@ export default function FaqPage() {
       <section className="bg-gray-50 px-6 py-16">
         <div className="mx-auto max-w-3xl text-center">
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="font-heading text-2xl font-bold text-gray-900"

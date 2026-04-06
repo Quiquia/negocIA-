@@ -367,7 +367,7 @@ export default function AiNegotiationSimulatorPage() {
               {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
-                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   className={`flex gap-3 md:gap-4 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"} ${msg.role === "coach" ? "w-full justify-center" : ""}`}
                 >
@@ -443,7 +443,7 @@ export default function AiNegotiationSimulatorPage() {
                               </span>
                               <div className="flex items-end gap-1 mb-3">
                                 <motion.span
-                                  initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                                  initial={false}
                                   animate={{ opacity: 1, scale: 1, y: 0 }}
                                   transition={{
                                     duration: 0.5,
@@ -461,7 +461,7 @@ export default function AiNegotiationSimulatorPage() {
                               </div>
                               <div className="w-full h-2 bg-muted/20 rounded-full overflow-hidden relative">
                                 <motion.div
-                                  initial={{ width: 0 }}
+                                  initial={false}
                                   animate={{
                                     width: `${(stat.score || 0) * 10}%`,
                                   }}
@@ -473,7 +473,7 @@ export default function AiNegotiationSimulatorPage() {
                                   className={`h-full rounded-full ${stat.bar} relative`}
                                 >
                                   <motion.div
-                                    initial={{ opacity: 0, x: "-100%" }}
+                                    initial={false}
                                     animate={{
                                       opacity: [0, 1, 0],
                                       x: "100%",
@@ -543,7 +543,7 @@ export default function AiNegotiationSimulatorPage() {
                         {playingMessageId === msg.id && (
                           <div className="absolute inset-0 z-0 rounded-3xl rounded-tl-none overflow-hidden">
                             <motion.div
-                              initial={{ width: "0%" }}
+                              initial={false}
                               animate={{ width: "100%" }}
                               transition={{ duration: 4, ease: "linear" }}
                               className="absolute top-0 left-0 bottom-0 bg-primary/10"
@@ -568,7 +568,7 @@ export default function AiNegotiationSimulatorPage() {
                             <AnimatePresence>
                               {activePopover === msg.id && (
                                 <motion.div
-                                  initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                                  initial={false}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
                                   exit={{ opacity: 0, y: 5, scale: 0.95 }}
                                   className="absolute bottom-full right-0 mb-2 w-44 bg-white rounded-xl shadow-lg border border-border p-2 z-50 origin-bottom-right"
@@ -602,7 +602,7 @@ export default function AiNegotiationSimulatorPage() {
               {isTyping && (
                 <motion.div
                   key="typing"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   className="flex gap-3 md:gap-4"
@@ -685,7 +685,7 @@ export default function AiNegotiationSimulatorPage() {
               <AnimatePresence>
                 {showSuggestions && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
+                    initial={false}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"

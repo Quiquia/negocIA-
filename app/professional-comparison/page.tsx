@@ -27,7 +27,7 @@ export default function ProfessionalComparisonPage() {
   return (
     <div className="flex flex-col items-center py-12 px-4 max-w-5xl mx-auto w-full min-h-[70vh]">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center mb-12"
@@ -45,7 +45,7 @@ export default function ProfessionalComparisonPage() {
 
       <div className="w-full grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
         <motion.div
-          initial={{ opacity: 0, x: -30 }}
+          initial={false}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3, duration: 0.6 }}
           className="bg-card border border-border/60 rounded-[2.5rem] p-6 md:p-10 shadow-lg shadow-primary/5 w-full flex flex-col justify-center h-full min-h-[400px]"
@@ -97,7 +97,7 @@ export default function ProfessionalComparisonPage() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, x: 30 }}
+          initial={false}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
           className="flex flex-col gap-6 h-full"

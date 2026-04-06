@@ -69,7 +69,7 @@ export default function BlogPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-[#3A0CA3] to-[#4361EE] px-6 py-20 text-white">
         <div className="mx-auto max-w-5xl text-center">
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="font-heading text-4xl font-bold md:text-5xl"
@@ -77,7 +77,7 @@ export default function BlogPage() {
             Blog
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-4 text-lg text-white/80 md:text-xl"
@@ -93,7 +93,7 @@ export default function BlogPage() {
           {posts.slice(0, visibleCount).map((post, i) => (
             <motion.article
               key={post.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}

@@ -48,14 +48,14 @@ export default function ComoFuncionaPage() {
       <section className="relative overflow-hidden px-4 py-20 md:py-32">
         <div className="mx-auto max-w-6xl text-center">
           <motion.span
-            initial={{ opacity: 0, y: 10 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             className="mb-4 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent"
           >
             Proceso Simple
           </motion.span>
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="font-heading text-4xl font-bold text-foreground md:text-6xl"
@@ -67,7 +67,7 @@ export default function ComoFuncionaPage() {
             ?
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground"
@@ -88,7 +88,7 @@ export default function ComoFuncionaPage() {
             {steps.map((step, index) => (
               <motion.div
                 key={step.number}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -40 : 40 }}
+                initial={false}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
@@ -133,7 +133,7 @@ export default function ComoFuncionaPage() {
       {/* CTA */}
       <section className="px-4 pb-24">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mx-auto max-w-4xl rounded-[2rem] bg-gradient-to-r from-primary to-accent p-10 text-center text-white md:p-16"
