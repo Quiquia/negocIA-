@@ -76,6 +76,7 @@ function Particles() {
       {particles.map((p) => (
         <motion.div
           key={p.id}
+          initial={false}
           className="absolute rounded-full bg-white/20"
           style={{
             left: `${p.x}%`,
@@ -166,7 +167,7 @@ export default function Home() {
           {/* Left: Text */}
           <div className="flex flex-col gap-8 max-w-2xl">
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading leading-[1.1] tracking-tight drop-shadow-lg"
@@ -176,7 +177,7 @@ export default function Home() {
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="text-lg md:text-xl text-white/80 leading-relaxed font-medium max-w-lg"
@@ -187,7 +188,7 @@ export default function Home() {
 
             {/* Social proof badges */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="flex flex-col gap-3"
@@ -221,7 +222,7 @@ export default function Home() {
 
             {/* CTA on desktop */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
               className="hidden lg:flex"
@@ -278,7 +279,7 @@ export default function Home() {
 
             {/* Trust badges above form */}
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
               className="flex flex-wrap items-center justify-center gap-4"
@@ -302,7 +303,7 @@ export default function Home() {
 
             {/* CTA on mobile */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
               className="lg:hidden w-full max-w-md"
@@ -354,7 +355,7 @@ export default function Home() {
       {/* ===== 3. Narrative Section ===== */}
       <section className="w-full py-20 px-6 md:px-12 lg:px-24 bg-white">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="max-w-3xl mx-auto text-center"
@@ -381,7 +382,7 @@ export default function Home() {
       <section className="w-full py-20 px-6 md:px-12 lg:px-24 bg-[#0F172A] text-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-14"
@@ -441,7 +442,7 @@ export default function Home() {
               {comparisonLoading || comparisonProfiles.length === 0 ? (
                 <motion.div
                   key="skeleton"
-                  initial={{ opacity: 0 }}
+                  initial={false}
                   animate={{ opacity: 1 }}
                   className="bg-white/[0.03] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 md:p-8 space-y-5"
                 >
@@ -456,7 +457,7 @@ export default function Home() {
               ) : (
                 <motion.div
                   key={activeProfile}
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={false}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}

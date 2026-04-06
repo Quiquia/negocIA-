@@ -13,6 +13,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { formatEsInteger } from "@/app/lib/format-es";
 import { getQuickSalaryEstimate, type QuickEstimate } from "./hero-actions";
 import { isTechRole } from "../data/tech-roles";
 
@@ -64,11 +65,11 @@ export function HeroSalaryForm() {
     parseInt(formData.salary, 10) >= 100;
   const showSalaryError =
     formData.salary !== "" && parseInt(formData.salary, 10) < 100;
-  const fmt = (n: number) => `$${n.toLocaleString()}`;
+  const fmt = (n: number) => `$${formatEsInteger(n)}`;
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={false}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.4 }}
       className="w-full max-w-lg bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_20px_60px_rgba(58,12,163,0.4)] relative overflow-hidden"

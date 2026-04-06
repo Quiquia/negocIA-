@@ -14,6 +14,7 @@ import {
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
+import { formatEsInteger } from "@/app/lib/format-es";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 import {
   analyzeNegotiationPerformance,
@@ -46,8 +47,8 @@ export default function ConfidenceScorePage() {
         seniority: profileData?.seniority || "Mid",
         techStack: profileData?.techStack?.join(", ") || "General",
         country: profileData?.country || "Latinoamérica",
-        currentSalary: `${symbol}${currentSalary.toLocaleString()}`,
-        marketSalary: `${symbol}${averageSalary.toLocaleString()}`,
+        currentSalary: `${symbol}${formatEsInteger(currentSalary)}`,
+        marketSalary: `${symbol}${formatEsInteger(averageSalary)}`,
         gapPercentage,
       });
       setResult(analysis);
@@ -331,8 +332,8 @@ export default function ConfidenceScorePage() {
                       techStack:
                         profileData?.techStack?.join(", ") || "General",
                       country: profileData?.country || "Latinoamérica",
-                      currentSalary: `${symbol}${currentSalary.toLocaleString()}`,
-                      marketSalary: `${symbol}${averageSalary.toLocaleString()}`,
+                      currentSalary: `${symbol}${formatEsInteger(currentSalary)}`,
+                      marketSalary: `${symbol}${formatEsInteger(averageSalary)}`,
                       gapPercentage,
                     },
                   });

@@ -161,7 +161,7 @@ export function ProductExpansion() {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center space-y-4 mb-16">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-[#F1E9FF]"
@@ -198,7 +198,7 @@ export function ProductExpansion() {
                 {currentStep.messages.map((msg, i) => (
                   <motion.div
                     key={`${demoStep}-${i}`}
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={false}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.15, duration: 0.3 }}
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
@@ -218,7 +218,7 @@ export function ProductExpansion() {
                 {/* AI Feedback card (step 3) */}
                 {"feedback" in currentStep && currentStep.feedback && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={false}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.4 }}
                     className="bg-gradient-to-br from-[#1E1145] to-[#1A1040] border border-[#4361EE]/30 rounded-2xl p-4 space-y-2.5"
@@ -283,7 +283,7 @@ export function ProductExpansion() {
       <section className="w-full py-24 px-6 md:px-12 lg:px-24 bg-gradient-to-b from-[#F3F0FF] to-white text-foreground">
         <div className="max-w-4xl mx-auto text-center">
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-3xl md:text-5xl font-extrabold font-heading text-[#0F172A] mb-4"
@@ -291,7 +291,7 @@ export function ProductExpansion() {
             Negociar también es emocional
           </motion.h2>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
@@ -306,7 +306,7 @@ export function ProductExpansion() {
             {confidenceCards.map((card, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
@@ -329,7 +329,7 @@ export function ProductExpansion() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <motion.h2
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-3xl md:text-5xl font-extrabold font-heading text-[#0F172A] mb-4"
@@ -337,7 +337,7 @@ export function ProductExpansion() {
               Planes de NegocIA+
             </motion.h2>
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
@@ -351,7 +351,7 @@ export function ProductExpansion() {
             {plans.map((plan, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
@@ -426,7 +426,7 @@ export function ProductExpansion() {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center space-y-4 mb-16">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-[#F1E9FF]"
@@ -446,7 +446,7 @@ export function ProductExpansion() {
             {testimonials.map((testimonial, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15 }}

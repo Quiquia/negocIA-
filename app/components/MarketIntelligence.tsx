@@ -24,6 +24,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { formatEsInteger } from "@/app/lib/format-es";
 import {
   fetchMarketIntelligenceSnapshot,
   type MarketIntelligenceSnapshot,
@@ -123,7 +124,7 @@ export function MarketIntelligence() {
       <div className="max-w-7xl mx-auto relative z-10 space-y-24">
         <div className="flex flex-col items-center justify-center text-center space-y-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-[#F1E9FF]"
@@ -195,7 +196,7 @@ export function MarketIntelligence() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="lg:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 backdrop-blur-xl relative overflow-hidden"
@@ -306,7 +307,7 @@ export function MarketIntelligence() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
@@ -410,7 +411,7 @@ export function MarketIntelligence() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
@@ -458,7 +459,7 @@ export function MarketIntelligence() {
                         {wm.label}
                       </p>
                       <p className="text-2xl font-bold text-white relative z-10">
-                        ${wm.salary_usd.toLocaleString()}{" "}
+                        ${formatEsInteger(wm.salary_usd)}{" "}
                         <span className="text-sm font-normal text-white/50">
                           USD/mes
                         </span>
@@ -480,7 +481,7 @@ export function MarketIntelligence() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}

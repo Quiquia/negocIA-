@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { ArrowRight, Users, CheckCircle2, TrendingUp, Award } from "lucide-react";
+import { formatEsInteger } from "@/app/lib/format-es";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 
 export default function ProfessionalComparisonPage() {
@@ -64,7 +65,9 @@ export default function ProfessionalComparisonPage() {
                       return (
                         <div className="bg-card border border-border/50 p-4 rounded-xl shadow-xl">
                           <p className="font-medium text-muted-foreground mb-1">{payload[0].payload.name}</p>
-                          <p className="text-2xl font-bold text-primary font-heading">S/ {payload[0].value?.toLocaleString()}</p>
+                          <p className="text-2xl font-bold text-primary font-heading">
+                            S/ {formatEsInteger(Number(payload[0].value))}
+                          </p>
                         </div>
                       );
                     }

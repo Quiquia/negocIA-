@@ -25,6 +25,7 @@ import {
   type CoachAnalysis,
   type ProfileContext,
 } from "./actions";
+import { formatEsInteger } from "@/app/lib/format-es";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 
 type Message = {
@@ -52,7 +53,7 @@ export default function AiNegotiationSimulatorPage() {
   const yearsExp = profileData?.yearsExperience || "2-3 años";
 
   // Formatear salarios para las sugerencias
-  const fmtSalary = (n: number) => `${currencySymbol}${n.toLocaleString()}`;
+  const fmtSalary = (n: number) => `${currencySymbol}${formatEsInteger(n)}`;
   const targetLow = fmtSalary(averageSalary);
   const targetHigh = fmtSalary(Math.round(averageSalary * 1.1));
 

@@ -2,24 +2,11 @@
 
 import { ChevronDown, Info, Linkedin, Package, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
-
-// Freeze the router context during exit animations so the old page
-// content stays visible while AnimatePresence plays the exit transition.
-function FrozenRouter({ children }: { children: React.ReactNode }) {
-  const context = useContext(LayoutRouterContext);
-  const frozen = useRef(context).current;
-  return (
-    <LayoutRouterContext.Provider value={frozen}>
-      {children}
-    </LayoutRouterContext.Provider>
-  );
-}
 
 function FooterSection({
   title,
@@ -282,7 +269,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
                   : "min-h-[calc(100vh-14rem)]"
             }
           >
-            <FrozenRouter>{children}</FrozenRouter>
+            {children}
           </motion.div>
         </AnimatePresence>
       </main>

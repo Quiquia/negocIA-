@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { ArrowRight, Lightbulb, TrendingUp } from "lucide-react";
+import { formatEsInteger } from "@/app/lib/format-es";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 
 export default function PayGapVisualizationPage() {
@@ -51,7 +52,9 @@ export default function PayGapVisualizationPage() {
                     return (
                       <div className="bg-card border border-border/50 p-4 rounded-xl shadow-xl">
                         <p className="font-medium text-muted-foreground mb-1">{payload[0].payload.name}</p>
-                        <p className="text-2xl font-bold text-primary font-heading">S/ {payload[0].value?.toLocaleString()}</p>
+                        <p className="text-2xl font-bold text-primary font-heading">
+                          S/ {formatEsInteger(Number(payload[0].value))}
+                        </p>
                       </div>
                     );
                   }
@@ -67,7 +70,7 @@ export default function PayGapVisualizationPage() {
                   fill: "#1E2A38",
                   fontWeight: 600,
                   fontSize: 16,
-                  formatter: (val: number) => `S/ ${val.toLocaleString()}`,
+                  formatter: (val: number) => `S/ ${formatEsInteger(val)}`,
                   dy: -10,
                 }}
               >

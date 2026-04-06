@@ -1,5 +1,6 @@
 "use client";
 
+import { formatEsInteger } from "@/app/lib/format-es";
 import {
   getNegotiationUpliftRange,
   type SalaryEstimate,
@@ -295,7 +296,7 @@ export default function RealityCheckPage() {
                     </p>
                     <p className="text-base sm:text-2xl font-black font-heading text-center">
                       {currencySymbol}
-                      {currentSalary.toLocaleString()}
+                      {formatEsInteger(currentSalary)}
                     </p>
                   </div>
                 </motion.div>
@@ -305,15 +306,15 @@ export default function RealityCheckPage() {
               <div className="flex justify-between text-[10px] sm:text-lg font-black text-foreground mt-3 sm:mt-4 px-0">
                 <span className="text-muted-foreground">
                   {currencySymbol}
-                  {lowerSalary.toLocaleString()}
+                  {formatEsInteger(lowerSalary)}
                 </span>
                 <span className="text-secondary">
                   {currencySymbol}
-                  {averageSalary.toLocaleString()}
+                  {formatEsInteger(averageSalary)}
                 </span>
                 <span className="text-muted-foreground">
                   {currencySymbol}
-                  {upperSalary.toLocaleString()}
+                  {formatEsInteger(upperSalary)}
                 </span>
               </div>
             </div>
@@ -338,7 +339,7 @@ export default function RealityCheckPage() {
                       </span>
                       <span className="text-xl sm:text-2xl font-black text-rose-600 bg-white px-5 py-2 rounded-xl border border-rose-100 shadow-sm">
                         {currencySymbol}
-                        {(averageSalary - currentSalary).toLocaleString()} más
+                        {formatEsInteger(averageSalary - currentSalary)} más
                         al mes
                       </span>
                     </div>

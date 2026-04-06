@@ -58,7 +58,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <LanguageProvider>
           <SalaryDataProvider>
             <LayoutShell>{children}</LayoutShell>
