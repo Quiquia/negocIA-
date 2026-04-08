@@ -1,5 +1,6 @@
 "use client";
 
+import { formatEsInteger } from "@/app/lib/format-es";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -14,7 +15,6 @@ import {
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
-import { formatEsInteger } from "@/app/lib/format-es";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 import {
   analyzeNegotiationPerformance,
@@ -362,7 +362,7 @@ export default function ConfidenceScorePage() {
             </div>
           </div>
 
-          <div className="w-full mt-12 sm:mt-16 pt-10 sm:pt-12 border-t border-slate-100 flex flex-col items-center">
+          {/* <div className="w-full mt-12 sm:mt-16 pt-10 sm:pt-12 border-t border-slate-100 flex flex-col items-center">
             <div className="text-center mb-8">
               <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-slate-800 mb-2">
                 ¿Quieres seguir mejorando?
@@ -472,7 +472,7 @@ export default function ConfidenceScorePage() {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
         </motion.div>
       </motion.div>
     </div>

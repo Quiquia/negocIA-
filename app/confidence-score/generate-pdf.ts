@@ -166,13 +166,17 @@ export function generateNegotiationPDF({ result, profile }: PdfData) {
   doc.setTextColor(...dark);
   doc.text(summaryLines, margin + 10, y + 18);
 
-  y += summaryHeight + 10;
+  y += summaryHeight + 8;
 
   // --- Strengths & Improvements side by side ---
   const colWidth = (contentWidth - 8) / 2;
+  /** Altura de línea coherente con helvetica 9 (~4.5–5 mm entre baselines). */
+  const lineH = 5;
+  /** Espacio bajo el último renglón dentro de la caja (antes casi no había). */
+  const padBottom = 18;
+  /** Desde el borde superior de la caja hasta la baseline del primer bullet. */
+  const contentTop = 20;
 
-  // Strengths
-  doc.setFillColor(240, 253, 244);
   const strengthTexts = result.strengths.map((s) =>
     doc.splitTextToSize(`• ${s}`, colWidth - 14)
   );
@@ -180,25 +184,7 @@ export function generateNegotiationPDF({ result, profile }: PdfData) {
     (acc, lines) => acc + lines.length,
     0
   );
-  const strengthHeight = strengthTotalLines * 6 + 22;
 
-  doc.roundedRect(margin, y, colWidth, strengthHeight, 4, 4, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(...green);
-  doc.text("Fortalezas", margin + 8, y + 12);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(30, 80, 30);
-  let sy = y + 20;
-  strengthTexts.forEach((lines) => {
-    doc.text(lines, margin + 8, sy);
-    sy += lines.length * 6;
-  });
-
-  // Improvements
-  doc.setFillColor(255, 251, 235);
   const improvTexts = result.improvements.map((s) =>
     doc.splitTextToSize(`• ${s}`, colWidth - 14)
   );
@@ -206,10 +192,19 @@ export function generateNegotiationPDF({ result, profile }: PdfData) {
     (acc, lines) => acc + lines.length,
     0
   );
-  const improvHeight = improvTotalLines * 6 + 22;
 
+  const strengthHeight = contentTop + strengthTotalLines * lineH + padBottom;
+  const improvHeight = contentTop + improvTotalLines * lineH + padBottom;
   const boxHeight = Math.max(strengthHeight, improvHeight);
-  // Redraw strength box with matched height
+
+  const pageH = doc.internal.pageSize.getHeight();
+  /** Zona reservada: línea + texto pie + hueco + barra (evita cajas pegadas al footer). */
+  const footerZone = 32;
+  if (y + boxHeight + footerZone > pageH) {
+    doc.addPage();
+    y = margin;
+  }
+
   doc.setFillColor(240, 253, 244);
   doc.roundedRect(margin, y, colWidth, boxHeight, 4, 4, "F");
   doc.setFont("helvetica", "bold");
@@ -219,10 +214,10 @@ export function generateNegotiationPDF({ result, profile }: PdfData) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(30, 80, 30);
-  sy = y + 20;
+  let sy = y + contentTop;
   strengthTexts.forEach((lines) => {
     doc.text(lines, margin + 8, sy);
-    sy += lines.length * 6;
+    sy += lines.length * lineH;
   });
 
   const rightX = margin + colWidth + 8;
@@ -237,18 +232,18 @@ export function generateNegotiationPDF({ result, profile }: PdfData) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(120, 70, 0);
-  let iy = y + 20;
+  let iy = y + contentTop;
   improvTexts.forEach((lines) => {
     doc.text(lines, rightX + 8, iy);
-    iy += lines.length * 6;
+    iy += lines.length * lineH;
   });
 
-  y += boxHeight + 12;
+  y += boxHeight + 14;
 
   // --- Footer ---
   doc.setDrawColor(230, 230, 235);
   doc.line(margin, y, pageWidth - margin, y);
-  y += 8;
+  y += 10;
 
   doc.setFont("helvetica", "italic");
   doc.setFontSize(9);
@@ -260,9 +255,8 @@ export function generateNegotiationPDF({ result, profile }: PdfData) {
     { align: "center" }
   );
 
-  // Footer bar
   doc.setFillColor(...indigo);
-  doc.rect(0, doc.internal.pageSize.getHeight() - 4, pageWidth, 4, "F");
+  doc.rect(0, pageH - 8, pageWidth, 4, "F");
 
   // --- Download ---
   doc.save("mi-plan-de-negociacion-negocia.pdf");

@@ -103,6 +103,7 @@ export default function SalaryInputPage() {
       currency: "",
       englishLevel: "",
       englishUsage: "",
+      otherLanguages: "",
       roleDescription: "",
       customRole: "",
       negotiationConfidence: 5,
@@ -143,6 +144,7 @@ export default function SalaryInputPage() {
       if (!techOk || !toolsOk) return false;
       if (!v.englishLevel?.trim()) return false;
       if (!v.englishUsage?.trim()) return false;
+      if (!v.otherLanguages?.trim()) return false;
       if (!v.roleDescription?.trim()) return false;
       if (v.role === "Otro") {
         const cr = v.customRole?.trim();
@@ -191,6 +193,9 @@ export default function SalaryInputPage() {
     }
     if (!v.englishLevel?.trim()) return "Falta: nivel de inglés.";
     if (!v.englishUsage?.trim()) return "Falta: uso de inglés en el trabajo.";
+    if (!v.otherLanguages?.trim()) {
+      return "Falta: si dominas otro idioma (Sí o No).";
+    }
     if (!v.roleDescription?.trim()) {
       return "Falta: cómo describe mejor tu rol (elige una opción o escribe si es «Otro»).";
     }
@@ -322,6 +327,7 @@ export default function SalaryInputPage() {
         "tools",
         "englishLevel",
         "englishUsage",
+        "otherLanguages",
         "roleDescription",
       ];
     } else if (currentStep === 2) {
@@ -887,9 +893,12 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Dominas algún otro idioma?
+                    ¿Dominas algún otro idioma?{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
-                  <div className="flex gap-4">
+                  <div
+                    className={`flex gap-4 ${errors.otherLanguages ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
+                  >
                     {["Sí", "No"].map((opt) => (
                       <label
                         key={opt}
@@ -898,7 +907,9 @@ export default function SalaryInputPage() {
                         <input
                           type="radio"
                           value={opt}
-                          {...register("otherLanguages", { required: false })}
+                          {...register("otherLanguages", {
+                            required: "Indica si dominas otro idioma.",
+                          })}
                           className="hidden"
                         />
                         <span className="font-bold text-sm group-has-[:checked]:text-primary">
@@ -908,6 +919,7 @@ export default function SalaryInputPage() {
                       </label>
                     ))}
                   </div>
+                  <ErrorMsg name="otherLanguages" />
                 </div>
 
                 <div className="space-y-3">
