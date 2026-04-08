@@ -15,10 +15,11 @@ import {
   KeyboardEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useTransition,
 } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import {
   detectCountryByTimezone,
   getCountryByName,
@@ -83,34 +84,62 @@ export default function SalaryInputPage() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
     trigger,
     setValue,
   } = useForm<ProfileForm>({
     mode: "onChange",
+    /** Mantener valores de pasos anteriores aunque el JSX del paso se desmonte. */
+    shouldUnregister: false,
     defaultValues: {
       role: prefillRole || "Frontend Developer",
       seniority: prefillSeniority || "",
+      yearsExperience: "",
       techStack: [],
       tools: [],
       keywords: [],
       country: "",
       currency: "",
+      englishLevel: "",
+      englishUsage: "",
+      roleDescription: "",
+      customRole: "",
       negotiationConfidence: 5,
+      /** No hay control en UI; el servidor espera el campo en el submit. */
+      wantsAiPractice: "No",
     },
   });
 
   const formValues = watch();
   const watchCountry = watch("country");
-  const watchRole = watch("role");
+  /** Suscripción explícita al rol: evita texto/chips de otro rol (p. ej. seguir viendo Frontend con Backend elegido). */
+  const watchRole = useWatch({
+    control,
+    name: "role",
+    defaultValue: prefillRole || "Frontend Developer",
+  });
+
+  /** Suscripción explícita: watch() global a veces no re-renderiza bien con arrays de checkboxes. */
+  const watchedTechStack = useWatch({ control, name: "techStack", defaultValue: [] });
+  const watchedTools = useWatch({ control, name: "tools", defaultValue: [] });
+
+  /** RHF a veces devuelve un único checkbox como string; sin esto el botón no se habilita. */
+  const normalizeMulti = (val: unknown): string[] => {
+    if (Array.isArray(val)) {
+      return val.filter((x) => typeof x === "string" && x.trim() !== "");
+    }
+    if (typeof val === "string" && val.trim() !== "") return [val];
+    return [];
+  };
 
   const canProceedToNext = useMemo(() => {
     const v = formValues;
     if (currentStep === 1) {
       if (!v.seniority?.trim()) return false;
       if (!v.yearsExperience?.trim()) return false;
-      const techOk = Array.isArray(v.techStack) && v.techStack.length > 0;
-      const toolsOk = Array.isArray(v.tools) && v.tools.length > 0;
+      const techOk = normalizeMulti(watchedTechStack ?? v.techStack).length > 0;
+      const toolsOk = normalizeMulti(watchedTools ?? v.tools).length > 0;
       if (!techOk || !toolsOk) return false;
       if (!v.englishLevel?.trim()) return false;
       if (!v.englishUsage?.trim()) return false;
@@ -142,7 +171,37 @@ export default function SalaryInputPage() {
       return true;
     }
     return true;
-  }, [currentStep, formValues]);
+  }, [
+    currentStep,
+    formValues,
+    watchedTechStack,
+    watchedTools,
+  ]);
+
+  const step1Hint = useMemo(() => {
+    if (currentStep !== 1 || canProceedToNext) return undefined;
+    const v = formValues;
+    if (!v.seniority?.trim()) return "Falta: nivel de seniority.";
+    if (!v.yearsExperience?.trim()) return "Falta: años de experiencia en el rol.";
+    if (normalizeMulti(watchedTechStack ?? v.techStack).length === 0) {
+      return "Falta: al menos una tecnología del stack (checkbox o campo + Enter).";
+    }
+    if (normalizeMulti(watchedTools ?? v.tools).length === 0) {
+      return "Falta: al menos una herramienta (checkbox o campo + Enter).";
+    }
+    if (!v.englishLevel?.trim()) return "Falta: nivel de inglés.";
+    if (!v.englishUsage?.trim()) return "Falta: uso de inglés en el trabajo.";
+    if (!v.roleDescription?.trim()) {
+      return "Falta: cómo describe mejor tu rol (elige una opción o escribe si es «Otro»).";
+    }
+    if (v.role === "Otro") {
+      const cr = v.customRole?.trim();
+      if (!cr) return "Falta: escribe tu rol en «Otro».";
+      if (!isTechRole(cr)) return "El rol debe ser de ámbito tecnológico.";
+    }
+    return "Revisa los campos marcados con error.";
+  }, [currentStep, canProceedToNext, formValues, watchedTechStack, watchedTools]);
+
   const selectedCountry = getCountryByName(watchCountry);
   const currencySymbol = selectedCountry?.currency.symbol ?? "$";
   const countryCities = selectedCountry?.cities ?? [];
@@ -200,8 +259,16 @@ export default function SalaryInputPage() {
       }
     : (roleOptions[watchRole as keyof typeof roleOptions] || roleOptions["Frontend Developer"]);
 
-  // Reset role-specific fields when role changes
+  /** Solo al cambiar de rol (no en el montaje): evita que Strict Mode / doble efecto borre stack/herramientas ya elegidas. */
+  const previousRoleRef = useRef<string | null>(null);
   useEffect(() => {
+    const prev = previousRoleRef.current;
+    if (prev === null) {
+      previousRoleRef.current = watchRole;
+      return;
+    }
+    if (prev === watchRole) return;
+    previousRoleRef.current = watchRole;
     setValue("techStack", []);
     setValue("tools", []);
     setValue("roleDescription", "" as never);
@@ -223,15 +290,17 @@ export default function SalaryInputPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reset city and currency when country changes
+  /** Al cambiar de país (no en la primera asignación): vaciar ciudad y sincronizar moneda. */
+  const previousCountryRef = useRef<string | null>(null);
   useEffect(() => {
-    if (watchCountry) {
-      setValue("city", "");
-      const country = getCountryByName(watchCountry);
-      if (country) {
-        setValue("currency", country.currency.code);
-      }
-    }
+    if (!watchCountry) return;
+    const prev = previousCountryRef.current;
+    if (prev === watchCountry) return;
+    const isFirstAssignment = prev === null;
+    previousCountryRef.current = watchCountry;
+    const country = getCountryByName(watchCountry);
+    if (country) setValue("currency", country.currency.code);
+    if (!isFirstAssignment) setValue("city", "");
   }, [watchCountry, setValue]);
 
   useEffect(() => {
@@ -295,8 +364,10 @@ export default function SalaryInputPage() {
     fd.set("roleArea", data.role === "Otro" ? data.customRole : data.role);
     fd.set("seniority", data.seniority);
     fd.set("frontendYearsExperience", data.yearsExperience);
-    fd.set("mainTechnology", data.techStack.join(", "));
-    fd.set("technicalSkills", data.tools.join(", "));
+    const techList = normalizeMulti(data.techStack);
+    const toolsList = normalizeMulti(data.tools);
+    fd.set("mainTechnology", techList.join(", "));
+    fd.set("technicalSkills", toolsList.join(", "));
     fd.set("englishLevel", data.englishLevel);
     fd.set("usesEnglishCurrentJob", data.englishUsage);
     fd.set("roleDescription", data.roleDescription);
@@ -526,7 +597,7 @@ export default function SalaryInputPage() {
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
                     ¿Cuántos años de experiencia tienes específicamente como{" "}
-                    {watchRole || "Frontend Developer"}? <span className="text-rose-500">*</span>
+                    {watchRole}? <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${errors.yearsExperience ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
@@ -569,6 +640,7 @@ export default function SalaryInputPage() {
                     </p>
                   )}
                   <div
+                    key={`tech-stack-${watchRole}`}
                     className={`flex flex-wrap gap-3 ${errors.techStack ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
                     {currentRoleOptions.techStack.filter(t => t !== "Otro").map((tech) => (
@@ -579,7 +651,11 @@ export default function SalaryInputPage() {
                         <input
                           type="checkbox"
                           value={tech}
-                          {...register("techStack", { required: true })}
+                          {...register("techStack", {
+                            validate: (value) =>
+                              normalizeMulti(value).length > 0 ||
+                              "Selecciona al menos una tecnología.",
+                          })}
                           className="hidden peer"
                         />
                         <span className="font-bold text-sm text-foreground/80 peer-checked:text-primary">
@@ -594,21 +670,15 @@ export default function SalaryInputPage() {
                         key={tech}
                         className="relative flex items-center justify-center pl-4 pr-10 py-2.5 border-2 border-primary rounded-full bg-primary/10 select-none group"
                       >
-                        <input
-                          type="checkbox"
-                          value={tech}
-                          checked
-                          {...register("techStack", { required: true })}
-                          className="hidden"
-                          readOnly
-                        />
                         <span className="font-bold text-sm text-primary">{tech}</span>
                         <button
                           type="button"
                           onClick={() => {
                             setCustomTechStack(prev => prev.filter(t => t !== tech));
-                            const current = watch("techStack") || [];
-                            setValue("techStack", current.filter((t: string) => t !== tech));
+                            const current = normalizeMulti(watch("techStack"));
+                            setValue("techStack", current.filter((t: string) => t !== tech), {
+                              shouldValidate: true,
+                            });
                           }}
                           className="absolute right-3 text-primary hover:text-rose-500 transition-colors"
                         >
@@ -637,7 +707,7 @@ export default function SalaryInputPage() {
                             const val = techInput.trim();
                             if (val && !customTechStack.includes(val)) {
                               setCustomTechStack(prev => [...prev, val]);
-                              const current = watch("techStack") || [];
+                              const current = normalizeMulti(watch("techStack"));
                               setValue("techStack", [...current, val], { shouldValidate: true });
                               setTechInput("");
                               setTechInputError(false);
@@ -666,6 +736,7 @@ export default function SalaryInputPage() {
                     </p>
                   )}
                   <div
+                    key={`tools-${watchRole}`}
                     className={`flex flex-wrap gap-3 ${errors.tools ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
                     {currentRoleOptions.tools.filter(t => t !== "Otra").map((tool) => (
@@ -676,7 +747,11 @@ export default function SalaryInputPage() {
                         <input
                           type="checkbox"
                           value={tool}
-                          {...register("tools", { required: true })}
+                          {...register("tools", {
+                            validate: (value) =>
+                              normalizeMulti(value).length > 0 ||
+                              "Selecciona al menos una herramienta.",
+                          })}
                           className="hidden peer"
                         />
                         <span className="font-bold text-sm text-foreground/80 peer-checked:text-primary">
@@ -691,21 +766,15 @@ export default function SalaryInputPage() {
                         key={tool}
                         className="relative flex items-center justify-center pl-4 pr-10 py-2.5 border-2 border-primary rounded-full bg-primary/10 select-none group"
                       >
-                        <input
-                          type="checkbox"
-                          value={tool}
-                          checked
-                          {...register("tools", { required: true })}
-                          className="hidden"
-                          readOnly
-                        />
                         <span className="font-bold text-sm text-primary">{tool}</span>
                         <button
                           type="button"
                           onClick={() => {
                             setCustomTools(prev => prev.filter(t => t !== tool));
-                            const current = watch("tools") || [];
-                            setValue("tools", current.filter((t: string) => t !== tool));
+                            const current = normalizeMulti(watch("tools"));
+                            setValue("tools", current.filter((t: string) => t !== tool), {
+                              shouldValidate: true,
+                            });
                           }}
                           className="absolute right-3 text-primary hover:text-rose-500 transition-colors"
                         >
@@ -734,7 +803,7 @@ export default function SalaryInputPage() {
                             const val = toolInput.trim();
                             if (val && !customTools.includes(val)) {
                               setCustomTools(prev => [...prev, val]);
-                              const current = watch("tools") || [];
+                              const current = normalizeMulti(watch("tools"));
                               setValue("tools", [...current, val], { shouldValidate: true });
                               setToolInput("");
                               setToolInputError(false);
@@ -858,6 +927,7 @@ export default function SalaryInputPage() {
                     />
                   ) : (
                     <div
+                      key={`role-desc-${watchRole}`}
                       className={`grid grid-cols-1 gap-3 ${errors.roleDescription ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                     >
                       {currentRoleOptions.roleDescriptions.map((opt) => (
@@ -1432,6 +1502,9 @@ export default function SalaryInputPage() {
                 type="button"
                 onClick={handleNext}
                 disabled={!canProceedToNext}
+                title={
+                  currentStep === 1 && !canProceedToNext ? step1Hint : undefined
+                }
                 className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 px-8 rounded-full bg-primary text-white font-extrabold text-lg shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all sm:ml-auto disabled:opacity-45 disabled:pointer-events-none disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
                 Siguiente
@@ -1446,7 +1519,6 @@ export default function SalaryInputPage() {
                   const isStepValid = await trigger([
                     "lastIncrease",
                     "negotiationConfidence",
-                    "wantsAiPractice",
                   ]);
                   if (isStepValid) {
                     handleSubmit(onSubmit)();

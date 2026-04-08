@@ -64,7 +64,7 @@ export default function AiNegotiationSimulatorPage() {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [inputText, setInputText] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -72,6 +72,7 @@ export default function AiNegotiationSimulatorPage() {
   const [activePopover, setActivePopover] = useState<string | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const suggestionsPanelRef = useRef<HTMLDivElement>(null);
 
   const profileCtx: ProfileContext | undefined = profileData
     ? {
@@ -227,19 +228,31 @@ export default function AiNegotiationSimulatorPage() {
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsTyping(false);
-      setShowSuggestions(true);
     }
   };
 
   const useImprovedResponse = (text: string) => {
     setInputText(text);
+    setShowSuggestions(false);
   };
 
   const handleNewSimulation = () => {
     setMessages([{ id: "1", role: "ai", text: INITIAL_AI_MESSAGE }]);
     setInputText("");
-    setShowSuggestions(true);
+    setShowSuggestions(false);
   };
+
+  useEffect(() => {
+    if (!showSuggestions) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const el = suggestionsPanelRef.current;
+      if (!el?.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [showSuggestions]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -668,15 +681,16 @@ export default function AiNegotiationSimulatorPage() {
         {/* Bottom Area */}
         <div className="bg-white/90 backdrop-blur-xl border-t border-border shrink-0 shadow-[0_-10px_40px_rgba(0,0,0,0.04)] z-20 rounded-t-[2rem]">
           <div className="max-w-4xl mx-auto w-full">
-            <div className="pt-4 pb-2 px-4 md:px-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-secondary" />
-                  Ideas para responder
+            <div ref={suggestionsPanelRef} className="pt-3 pb-2 px-4 md:px-6">
+              <div className="flex items-center justify-between mb-2 gap-2">
+                <span className="text-[11px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 min-w-0">
+                  <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary shrink-0" />
+                  <span className="truncate">Ideas para responder</span>
                 </span>
                 <button
+                  type="button"
                   onClick={() => setShowSuggestions(!showSuggestions)}
-                  className="text-xs font-bold text-primary hover:text-primary/80 transition-colors bg-primary/10 px-3 py-1 rounded-full"
+                  className="text-[11px] md:text-xs font-bold text-primary hover:text-primary/80 transition-colors bg-primary/10 px-2.5 py-1 rounded-full shrink-0"
                 >
                   {showSuggestions ? "Ocultar" : "Mostrar"}
                 </button>
@@ -688,28 +702,29 @@ export default function AiNegotiationSimulatorPage() {
                     initial={false}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
                     <div className="relative">
-                      {/* Fade hint derecha para indicar scroll */}
-                      <div className="absolute right-0 top-0 bottom-3 w-12 bg-gradient-to-l from-white/90 to-transparent z-10 pointer-events-none rounded-r-2xl" />
+                      <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-white/90 to-transparent z-10 pointer-events-none rounded-r-xl" />
                       <div
-                        className="flex overflow-x-auto pb-3 pt-1 gap-3 snap-x snap-mandatory pr-8"
+                        className="flex overflow-x-auto pb-2 pt-0.5 gap-2 snap-x snap-mandatory pr-6 max-h-[88px] md:max-h-[96px]"
                         style={{ scrollbarWidth: "thin", scrollbarColor: "#e5e7eb transparent" }}
                       >
                         {loadingSuggestions
                           ? Array.from({ length: 4 }).map((_, i) => (
                               <div
                                 key={i}
-                                className="snap-start shrink-0 w-[260px] md:w-[300px] h-[76px] bg-muted/30 border border-border rounded-2xl animate-pulse"
+                                className="snap-start shrink-0 w-[200px] sm:w-[220px] md:w-[240px] h-[64px] md:h-[72px] bg-muted/30 border border-border rounded-xl animate-pulse"
                               />
                             ))
                           : suggestions.map((suggestion, i) => (
                               <button
                                 key={`${i}-${suggestion.slice(0, 20)}`}
+                                type="button"
                                 onClick={() => handleSend(suggestion)}
                                 disabled={isTyping}
-                                className="snap-start shrink-0 w-[260px] md:w-[300px] text-left px-5 py-3.5 bg-white hover:bg-primary/5 text-foreground hover:text-primary font-medium text-sm rounded-2xl border border-border hover:border-primary/30 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-normal leading-relaxed"
+                                className="snap-start shrink-0 w-[200px] sm:w-[220px] md:w-[240px] max-h-[72px] md:max-h-[80px] text-left px-3 py-2 bg-white hover:bg-primary/5 text-foreground hover:text-primary font-medium text-xs rounded-xl border border-border hover:border-primary/30 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed leading-snug line-clamp-3 overflow-hidden"
                               >
                                 &ldquo;{suggestion}&rdquo;
                               </button>
@@ -767,7 +782,7 @@ export default function AiNegotiationSimulatorPage() {
                         handleSend(inputText);
                       }
                     }}
-                    placeholder="Escribe tu mensaje o usa una sugerencia arriba..."
+                    placeholder="Escribe tu mensaje… (Ideas: pulsa Mostrar arriba)"
                     className="flex-1 max-h-32 min-h-[48px] sm:min-h-[60px] bg-transparent outline-none resize-none py-3 sm:py-4 text-sm sm:text-[16px] text-foreground font-medium placeholder:text-muted-foreground"
                     disabled={isTyping}
                     rows={1}
