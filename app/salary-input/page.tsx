@@ -1331,21 +1331,55 @@ export default function SalaryInputPage() {
                 </div>
 
                 <div className="space-y-4 pt-4">
-                  <label className="text-sm font-bold text-foreground block mb-2">
+                  <label
+                    id="negotiation-confidence-label"
+                    className="text-sm font-bold text-foreground block mb-3"
+                  >
                     ¿Qué tan segura te sientes negociando tu salario hoy?{" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="10"
-                    {...register("negotiationConfidence")}
-                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                  <div className="flex justify-between text-xs font-semibold text-muted-foreground mt-2">
-                    <span>Muy insegura y con miedo</span>
-                    <span>Muy segura y confiada</span>
+                  <div
+                    className="flex flex-wrap justify-center sm:justify-between gap-2 sm:gap-3 max-w-xl mx-auto sm:max-w-none"
+                    role="radiogroup"
+                    aria-labelledby="negotiation-confidence-label"
+                  >
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <label
+                        key={level}
+                        className="flex flex-col items-center gap-2 flex-1 min-w-[3.25rem] max-w-[4.5rem] cursor-pointer group"
+                      >
+                        <input
+                          type="radio"
+                          value={level}
+                          {...register("negotiationConfidence", {
+                            required: true,
+                            valueAsNumber: true,
+                          })}
+                          className="sr-only peer"
+                        />
+                        <span className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border-2 border-border/60 bg-white text-base font-black text-muted-foreground shadow-sm transition-all group-hover:border-primary/40 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 peer-focus-visible:ring-offset-2">
+                          {level}
+                        </span>
+                      </label>
+                    ))}
                   </div>
+                  <div className="flex justify-between gap-4 text-[11px] sm:text-xs font-medium text-muted-foreground max-w-xl mx-auto sm:max-w-none pt-1">
+                    <span className="max-w-[48%] text-left leading-snug">
+                      Muy insegura y con miedo
+                    </span>
+                    <span className="max-w-[48%] text-right leading-snug">
+                      Muy segura y confiada
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed border-t border-border/50 pt-3 mt-2">
+                    Escala Likert del 1 al 5: el <strong className="text-foreground font-semibold">1</strong>{" "}
+                    corresponde a mucha inseguridad o miedo al negociar; el{" "}
+                    <strong className="text-foreground font-semibold">5</strong>, a mucha seguridad y
+                    confianza. Elige el valor que mejor refleje cómo te sientes{" "}
+                    <strong className="text-foreground font-semibold">hoy</strong>: no hay respuestas
+                    correctas ni incorrectas, solo queremos conocer tu punto de partida.
+                  </p>
+                  <ErrorMsg name="negotiationConfidence" />
                 </div>
                 <hr />
                 <div className="mt-8 p-5 bg-primary/5 border border-primary/20 rounded-2xl">

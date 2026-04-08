@@ -47,18 +47,12 @@ function FooterSection({
           />
         )}
       </button>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={isMobile ? { height: 0, opacity: 0 } : undefined}
-            animate={isMobile ? { height: "auto", opacity: 1 } : undefined}
-            exit={isMobile ? { height: 0, opacity: 0 } : undefined}
-            className="overflow-hidden md:overflow-visible"
-          >
-            <div className="flex flex-col gap-4 pt-4 md:pt-0">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Sin motion aquí: evita estilos inline distintos entre SSR y cliente en el footer. */}
+      {(!isMobile || isOpen) && (
+        <div className="overflow-hidden md:overflow-visible">
+          <div className="flex flex-col gap-4 pt-4 md:pt-0">{children}</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -254,24 +248,18 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             : "max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12"
         }`}
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname}
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={
-              pathname === "/simulator"
-                ? "flex-1 flex flex-col h-[calc(100vh-4rem)]"
-                : pathname === "/"
-                  ? "min-h-[calc(100vh-4rem)]"
-                  : "min-h-[calc(100vh-14rem)]"
-            }
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        <div
+          key={pathname}
+          className={
+            pathname === "/simulator"
+              ? "flex-1 flex flex-col h-[calc(100vh-4rem)]"
+              : pathname === "/"
+                ? "min-h-[calc(100vh-4rem)]"
+                : "min-h-[calc(100vh-14rem)]"
+          }
+        >
+          {children}
+        </div>
       </main>
 
       {pathname !== "/simulator" && (

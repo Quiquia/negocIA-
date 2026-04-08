@@ -1,14 +1,12 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { Toaster as Sonner, ToasterProps } from "sonner";
 
+/** Tema fijo: evita desajuste de hidratación si se usa sin ThemeProvider (useTheme variaba SSR vs cliente). */
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
-
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme="light"
       className="toaster group"
       style={
         {
