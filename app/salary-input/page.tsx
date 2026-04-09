@@ -26,7 +26,8 @@ import {
   getCurrencyOptions,
   latamCountries,
 } from "../data/latam-countries";
-import { isTechRole, TECH_ROLE_ERROR } from "../data/tech-roles";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
+import { isTechRole } from "../data/tech-roles";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 import { submitSalaryProfile } from "./actions";
 
@@ -58,7 +59,80 @@ type ProfileForm = {
   wantsAiPractice: string;
 };
 
+const YEARS_VALUES = [
+  "0 – 1 años",
+  "2 – 3 años",
+  "4 – 5 años",
+  "6 – 8 años",
+  "9+ años",
+] as const;
+
+const ENGLISH_LEVEL_VALUES = [
+  "Básico",
+  "Intermedio",
+  "Intermedio alto",
+  "Avanzado",
+  "Ninguno",
+] as const;
+
+const ENGLISH_USAGE_VALUES = ["Sí, frecuentemente", "A veces", "No"] as const;
+
+const WORK_MODE_VALUES = ["Remoto", "Híbrido", "Presencial"] as const;
+
+const COMPANY_TYPE_VALUES = [
+  "Startup",
+  "Consultora",
+  "Agencia",
+  "Empresa de producto digital",
+  "Banco / Fintech",
+  "Empresa grande / corporativa",
+  "Otra",
+] as const;
+
+const CONTRACT_TYPE_VALUES = [
+  "Planilla / Empleado Dependiente",
+  "Contrato por Servicios / Locación",
+  "Freelancer / Autónomo",
+  "Otro",
+] as const;
+
+const WORK_SCHEDULE_VALUES = [
+  "Tiempo completo",
+  "Medio tiempo",
+  "Por horas / por proyecto",
+  "Otra",
+] as const;
+
+const SALARY_TYPE_VALUES = ["Bruto", "Neto", "No estoy segura"] as const;
+
+const LAST_INCREASE_VALUES = [
+  "Menos de 6 meses",
+  "Entre 6 y 12 meses",
+  "Entre 1 y 2 años",
+  "Más de 2 años",
+  "Nunca he recibido un aumento",
+] as const;
+
+const SENIORITY_OPTIONS = [
+  { value: "Trainee", labelKey: "salary.sen.trainee" },
+  { value: "Junior", labelKey: "salary.sen.junior" },
+  { value: "Mid", labelKey: "salary.sen.mid" },
+  { value: "Senior", labelKey: "salary.sen.senior" },
+  { value: "Lead", labelKey: "salary.sen.lead" },
+] as const;
+
+function roleDescI18nPrefix(role: string): "fe" | "be" | "da" | "ux" {
+  const m: Record<string, "fe" | "be" | "da" | "ux"> = {
+    "Frontend Developer": "fe",
+    "Backend Developer": "be",
+    "Data Analyst": "da",
+    "UX Designer": "ux",
+  };
+  return m[role] ?? "fe";
+}
+
 export default function SalaryInputPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const {
     prefillRole,
@@ -183,29 +257,36 @@ export default function SalaryInputPage() {
   const step1Hint = useMemo(() => {
     if (currentStep !== 1 || canProceedToNext) return undefined;
     const v = formValues;
-    if (!v.seniority?.trim()) return "Falta: nivel de seniority.";
-    if (!v.yearsExperience?.trim()) return "Falta: años de experiencia en el rol.";
+    if (!v.seniority?.trim()) return t("salary.hint.seniority");
+    if (!v.yearsExperience?.trim()) return t("salary.hint.years");
     if (normalizeMulti(watchedTechStack ?? v.techStack).length === 0) {
-      return "Falta: al menos una tecnología del stack (checkbox o campo + Enter).";
+      return t("salary.hint.tech");
     }
     if (normalizeMulti(watchedTools ?? v.tools).length === 0) {
-      return "Falta: al menos una herramienta (checkbox o campo + Enter).";
+      return t("salary.hint.tools");
     }
-    if (!v.englishLevel?.trim()) return "Falta: nivel de inglés.";
-    if (!v.englishUsage?.trim()) return "Falta: uso de inglés en el trabajo.";
+    if (!v.englishLevel?.trim()) return t("salary.hint.en");
+    if (!v.englishUsage?.trim()) return t("salary.hint.enUse");
     if (!v.otherLanguages?.trim()) {
-      return "Falta: si dominas otro idioma (Sí o No).";
+      return t("salary.hint.lang");
     }
     if (!v.roleDescription?.trim()) {
-      return "Falta: cómo describe mejor tu rol (elige una opción o escribe si es «Otro»).";
+      return t("salary.hint.roleDesc");
     }
     if (v.role === "Otro") {
       const cr = v.customRole?.trim();
-      if (!cr) return "Falta: escribe tu rol en «Otro».";
-      if (!isTechRole(cr)) return "El rol debe ser de ámbito tecnológico.";
+      if (!cr) return t("salary.hint.customRoleEmpty");
+      if (!isTechRole(cr)) return t("salary.hint.customRoleTech");
     }
-    return "Revisa los campos marcados con error.";
-  }, [currentStep, canProceedToNext, formValues, watchedTechStack, watchedTools]);
+    return t("salary.hint.reviewFields");
+  }, [
+    currentStep,
+    canProceedToNext,
+    formValues,
+    watchedTechStack,
+    watchedTools,
+    t,
+  ]);
 
   const selectedCountry = getCountryByName(watchCountry);
   const currencySymbol = selectedCountry?.currency.symbol ?? "$";
@@ -397,7 +478,7 @@ export default function SalaryInputPage() {
       const result = await submitSalaryProfile(fd);
 
       if (!result.success) {
-        setSubmitError(result.error ?? "Error al guardar los datos.");
+        setSubmitError(result.error ?? t("salary.err.save"));
         return;
       }
 
@@ -417,20 +498,22 @@ export default function SalaryInputPage() {
     });
   };
 
-  const stepTitles = [
-    "Tu perfil",
-    "Tu trabajo actual",
-    "Tu compensación",
-    "Negociación",
-  ];
+  const stepTitles = useMemo(
+    () => [
+      t("salary.step1"),
+      t("salary.step2"),
+      t("salary.step3"),
+      t("salary.step4"),
+    ],
+    [t],
+  );
 
   const ErrorMsg = ({ name }: { name: keyof ProfileForm }) => {
     const error = errors[name];
     if (!error) return null;
     return (
       <span className="text-sm text-rose-500 font-medium mt-1 inline-block error-field">
-        {error.message ||
-          "Por favor responde esta pregunta antes de continuar."}
+        {error.message || t("salary.err.answerFirst")}
       </span>
     );
   };
@@ -465,7 +548,11 @@ export default function SalaryInputPage() {
       <div className="w-full mb-8">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-bold text-primary uppercase tracking-wider">
-            Paso {currentStep} de {totalSteps} — {stepTitles[currentStep - 1]}
+            {t("salary.progress", {
+              current: currentStep,
+              total: totalSteps,
+              stepTitle: stepTitles[currentStep - 1],
+            })}
           </span>
           <span className="text-sm font-medium text-muted-foreground">
             {Math.round((currentStep / totalSteps) * 100)}%
@@ -481,13 +568,11 @@ export default function SalaryInputPage() {
         </div>
         <div className="flex flex-col md:flex-row md:items-center justify-between mt-3 gap-2">
           <p className="text-sm text-muted-foreground text-center md:text-left">
-            Mientras más detalles compartas, más preciso será tu análisis
-            salarial.
+            {t("salary.detailHint")}
           </p>
           <p className="text-xs text-muted-foreground/80 flex items-center justify-center md:justify-end gap-1.5 font-medium bg-muted/30 px-3 py-1.5 rounded-full">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            NegocIA+ utiliza datos reales del mercado tecnológico para estimar
-            rangos salariales.
+            <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
+            {t("salary.sparkleNote")}
           </p>
         </div>
       </div>
@@ -508,18 +593,18 @@ export default function SalaryInputPage() {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="text-center md:text-left mb-8">
                 <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
-                  Cuéntanos sobre tu perfil profesional
+                  {t("salary.s1.title")}
                 </h1>
                 <p className="text-sm sm:text-lg text-muted-foreground">
-                  Esto nos ayudará a entender tu nivel de experiencia y tu valor
-                  en el mercado.
+                  {t("salary.s1.subtitle")}
                 </p>
               </div>
 
               <div className="space-y-8">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-foreground">
-                    Área o rol <span className="text-rose-500">*</span>
+                    {t("salary.label.roleArea")}{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <select
                     {...register("role", { required: true })}
@@ -529,30 +614,30 @@ export default function SalaryInputPage() {
                     )}
                   >
                     <option value="Frontend Developer">
-                      Frontend Developer
+                      {t("salary.role.frontend")}
                     </option>
                     <option value="Backend Developer">
-                      Backend Developer
+                      {t("salary.role.backend")}
                     </option>
                     <option value="Data Analyst">
-                      Data Analyst
+                      {t("salary.role.dataAnalyst")}
                     </option>
-                    <option value="UX Designer">
-                      UX Designer
-                    </option>
-                    <option value="Otro">Otro</option>
+                    <option value="UX Designer">{t("salary.role.ux")}</option>
+                    <option value="Otro">{t("salary.role.other")}</option>
                   </select>
                   <ErrorMsg name="role" />
                   {isOtherRole && (
                     <div className="mt-3">
                       <input
                         type="text"
-                        placeholder="Escribe tu rol (ej. DevOps Engineer, QA Tester, Product Manager...)"
+                        placeholder={t("salary.customRole.placeholder")}
                         {...register("customRole", {
                           validate: (value) => {
                             if (watchRole !== "Otro") return true;
-                            if (!value || !value.trim()) return "Por favor escribe tu rol.";
-                            if (!isTechRole(value)) return TECH_ROLE_ERROR;
+                            if (!value || !value.trim())
+                              return t("salary.err.writeRole");
+                            if (!isTechRole(value))
+                              return t("salary.techRoleError");
                             return true;
                           },
                         })}
@@ -568,18 +653,13 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    Nivel de Seniority <span className="text-rose-500">*</span>
+                    {t("salary.label.seniority")}{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${errors.seniority ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      { value: "Trainee", label: "Trainee (en formación)" },
-                      { value: "Junior", label: "Junior (<2 años)" },
-                      { value: "Mid", label: "Mid (2-6 años)" },
-                      { value: "Senior", label: "Senior (6+ años)" },
-                      { value: "Lead", label: "Lead" },
-                    ].map((opt) => (
+                    {SENIORITY_OPTIONS.map((opt) => (
                       <label
                         key={opt.value}
                         className="relative flex items-center gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
@@ -591,7 +671,7 @@ export default function SalaryInputPage() {
                           className="w-5 h-5 accent-primary"
                         />
                         <span className="font-medium group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                          {opt.label}
+                          {t(opt.labelKey)}
                         </span>
                         <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -602,19 +682,18 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Cuántos años de experiencia tienes específicamente como{" "}
-                    {watchRole}? <span className="text-rose-500">*</span>
+                    {t("salary.label.yearsExp", {
+                      role:
+                        watchRole === "Otro"
+                          ? watch("customRole")?.trim() || t("salary.role.other")
+                          : watchRole,
+                    })}{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${errors.yearsExperience ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      "0 – 1 años",
-                      "2 – 3 años",
-                      "4 – 5 años",
-                      "6 – 8 años",
-                      "9+ años",
-                    ].map((opt) => (
+                    {YEARS_VALUES.map((opt, yi) => (
                       <label
                         key={opt}
                         className="relative flex items-center gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
@@ -626,7 +705,7 @@ export default function SalaryInputPage() {
                           className="w-5 h-5 accent-primary"
                         />
                         <span className="font-medium group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                          {opt}
+                          {t(`salary.years.${yi}`)}
                         </span>
                         <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -637,12 +716,12 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Cuál es tu stack tecnológico principal?{" "}
+                    {t("salary.label.stack")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   {isOtherRole && (
                     <p className="text-xs text-muted-foreground -mt-1">
-                      Selecciona las que apliquen o agrega las tuyas con el campo de texto.
+                      {t("salary.stackHintOther")}
                     </p>
                   )}
                   <div
@@ -660,7 +739,7 @@ export default function SalaryInputPage() {
                           {...register("techStack", {
                             validate: (value) =>
                               normalizeMulti(value).length > 0 ||
-                              "Selecciona al menos una tecnología.",
+                              t("salary.err.selectTech"),
                           })}
                           className="hidden peer"
                         />
@@ -720,11 +799,17 @@ export default function SalaryInputPage() {
                             }
                           }
                         }}
-                        placeholder={isOtherRole ? "Ej. Kotlin, Terraform..." : "Otro..."}
+                        placeholder={
+                          isOtherRole
+                            ? t("salary.ph.techOther")
+                            : t("salary.ph.techShort")
+                        }
                         className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? "w-48" : "w-32"} ${techInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
                       />
                       {techInputError && (
-                        <span className="text-xs text-rose-500 pl-2">Solo letras</span>
+                        <span className="text-xs text-rose-500 pl-2">
+                          {t("salary.err.lettersOnly")}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -733,12 +818,12 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Con qué herramientas complementas tu trabajo en el día a
-                    día? <span className="text-rose-500">*</span>
+                    {t("salary.label.tools")}{" "}
+                    <span className="text-rose-500">*</span>
                   </label>
                   {isOtherRole && (
                     <p className="text-xs text-muted-foreground -mt-1">
-                      Selecciona las que apliquen o agrega las tuyas con el campo de texto.
+                      {t("salary.stackHintOther")}
                     </p>
                   )}
                   <div
@@ -756,7 +841,7 @@ export default function SalaryInputPage() {
                           {...register("tools", {
                             validate: (value) =>
                               normalizeMulti(value).length > 0 ||
-                              "Selecciona al menos una herramienta.",
+                              t("salary.err.selectTool"),
                           })}
                           className="hidden peer"
                         />
@@ -816,11 +901,17 @@ export default function SalaryInputPage() {
                             }
                           }
                         }}
-                        placeholder={isOtherRole ? "Ej. Figma, SAP..." : "Otra..."}
+                        placeholder={
+                          isOtherRole
+                            ? t("salary.ph.toolOther")
+                            : t("salary.ph.toolShort")
+                        }
                         className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? "w-48" : "w-32"} ${toolInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
                       />
                       {toolInputError && (
-                        <span className="text-xs text-rose-500 pl-2">Solo letras</span>
+                        <span className="text-xs text-rose-500 pl-2">
+                          {t("salary.err.lettersOnly")}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -829,19 +920,13 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Cuál es tu nivel de inglés?{" "}
+                    {t("salary.label.enLevel")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`grid grid-cols-2 md:grid-cols-3 gap-3 ${errors.englishLevel ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      "Básico",
-                      "Intermedio",
-                      "Intermedio alto",
-                      "Avanzado",
-                      "Ninguno",
-                    ].map((opt) => (
+                    {ENGLISH_LEVEL_VALUES.map((opt, ei) => (
                       <label
                         key={opt}
                         className="relative flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
@@ -853,7 +938,7 @@ export default function SalaryInputPage() {
                           className="w-4 h-4 accent-primary"
                         />
                         <span className="font-medium text-sm group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                          {opt}
+                          {t(`salary.enlev.${ei}`)}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -864,13 +949,13 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Usas inglés en tu trabajo actual?{" "}
+                    {t("salary.label.enUsage")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`flex flex-col sm:flex-row gap-4 ${errors.englishUsage ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {["Sí, frecuentemente", "A veces", "No"].map((opt) => (
+                    {ENGLISH_USAGE_VALUES.map((opt, ui) => (
                       <label
                         key={opt}
                         className="relative flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
@@ -882,7 +967,7 @@ export default function SalaryInputPage() {
                           className="hidden"
                         />
                         <span className="font-bold text-sm group-has-[:checked]:text-primary">
-                          {opt}
+                          {t(`salary.enuse.${ui}`)}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -893,13 +978,13 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Dominas algún otro idioma?{" "}
+                    {t("salary.label.otherLang")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`flex gap-4 ${errors.otherLanguages ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {["Sí", "No"].map((opt) => (
+                    {(["Sí", "No"] as const).map((opt) => (
                       <label
                         key={opt}
                         className="relative flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center group"
@@ -908,12 +993,14 @@ export default function SalaryInputPage() {
                           type="radio"
                           value={opt}
                           {...register("otherLanguages", {
-                            required: "Indica si dominas otro idioma.",
+                            required: t("salary.err.otherLangRequired"),
                           })}
                           className="hidden"
                         />
                         <span className="font-bold text-sm group-has-[:checked]:text-primary">
-                          {opt}
+                          {opt === "Sí"
+                            ? t("salary.opt.si")
+                            : t("salary.opt.no")}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -924,14 +1011,16 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Cuál describe mejor tu rol actual?{" "}
+                    {t("salary.label.roleDesc")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   {isOtherRole ? (
                     <input
                       type="text"
-                      placeholder="Describe brevemente tu rol (ej. Gestión de proyectos tech, Soporte técnico...)"
-                      {...register("roleDescription", { required: "Por favor describe tu rol." })}
+                      placeholder={t("salary.roleDesc.placeholderOther")}
+                      {...register("roleDescription", {
+                        required: t("salary.err.describeRole"),
+                      })}
                       className={fieldClasses(
                         "roleDescription",
                         "w-full h-14 px-4 bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all",
@@ -942,23 +1031,28 @@ export default function SalaryInputPage() {
                       key={`role-desc-${watchRole}`}
                       className={`grid grid-cols-1 gap-3 ${errors.roleDescription ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                     >
-                      {currentRoleOptions.roleDescriptions.map((opt) => (
-                        <label
-                          key={opt}
-                          className="relative flex items-start gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
-                        >
-                          <input
-                            type="radio"
-                            value={opt}
-                            {...register("roleDescription", { required: true })}
-                            className="w-5 h-5 accent-primary mt-0.5 shrink-0"
-                          />
-                          <span className="font-medium text-sm leading-tight pr-6 group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                            {opt}
-                          </span>
-                          <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
-                        </label>
-                      ))}
+                      {currentRoleOptions.roleDescriptions.map((opt, rdi) => {
+                        const prefix = roleDescI18nPrefix(watchRole);
+                        return (
+                          <label
+                            key={opt}
+                            className="relative flex items-start gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
+                          >
+                            <input
+                              type="radio"
+                              value={opt}
+                              {...register("roleDescription", {
+                                required: true,
+                              })}
+                              className="w-5 h-5 accent-primary mt-0.5 shrink-0"
+                            />
+                            <span className="font-medium text-sm leading-tight pr-6 group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
+                              {t(`salary.rd.${prefix}.${rdi}`)}
+                            </span>
+                            <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
+                          </label>
+                        );
+                      })}
                     </div>
                   )}
                   <ErrorMsg name="roleDescription" />
@@ -972,18 +1066,17 @@ export default function SalaryInputPage() {
             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
               <div className="text-center md:text-left mb-8">
                 <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
-                  Cuéntanos sobre tu trabajo actual
+                  {t("salary.s2.title")}
                 </h1>
                 <p className="text-sm sm:text-lg text-muted-foreground">
-                  Esto nos ayuda a contextualizar tu salario dentro de tu
-                  mercado local.
+                  {t("salary.s2.subtitle")}
                 </p>
               </div>
 
               <div className="space-y-8">
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿En qué país trabajas actualmente?{" "}
+                    {t("salary.label.country")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <select
@@ -994,7 +1087,7 @@ export default function SalaryInputPage() {
                     )}
                   >
                     <option value="" disabled>
-                      Selecciona tu país
+                      {t("salary.ph.country")}
                     </option>
                     {latamCountries.map((c) => (
                       <option key={c.name} value={c.name}>
@@ -1007,7 +1100,7 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-foreground">
-                    Selecciona tu ciudad{" "}
+                    {t("salary.label.city")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <select
@@ -1019,7 +1112,7 @@ export default function SalaryInputPage() {
                     )}
                   >
                     <option value="" disabled>
-                      Selecciona tu ciudad
+                      {t("salary.ph.city")}
                     </option>
                     {countryCities.map((c) => (
                       <option key={c} value={c}>
@@ -1032,13 +1125,13 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Tu trabajo es remoto, híbrido o presencial?{" "}
+                    {t("salary.label.workMode")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`flex flex-col sm:flex-row gap-3 ${errors.workMode ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {["Remoto", "Híbrido", "Presencial"].map((opt) => (
+                    {WORK_MODE_VALUES.map((opt, wi) => (
                       <label
                         key={opt}
                         className="relative flex-1 flex items-center justify-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all text-center bg-white group"
@@ -1050,7 +1143,7 @@ export default function SalaryInputPage() {
                           className="hidden"
                         />
                         <span className="font-bold text-sm group-has-[:checked]:text-primary">
-                          {opt}
+                          {t(`salary.wm.${wi}`)}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -1061,21 +1154,13 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Qué tipo de empresa es?{" "}
+                    {t("salary.label.companyType")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${errors.companyType ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      "Startup",
-                      "Consultora",
-                      "Agencia",
-                      "Empresa de producto digital",
-                      "Banco / Fintech",
-                      "Empresa grande / corporativa",
-                      "Otra",
-                    ].map((opt) => (
+                    {COMPANY_TYPE_VALUES.map((opt, ci) => (
                       <label
                         key={opt}
                         className="relative flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
@@ -1087,7 +1172,7 @@ export default function SalaryInputPage() {
                           className="w-4 h-4 accent-primary shrink-0"
                         />
                         <span className="font-medium text-sm leading-tight group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                          {opt}
+                          {t(`salary.ct.${ci}`)}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -1098,18 +1183,13 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Cuál es tu tipo de vínculo laboral?{" "}
+                    {t("salary.label.contract")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${errors.contractType ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      "Planilla / Empleado Dependiente",
-                      "Contrato por Servicios / Locación",
-                      "Freelancer / Autónomo",
-                      "Otro",
-                    ].map((opt) => (
+                    {CONTRACT_TYPE_VALUES.map((opt, cti) => (
                       <label
                         key={opt}
                         className="relative flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
@@ -1121,7 +1201,7 @@ export default function SalaryInputPage() {
                           className="w-4 h-4 accent-primary shrink-0"
                         />
                         <span className="font-medium text-sm leading-tight group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                          {opt}
+                          {t(`salary.ctrt.${cti}`)}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -1132,18 +1212,13 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Cuál es tu jornada actual?{" "}
+                    {t("salary.label.schedule")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${errors.workSchedule ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      "Tiempo completo",
-                      "Medio tiempo",
-                      "Por horas / por proyecto",
-                      "Otra",
-                    ].map((opt) => (
+                    {WORK_SCHEDULE_VALUES.map((opt, wsi) => (
                       <label
                         key={opt}
                         className="relative flex items-center gap-2 p-3 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
@@ -1155,7 +1230,7 @@ export default function SalaryInputPage() {
                           className="w-4 h-4 accent-primary shrink-0"
                         />
                         <span className="font-medium text-sm leading-tight group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                          {opt}
+                          {t(`salary.ws.${wsi}`)}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -1166,7 +1241,7 @@ export default function SalaryInputPage() {
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Tu empresa es local o internacional?{" "}
+                    {t("salary.label.companyOrigin")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
@@ -1180,7 +1255,7 @@ export default function SalaryInputPage() {
                         className="w-5 h-5 accent-primary hidden"
                       />
                       <span className="font-bold group-has-[:checked]:text-primary">
-                        Local
+                        {t("salary.co.local")}
                       </span>
                       <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                     </label>
@@ -1192,7 +1267,7 @@ export default function SalaryInputPage() {
                         className="w-5 h-5 accent-primary hidden"
                       />
                       <span className="font-bold group-has-[:checked]:text-primary">
-                        Internacional
+                        {t("salary.co.intl")}
                       </span>
                       <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                     </label>
@@ -1208,18 +1283,17 @@ export default function SalaryInputPage() {
             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
               <div className="text-center md:text-left mb-8">
                 <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
-                  Cuéntanos sobre tu compensación actual
+                  {t("salary.s3.title")}
                 </h1>
                 <p className="text-sm sm:text-lg text-muted-foreground">
-                  Esta información nos ayudará a comparar tu salario con el
-                  mercado.
+                  {t("salary.s3.subtitle")}
                 </p>
               </div>
 
               <div className="space-y-8">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Cuánto es tu salario mensual?{" "}
+                    {t("salary.label.monthly")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
@@ -1229,15 +1303,15 @@ export default function SalaryInputPage() {
                     <input
                       type="number"
                       {...register("monthlySalary", {
-                        required: "Por favor ingresa tu salario.",
+                        required: t("salary.err.salaryRequired"),
                         min: {
                           value: 50,
-                          message: "El salario debe ser mayor a 50.",
+                          message: t("salary.err.salaryMin"),
                         },
                         validate: (value) =>
-                          value >= 0 || "No se permiten números negativos",
+                          value >= 0 || t("salary.err.salaryNegative"),
                       })}
-                      placeholder="Ej. 5000"
+                      placeholder={t("salary.ph.salary")}
                       className={fieldClasses(
                         "monthlySalary",
                         "w-full h-14 pl-12 pr-4 bg-muted/30 border-2 rounded-2xl outline-none focus:ring-4 transition-all text-xl font-bold",
@@ -1245,16 +1319,14 @@ export default function SalaryInputPage() {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Puedes ingresar una estimación aproximada. Tus datos son
-                    privados y solo se utilizan para generar tu análisis
-                    salarial.
+                    {t("salary.salaryPrivacy")}
                   </p>
                   <ErrorMsg name="monthlySalary" />
                 </div>
 
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿En qué moneda recibes tu salario?{" "}
+                    {t("salary.label.currency")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
@@ -1284,25 +1356,23 @@ export default function SalaryInputPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-bold text-foreground">
-                      ¿Es sueldo bruto o neto?{" "}
+                      {t("salary.label.salaryType")}{" "}
                       <span className="text-rose-500">*</span>
                     </label>
                     <div className="group relative cursor-help">
                       <AlertCircle className="w-4 h-4 text-muted-foreground" />
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-xs rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                        <strong>Sueldo neto:</strong> lo que realmente recibes
-                        en tu cuenta después de descuentos.
+                        {t("salary.tooltip.salaryTypeNet")}
                         <br />
                         <br />
-                        <strong>Sueldo bruto:</strong> el monto total antes de
-                        descuentos.
+                        {t("salary.tooltip.salaryTypeGross")}
                       </div>
                     </div>
                   </div>
                   <div
                     className={`grid grid-cols-1 md:grid-cols-3 gap-4 ${errors.salaryType ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {["Bruto", "Neto", "No estoy segura"].map((type) => (
+                    {SALARY_TYPE_VALUES.map((type, sti) => (
                       <label
                         key={type}
                         className="relative flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
@@ -1314,7 +1384,7 @@ export default function SalaryInputPage() {
                           className="hidden"
                         />
                         <span className="font-bold group-has-[:checked]:text-primary">
-                          {type}
+                          {t(`salary.st.${sti}`)}
                         </span>
                         <CheckCircle2 className="w-4 h-4 text-primary absolute right-3 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -1326,21 +1396,20 @@ export default function SalaryInputPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-bold text-foreground">
-                      ¿Recibes bono o compensación variable?{" "}
+                      {t("salary.label.hasBonus")}{" "}
                       <span className="text-rose-500">*</span>
                     </label>
                     <div className="group relative cursor-help">
                       <AlertCircle className="w-4 h-4 text-muted-foreground" />
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-white text-xs rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                        Ingreso adicional a tu sueldo fijo, como bonos,
-                        comisiones o incentivos.
+                        {t("salary.tooltip.bonus")}
                       </div>
                     </div>
                   </div>
                   <div
                     className={`flex flex-col sm:flex-row gap-4 ${errors.hasBonus ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {["Sí", "No"].map((opt) => (
+                    {(["Sí", "No"] as const).map((opt) => (
                       <label
                         key={opt}
                         className="relative flex-1 flex items-center justify-center gap-2 p-4 border-2 border-border/50 rounded-2xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
@@ -1352,7 +1421,9 @@ export default function SalaryInputPage() {
                           className="hidden"
                         />
                         <span className="font-bold group-has-[:checked]:text-primary">
-                          {opt}
+                          {opt === "Sí"
+                            ? t("salary.opt.si")
+                            : t("salary.opt.no")}
                         </span>
                         <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -1369,29 +1440,23 @@ export default function SalaryInputPage() {
             <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
               <div className="text-center md:text-left mb-8">
                 <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-3">
-                  Negociación y crecimiento
+                  {t("salary.s4.title")}
                 </h1>
                 <p className="text-sm sm:text-lg text-muted-foreground">
-                  Queremos ayudarte a negociar con mayor confianza.
+                  {t("salary.s4.subtitle")}
                 </p>
               </div>
 
               <div className="space-y-8">
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-foreground">
-                    ¿Hace cuánto fue tu último aumento salarial o ascenso?{" "}
+                    {t("salary.label.lastRaise")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
                     className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${errors.lastIncrease ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
-                    {[
-                      "Menos de 6 meses",
-                      "Entre 6 y 12 meses",
-                      "Entre 1 y 2 años",
-                      "Más de 2 años",
-                      "Nunca he recibido un aumento",
-                    ].map((opt) => (
+                    {LAST_INCREASE_VALUES.map((opt, li) => (
                       <label
                         key={opt}
                         className="relative flex items-center gap-3 p-4 border-2 border-border/50 rounded-xl cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm transition-all bg-white group"
@@ -1403,7 +1468,7 @@ export default function SalaryInputPage() {
                           className="w-5 h-5 accent-primary shrink-0"
                         />
                         <span className="font-medium text-sm group-has-[:checked]:font-bold group-has-[:checked]:text-primary">
-                          {opt}
+                          {t(`salary.li.${li}`)}
                         </span>
                         <CheckCircle2 className="w-5 h-5 text-primary absolute right-4 opacity-0 group-has-[:checked]:opacity-100 transition-opacity" />
                       </label>
@@ -1417,7 +1482,7 @@ export default function SalaryInputPage() {
                     id="negotiation-confidence-label"
                     className="text-sm font-bold text-foreground block mb-3"
                   >
-                    ¿Qué tan segura te sientes negociando tu salario hoy?{" "}
+                    {t("salary.label.confidence")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
@@ -1447,39 +1512,34 @@ export default function SalaryInputPage() {
                   </div>
                   <div className="flex justify-between gap-4 text-[11px] sm:text-xs font-medium text-muted-foreground max-w-xl mx-auto sm:max-w-none pt-1">
                     <span className="max-w-[48%] text-left leading-snug">
-                      Muy insegura y con miedo
+                      {t("salary.conf.scaleLow")}
                     </span>
                     <span className="max-w-[48%] text-right leading-snug">
-                      Muy segura y confiada
+                      {t("salary.conf.scaleHigh")}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed border-t border-border/50 pt-3 mt-2">
-                    Escala Likert del 1 al 5: el <strong className="text-foreground font-semibold">1</strong>{" "}
-                    corresponde a mucha inseguridad o miedo al negociar; el{" "}
-                    <strong className="text-foreground font-semibold">5</strong>, a mucha seguridad y
-                    confianza. Elige el valor que mejor refleje cómo te sientes{" "}
-                    <strong className="text-foreground font-semibold">hoy</strong>: no hay respuestas
-                    correctas ni incorrectas, solo queremos conocer tu punto de partida.
+                    {t("salary.conf.help")}
                   </p>
                   <ErrorMsg name="negotiationConfidence" />
                 </div>
                 <hr />
                 <div className="mt-8 p-5 bg-primary/5 border border-primary/20 rounded-2xl">
                   <h4 className="font-bold text-foreground text-sm mb-2">
-                    Tu análisis incluirá:
+                    {t("salary.includes.title")}
                   </h4>
                   <ul className="space-y-2 text-sm text-muted-foreground font-medium">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                      Tu rango salarial estimado
+                      {t("salary.includes.1")}
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                      Comparación con el mercado tecnológico
+                      {t("salary.includes.2")}
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                      Recomendaciones para negociar tu salario
+                      {t("salary.includes.3")}
                     </li>
                   </ul>
                 </div>
@@ -1503,7 +1563,7 @@ export default function SalaryInputPage() {
                 className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 px-6 rounded-full bg-muted text-foreground font-bold hover:bg-muted/80 transition-all"
               >
                 <ArrowLeft className="w-5 h-5" />
-                Anterior
+                {t("salary.btn.back")}
               </button>
             ) : (
               <div className="hidden sm:block" />
@@ -1519,7 +1579,7 @@ export default function SalaryInputPage() {
                 }
                 className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 px-8 rounded-full bg-primary text-white font-extrabold text-lg shadow-lg shadow-primary/25 hover:-translate-y-0.5 transition-all sm:ml-auto disabled:opacity-45 disabled:pointer-events-none disabled:cursor-not-allowed disabled:hover:translate-y-0"
               >
-                Siguiente
+                {t("salary.btn.next")}
                 <ArrowRight className="w-5 h-5" />
               </button>
             ) : (
@@ -1541,11 +1601,11 @@ export default function SalaryInputPage() {
                 {isPending ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Guardando...
+                    {t("salary.btn.saving")}
                   </>
                 ) : (
                   <>
-                    Analizar mi salario
+                    {t("salary.btn.submit")}
                     <CheckCircle2 className="w-5 h-5" />
                   </>
                 )}

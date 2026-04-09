@@ -2,39 +2,23 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Search, Plus, Minus, Mail, MessageCircle } from "lucide-react";
-
-const faqs = [
-  {
-    question: "¿Qué es NegocIA+ y cómo funciona?",
-    answer:
-      "NegocIA+ es una herramienta gratuita que utiliza inteligencia artificial para analizar tu salario actual, compararlo con el mercado y ayudarte a preparar una negociación salarial efectiva. Solo necesitas ingresar tu perfil profesional y nuestro sistema te proporcionará un análisis completo con estrategias personalizadas.",
-  },
-  {
-    question: "¿Es realmente gratuito?",
-    answer:
-      "Sí, NegocIA+ es 100% gratuito. Nuestra misión es cerrar la brecha salarial de género en tecnología y creemos que el acceso a datos salariales y herramientas de negociación no debería tener costo. Nos financiamos a través de alianzas con organizaciones comprometidas con la equidad.",
-  },
-  {
-    question: "¿De dónde provienen los datos salariales?",
-    answer:
-      "Nuestros datos provienen de múltiples fuentes: encuestas salariales de la industria tech en Latinoamérica, datos públicos de plataformas de empleo, reportes de consultoras especializadas y contribuciones anónimas de nuestra comunidad. Los datos se actualizan trimestralmente para garantizar precisión.",
-  },
-  {
-    question: "¿Mis datos personales están seguros?",
-    answer:
-      "Absolutamente. No almacenamos información personal identificable. Los datos de tu perfil se procesan en tiempo real para generar el análisis y no se guardan en nuestros servidores. Cumplimos con las normativas de protección de datos aplicables en la región.",
-  },
-  {
-    question: "¿Cómo puedo prepararme mejor para mi negociación?",
-    answer:
-      "Te recomendamos seguir estos pasos: 1) Completa tu análisis salarial para obtener datos de mercado, 2) Revisa las estrategias personalizadas que te ofrecemos, 3) Practica con nuestro simulador de negociación al menos 3 veces, 4) Prepara tus argumentos basándote en los datos proporcionados. Cuanto más practiques, mayor será tu confianza.",
-  },
-];
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 
 export default function FaqPage() {
+  const { t } = useTranslation();
+  const faqs = useMemo(
+    () => [
+      { question: t("faq.q1"), answer: t("faq.a1") },
+      { question: t("faq.q2"), answer: t("faq.a2") },
+      { question: t("faq.q3"), answer: t("faq.a3") },
+      { question: t("faq.q4"), answer: t("faq.a4") },
+      { question: t("faq.q5"), answer: t("faq.a5") },
+    ],
+    [t],
+  );
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -59,7 +43,7 @@ export default function FaqPage() {
             transition={{ duration: 0.6 }}
             className="font-heading text-4xl font-bold md:text-5xl"
           >
-            Preguntas frecuentes
+            {t("faq.title")}
           </motion.h1>
           <motion.p
             initial={false}
@@ -67,7 +51,7 @@ export default function FaqPage() {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-4 text-lg text-white/80 md:text-xl"
           >
-            Encuentra respuestas a las dudas más comunes sobre NegocIA+.
+            {t("faq.subtitle")}
           </motion.p>
         </div>
       </section>
@@ -79,7 +63,7 @@ export default function FaqPage() {
           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar una pregunta..."
+            placeholder={t("faq.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -135,7 +119,7 @@ export default function FaqPage() {
           })}
           {filteredFaqs.length === 0 && (
             <p className="py-8 text-center text-gray-400">
-              No se encontraron resultados para tu búsqueda.
+              {t("faq.noResults")}
             </p>
           )}
         </div>
@@ -150,11 +134,10 @@ export default function FaqPage() {
             viewport={{ once: true }}
             className="font-heading text-2xl font-bold text-gray-900"
           >
-            ¿Aún tienes dudas?
+            {t("faq.contactTitle")}
           </motion.h2>
           <p className="mt-3 text-gray-600">
-            Nuestro equipo está disponible para ayudarte. Escríbenos y te
-            responderemos lo antes posible.
+            {t("faq.contactText")}
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a
@@ -162,14 +145,14 @@ export default function FaqPage() {
               className="inline-flex items-center gap-2 rounded-full bg-[#FF2E93] px-8 py-3 font-semibold text-white transition-colors hover:bg-[#e0267f]"
             >
               <Mail className="h-5 w-5" />
-              Enviar un correo
+              {t("faq.emailCta")}
             </a>
             <a
               href="mailto:contacto@negocia.plus"
               className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-8 py-3 font-semibold text-gray-700 transition-colors hover:bg-gray-100"
             >
               <MessageCircle className="h-5 w-5" />
-              Contactar al equipo
+              {t("faq.contactTeam")}
             </a>
           </div>
         </div>

@@ -17,14 +17,15 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
+import { useLanguage } from "@/app/providers/LanguageProvider";
 import { getSalarySubmissionsCount } from "../home-actions";
 
-const teamMembers = [
+const TEAM_BASE = [
   {
     name: "Rosmery Fabián Escandon",
     role: "UX/UI Designer",
     specialties: "Product Design • UX Research",
-    description: "Diseña experiencias digitales intuitivas centradas en las necesidades reales de mujeres en tecnología.",
     image: "/assets/photo-rosmery.webp",
     linkedin: "https://www.linkedin.com/in/rosmery-fabian-escandon",
   },
@@ -32,7 +33,6 @@ const teamMembers = [
     name: "Vanessa Quiquia",
     role: "Full Stack Developer",
     specialties: "AI Systems • Platform Engineering",
-    description: "Construye plataformas escalables integrando IA y datos para resolver problemas del mercado laboral.",
     image: "/assets/photo-vanessa.webp",
     linkedin: "https://www.linkedin.com/in/bequidev",
   },
@@ -40,7 +40,6 @@ const teamMembers = [
     name: "Carolina Vargas",
     role: "Full Stack Developer",
     specialties: "Software Architecture • Backend Engineering",
-    description: "Arquitecta de soluciones eficientes que impulsan las funcionalidades clave y el rendimiento de NegocIA+.",
     image: "/assets/photo-carolina.webp",
     linkedin: "https://www.linkedin.com/in/carolinavargasjaramillo-analyst",
   },
@@ -48,7 +47,6 @@ const teamMembers = [
     name: "Alexandra Canchis",
     role: "Communications Strategist",
     specialties: "Storytelling • Community Strategy",
-    description: "Amplifica el impacto de la plataforma, conectando nuestra misión con la comunidad tecnológica.",
     image: "/assets/photo-alexandra.webp",
     linkedin: "https://www.linkedin.com/in/alexandra-canchis-angulo-b2340b2a0",
   },
@@ -56,81 +54,82 @@ const teamMembers = [
     name: "Lucía Gil",
     role: "Product Strategist",
     specialties: "Product Vision • Market Strategy",
-    description: "Lidera la visión estratégica para consolidar una herramienta de inteligencia salarial líder en Latam.",
     image: "/assets/photo-lucia.webp",
     linkedin: "https://www.linkedin.com/in/luciagilv",
   },
-];
+] as const;
 
-const problems = [
-  {
-    icon: TrendingUp,
-    title: "Brecha salarial persistente",
-    description:
-      "Las mujeres en tecnología ganan en promedio un 20-30% menos que sus pares masculinos en roles equivalentes.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Falta de transparencia salarial",
-    description:
-      "La mayoría de empresas no publican rangos salariales, dejando a las candidatas sin información para negociar.",
-  },
-  {
-    icon: BrainCircuit,
-    title: "Sesgos inconscientes",
-    description:
-      "Los procesos de negociación están plagados de sesgos que penalizan a las mujeres que negocian activamente.",
-  },
-  {
-    icon: HeartHandshake,
-    title: "Falta de preparación",
-    description:
-      "Muchas profesionales no cuentan con herramientas ni datos concretos para respaldar sus solicitudes salariales.",
-  },
-  {
-    icon: Users,
-    title: "Ausencia de referentes",
-    description:
-      "Pocas mujeres comparten abiertamente sus experiencias de negociación, creando un vacío de conocimiento colectivo.",
-  },
-];
-
-const roadmap = [
-  {
-    year: "2026",
-    title: "Lanzamiento y validación",
-    items: [
-      "MVP con análisis salarial basado en IA",
-      "Simulador de negociación interactivo",
-      "Comunidad inicial de 5,000 usuarias",
-    ],
-  },
-  {
-    year: "2027",
-    title: "Expansión regional",
-    items: [
-      "Cobertura en 10+ países de Latinoamérica",
-      "Alianzas con empresas comprometidas con equidad",
-      "Reportes de industria y benchmarks salariales",
-    ],
-  },
-  {
-    year: "2028",
-    title: "Impacto a escala",
-    items: [
-      "Integración con plataformas de empleo",
-      "Certificación de equidad salarial para empresas",
-      "Red de mentoría y negociación colectiva",
-    ],
-  },
-];
-
-function formatEsInteger(n: number) {
-  return new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 }).format(n);
+function formatInteger(n: number, locale: string) {
+  return new Intl.NumberFormat(locale === "en" ? "en-US" : "es-ES", {
+    maximumFractionDigits: 0,
+  }).format(n);
 }
 
 export default function SobreNosotrosPage() {
+  const { t } = useTranslation();
+  const { locale } = useLanguage();
   const [submissionCount, setSubmissionCount] = useState<number | null>(null);
+
+  const teamMembers = useMemo(
+    () =>
+      TEAM_BASE.map((m, i) => ({
+        ...m,
+        description: t(`about.m${i}.desc`),
+      })),
+    [t],
+  );
+
+  const problems = useMemo(
+    () => [
+      {
+        icon: TrendingUp,
+        title: t("about.p1.title"),
+        description: t("about.p1.desc"),
+      },
+      {
+        icon: ShieldCheck,
+        title: t("about.p2.title"),
+        description: t("about.p2.desc"),
+      },
+      {
+        icon: BrainCircuit,
+        title: t("about.p3.title"),
+        description: t("about.p3.desc"),
+      },
+      {
+        icon: HeartHandshake,
+        title: t("about.p4.title"),
+        description: t("about.p4.desc"),
+      },
+      {
+        icon: Users,
+        title: t("about.p5.title"),
+        description: t("about.p5.desc"),
+      },
+    ],
+    [t],
+  );
+
+  const roadmap = useMemo(
+    () => [
+      {
+        year: "2026",
+        title: t("about.r26.title"),
+        items: [t("about.r26.i1"), t("about.r26.i2"), t("about.r26.i3")],
+      },
+      {
+        year: "2027",
+        title: t("about.r27.title"),
+        items: [t("about.r27.i1"), t("about.r27.i2"), t("about.r27.i3")],
+      },
+      {
+        year: "2028",
+        title: t("about.r28.title"),
+        items: [t("about.r28.i1"), t("about.r28.i2"), t("about.r28.i3")],
+      },
+    ],
+    [t],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -149,14 +148,14 @@ export default function SobreNosotrosPage() {
         value:
           submissionCount === null
             ? "…"
-            : `+${formatEsInteger(submissionCount)}`,
-        label: "Análisis realizados",
+            : `+${formatInteger(submissionCount, locale)}`,
+        label: t("about.stat1"),
         icon: Users,
       },
-      { value: "Latam", label: "Cobertura regional", icon: Globe },
-      { value: "100%", label: "Gratuito y accesible", icon: Sparkles },
+      { value: "Latam", label: t("about.stat2"), icon: Globe },
+      { value: "100%", label: t("about.stat3"), icon: Sparkles },
     ],
-    [submissionCount],
+    [submissionCount, locale, t],
   );
 
   return (
@@ -170,7 +169,7 @@ export default function SobreNosotrosPage() {
             transition={{ duration: 0.6 }}
             className="font-heading text-4xl font-bold md:text-5xl"
           >
-            Sobre NegocIA+
+            {t("about.hero.title")}
           </motion.h1>
           <motion.p
             initial={false}
@@ -178,8 +177,7 @@ export default function SobreNosotrosPage() {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-4 text-lg text-white/80 md:text-xl"
           >
-            Empoderamos a mujeres en tecnología con datos e inteligencia
-            artificial para cerrar la brecha salarial en Latinoamérica.
+            {t("about.hero.subtitle")}
           </motion.p>
         </div>
       </section>
@@ -199,12 +197,10 @@ export default function SobreNosotrosPage() {
               <Target className="h-6 w-6 text-[#FF2E93]" />
             </div>
             <h2 className="font-heading text-2xl font-bold text-gray-900">
-              Nuestra Misión
+              {t("about.mission.title")}
             </h2>
             <p className="mt-3 leading-relaxed text-gray-600">
-              Proporcionar a las mujeres en tecnología herramientas basadas en
-              datos e inteligencia artificial que les permitan negociar salarios
-              justos y cerrar la brecha salarial de género en Latinoamérica.
+              {t("about.mission.text")}
             </p>
           </motion.div>
           <motion.div
@@ -219,12 +215,10 @@ export default function SobreNosotrosPage() {
               <Lightbulb className="h-6 w-6 text-[#4361EE]" />
             </div>
             <h2 className="font-heading text-2xl font-bold text-gray-900">
-              Nuestra Visión
+              {t("about.vision.title")}
             </h2>
             <p className="mt-3 leading-relaxed text-gray-600">
-              Un futuro donde cada mujer profesional en tecnología tenga acceso
-              a información transparente y herramientas que garanticen equidad
-              salarial, sin importar su país o nivel de experiencia.
+              {t("about.vision.text")}
             </p>
           </motion.div>
         </div>
@@ -239,11 +233,10 @@ export default function SobreNosotrosPage() {
             viewport={{ once: true }}
             className="text-center font-heading text-3xl font-bold text-gray-900"
           >
-            El verdadero problema
+            {t("about.problems.title")}
           </motion.h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-gray-600">
-            La brecha salarial de género no es solo un número: es un sistema de
-            barreras que enfrentan las mujeres cada día.
+            {t("about.problems.lead")}
           </p>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {problems.map((problem, i) => (
@@ -278,10 +271,10 @@ export default function SobreNosotrosPage() {
             viewport={{ once: true }}
             className="text-center font-heading text-3xl md:text-4xl font-bold text-[#0F172A]"
           >
-            Nuestro equipo
+            {t("about.team.title")}
           </motion.h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-[#64748B]">
-            Un equipo multidisciplinario comprometido con la equidad salarial.
+            {t("about.team.lead")}
           </p>
 
           {/* Top row — 3 cards */}
@@ -395,7 +388,7 @@ export default function SobreNosotrosPage() {
             viewport={{ once: true }}
             className="text-center font-heading text-3xl font-bold"
           >
-            Hoja de ruta del producto
+            {t("about.roadmap.title")}
           </motion.h2>
           <div className="mt-10 grid gap-8 md:grid-cols-3">
             {roadmap.map((phase, i) => (
@@ -462,17 +455,14 @@ export default function SobreNosotrosPage() {
             viewport={{ once: true }}
             className="font-heading text-3xl font-bold text-gray-900"
           >
-            Comienza a negociar con datos a tu favor
+            {t("about.cta.title")}
           </motion.h2>
-          <p className="mt-3 text-gray-600">
-            Descubre cuánto deberías ganar y prepárate para tu próxima
-            negociación salarial con el respaldo de la inteligencia artificial.
-          </p>
+          <p className="mt-3 text-gray-600">{t("about.cta.lead")}</p>
           <Link
             href="/salary-input"
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#FF2E93] px-8 py-3 font-semibold text-white transition-colors hover:bg-[#e0267f]"
           >
-            Analizar mi salario
+            {t("about.cta.button")}
             <ArrowRight className="h-5 w-5" />
           </Link>
         </div>

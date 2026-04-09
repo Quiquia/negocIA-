@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/app/components/ui/utils";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 import { useLanguage, type Locale } from "../providers/LanguageProvider";
 
 const OPTIONS: { value: Locale; label: string }[] = [
@@ -14,12 +15,13 @@ type LanguageSwitcherProps = {
 
 export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
   const { locale, setLocale } = useLanguage();
+  const { t } = useTranslation();
 
   return (
     <div
       className={cn("inline-flex items-center gap-2", className)}
       role="group"
-      aria-label="Seleccionar idioma"
+      aria-label={t("layout.aria.language")}
     >
     
       <div className="flex rounded-full p-1 bg-muted/60 border border-border/80 shadow-inner">
@@ -37,7 +39,9 @@ export function LanguageSwitcher({ className }: LanguageSwitcherProps) {
                   : "text-muted-foreground hover:text-foreground",
               )}
               aria-pressed={active}
-              aria-label={value === "es" ? "Español" : "English"}
+              aria-label={
+                value === "es" ? t("layout.aria.langEs") : t("layout.aria.langEn")
+              }
             >
               {label}
             </button>

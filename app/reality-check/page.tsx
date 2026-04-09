@@ -29,9 +29,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { getCurrencyDisplayForCountryAndCode } from "../data/latam-countries";
 import { useSalaryData } from "../providers/SalaryDataProvider";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 import { analyzeProfile } from "./actions";
 
 export default function RealityCheckPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const {
     submissionId,
@@ -96,9 +98,7 @@ export default function RealityCheckPage() {
   // Fetch AI analysis on mount
   useEffect(() => {
     if (!submissionId) {
-      setAiError(
-        "No se encontró el ID del perfil. Vuelve a completar el formulario.",
-      );
+      setAiError(t("reality.errorNoId"));
       return;
     }
     startTransition(async () => {
@@ -121,7 +121,7 @@ export default function RealityCheckPage() {
         setAiError(result.error);
       }
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [submissionId, t]);
 
   // Fallback insights while AI loads
   const fallbackInsights = [

@@ -25,6 +25,7 @@ import {
   YAxis,
 } from "recharts";
 import { formatEsInteger } from "@/app/lib/format-es";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 import {
   fetchMarketIntelligenceSnapshot,
   type MarketIntelligenceSnapshot,
@@ -72,6 +73,7 @@ function AnimatedCounter({
 }
 
 export function MarketIntelligence() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"latam" | "global">("latam");
   const [snapshot, setSnapshot] = useState<MarketIntelligenceSnapshot | null>(
     null
@@ -133,12 +135,12 @@ export function MarketIntelligence() {
               className={`w-2 h-2 rounded-full bg-[#FF2E93] ${isLive ? "animate-pulse" : ""}`}
             />
             {loading
-              ? "Generando inteligencia de mercado…"
-              : "Datos actualizados recientemente"}
+              ? t("market.badgeLoading")
+              : t("market.badgeLive")}
           </motion.div>
 
           <h2 className="text-3xl md:text-5xl font-extrabold font-heading text-white">
-            La brecha salarial en tecnología aún existe
+            {t("market.mainTitle")}
           </h2>
 
           <div className="relative p-10 md:p-16 w-full max-w-4xl mx-auto bg-gradient-to-br from-[#3A0CA3]/20 to-[#FF2E93]/10 border border-white/10 rounded-[3rem] backdrop-blur-xl shadow-2xl overflow-hidden">
@@ -148,10 +150,10 @@ export function MarketIntelligence() {
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
               <div className="text-center md:text-left flex-1">
                 <p className="text-lg md:text-xl text-[#F1E9FF]/80 font-medium mb-2">
-                  Brecha salarial estimada para mujeres en tecnología en LATAM
+                  {t("market.gapLead")}
                 </p>
                 <p className="text-[#F1E9FF]/60 text-sm">
-                  Estimación con IA según rol y mercado actual
+                  {t("market.gapSub")}
                 </p>
               </div>
               <div className="flex flex-col items-center justify-center min-h-[5rem] min-w-[8rem]">
@@ -187,10 +189,10 @@ export function MarketIntelligence() {
         <div className="space-y-8">
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl md:text-5xl font-extrabold font-heading text-white">
-              Inteligencia salarial del mercado tecnológico
+              {t("market.sectionTitle")}
             </h2>
             <p className="text-xl text-[#F1E9FF]/70">
-              Datos generados con IA para tomar mejores decisiones profesionales
+              {t("market.sectionLead")}
             </p>
           </div>
 
@@ -208,11 +210,11 @@ export function MarketIntelligence() {
                     {loading || !data ? (
                       <span className="inline-block h-8 w-64 rounded-lg bg-white/10 animate-pulse" />
                     ) : (
-                      `${data.role_title} — análisis salarial`
+                      `${data.role_title} — ${t("market.analysisSuffix")}`
                     )}
                   </h3>
                   <p className="text-[#F1E9FF]/60 mt-1">
-                    Comparativa por nivel de experiencia (USD)
+                    {t("market.comparisonLabel")}
                   </p>
                 </div>
                 <div className="flex items-center  justify-center gap-2 bg-[#3A0CA3]/30 p-1.5 rounded-lg border border-[#4361EE]/30">
@@ -316,10 +318,10 @@ export function MarketIntelligence() {
               <div className="mb-6">
                 <h3 className="text-xl font-bold font-heading flex items-center gap-3">
                   <TrendingUp className="w-5 h-5 text-[#FF2E93]" />
-                  Crecimiento salarial
+                  {t("market.trendTitle")}
                 </h3>
                 <p className="text-[#F1E9FF]/60 text-sm mt-1">
-                  Tendencia últimos 3 años
+                  {t("market.trendSub")}
                 </p>
               </div>
               <div className="flex-1 w-full relative min-h-[150px]">
@@ -379,7 +381,7 @@ export function MarketIntelligence() {
                         }}
                         formatter={(value: number) => [
                           `$${value}`,
-                          "Salario promedio",
+                          t("market.tooltipAvg"),
                         ]}
                       />
                       <Area
@@ -402,7 +404,7 @@ export function MarketIntelligence() {
                 ) : (
                   <p className="text-sm text-white/90">
                     <span className="font-bold text-[#4361EE]">
-                      El salario promedio ha crecido {data.growth_narrative_percent}%
+                      {t("market.growthPrefix")} {data.growth_narrative_percent}%
                     </span>{" "}
                     {data.growth_narrative_suffix}
                   </p>
@@ -420,10 +422,10 @@ export function MarketIntelligence() {
               <div className="mb-6">
                 <h3 className="text-xl font-bold font-heading flex items-center gap-3">
                   <Briefcase className="w-5 h-5 text-[#3A0CA3]" />
-                  Modalidad de trabajo
+                  {t("market.workModeTitle")}
                 </h3>
                 <p className="text-[#F1E9FF]/60 text-sm mt-1">
-                  Salario promedio por modalidad (estimado)
+                  {t("market.workModeSub")}
                 </p>
               </div>
               <div className="space-y-4">
@@ -461,7 +463,7 @@ export function MarketIntelligence() {
                       <p className="text-2xl font-bold text-white relative z-10">
                         ${formatEsInteger(wm.salary_usd)}{" "}
                         <span className="text-sm font-normal text-white/50">
-                          USD/mes
+                          {t("market.usdMonth")}
                         </span>
                       </p>
                     </div>
@@ -491,10 +493,10 @@ export function MarketIntelligence() {
                 <div>
                   <h3 className="text-2xl font-bold font-heading flex items-center gap-3">
                     <Code2 className="w-6 h-6 text-[#FF2E93]" />
-                    Tecnologías mejor pagadas
+                    {t("market.techPaidTitle")}
                   </h3>
                   <p className="text-[#F1E9FF]/60 mt-1">
-                    Ranking según demanda y compensación (IA)
+                    {t("market.techPaidSub")}
                   </p>
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#4361EE]/20 border border-[#4361EE]/30 text-[#4361EE] text-sm font-medium">
@@ -543,7 +545,7 @@ export function MarketIntelligence() {
                       <div className="relative z-10">
                         <p className="font-bold text-white mb-1">{tech.name}</p>
                         <p className="text-xs font-medium text-green-400">
-                          {tech.demand_growth} demanda
+                          {tech.demand_growth} {t("market.demand")}
                         </p>
                       </div>
                     </div>
@@ -555,32 +557,31 @@ export function MarketIntelligence() {
 
           <div className="flex flex-col items-center text-center mt-4 space-y-2">
             <p className="text-xs text-[#F1E9FF]/50">
-              * Estimaciones generadas con IA; no constituyen asesoría legal ni
-              financiera.
+              {t("market.disclaimer")}
             </p>
             <div className="flex flex-wrap justify-center gap-3 text-[11px] text-[#F1E9FF]/40">
               <span className="flex items-center gap-1.5">
                 <span className="w-1 h-1 rounded-full bg-[#FF2E93]" />
-                Datos del mercado tecnológico
+                {t("market.footnoteMarket")}
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1 h-1 rounded-full bg-[#4361EE]" />
-                Nivel de experiencia
+                {t("market.footnoteExp")}
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1 h-1 rounded-full bg-[#FF2E93]" />
-                Stack tecnológico
+                {t("market.footnoteStack")}
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-1 h-1 rounded-full bg-[#4361EE]" />
-                Ubicación geográfica
+                {t("market.footnoteGeo")}
               </span>
             </div>
           </div>
 
           <div className="pt-8 flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left text-sm text-[#F1E9FF]/40 border-t border-white/5">
             <span className="font-semibold uppercase tracking-wider text-white/50 shrink-0">
-              Marco de referencia (Frontend):
+              {t("market.referenceFrame")}
             </span>
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2">
               {MARKET_REFERENCE_SOURCES.map((name, i) => (
@@ -596,7 +597,7 @@ export function MarketIntelligence() {
               <span className="hidden md:inline opacity-50">•</span>
               <span className="flex items-center gap-1 text-[#FF2E93]/80 font-medium">
                 <Sparkles className="w-3 h-3" />
-                Síntesis NegocIA+
+                {t("market.synthesis")}
               </span>
             </div>
           </div>

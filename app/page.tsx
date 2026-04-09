@@ -21,6 +21,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 import { HeroSalaryForm } from "./components/HeroSalaryForm";
 import { MarketIntelligence } from "./components/MarketIntelligence";
 import { ProductExpansion } from "./components/ProductExpansion";
@@ -101,6 +102,7 @@ function Particles() {
 }
 
 export default function Home() {
+  const { t, locale } = useTranslation();
   const router = useRouter();
   const [comparisonProfiles, setComparisonProfiles] = useState<
     ComparisonProfileDTO[]
@@ -172,8 +174,7 @@ export default function Home() {
               transition={{ delay: 0.1 }}
               className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-heading leading-[1.1] tracking-tight drop-shadow-lg"
             >
-              Llega a tu próxima negociación con la seguridad de conocer el
-              mercado
+              {t("home.hero.title")}
             </motion.h1>
 
             <motion.p
@@ -182,8 +183,7 @@ export default function Home() {
               transition={{ delay: 0.2 }}
               className="text-lg md:text-xl text-white/80 leading-relaxed font-medium max-w-lg"
             >
-              NegocIA+ ayuda a mujeres en tecnología a analizar su salario con
-              datos reales del mercado y negociar con confianza.
+              {t("home.hero.subtitle")}
             </motion.p>
 
             {/* Social proof badges */}
@@ -198,16 +198,21 @@ export default function Home() {
                   icon: CheckCircle2,
                   text:
                     submissionCount === null
-                      ? "Cargando análisis realizados…"
-                      : `+${formatEsInteger(submissionCount)} análisis salariales realizados`,
+                      ? t("home.hero.badgeLoading")
+                      : t("home.hero.badgeDone", {
+                          count: new Intl.NumberFormat(
+                            locale === "en" ? "en-US" : "es-ES",
+                            { maximumFractionDigits: 0 },
+                          ).format(submissionCount),
+                        }),
                 },
                 {
                   icon: BarChart3,
-                  text: "Datos reales del mercado tecnológico",
+                  text: t("home.hero.badgeMarket"),
                 },
                 {
                   icon: Users,
-                  text: "Plataforma diseñada para mujeres en tecnología",
+                  text: t("home.hero.badgeWomen"),
                 },
               ].map((item, i) => (
                 <div
@@ -231,7 +236,7 @@ export default function Home() {
                 href="/salary-input"
                 className="inline-flex h-16 items-center justify-center gap-3 px-10 rounded-full bg-gradient-to-r from-primary to-[#FF5EAB] text-white font-extrabold text-lg shadow-[0_0_30px_rgba(255,46,147,0.5)] hover:scale-105 transition-all"
               >
-                Analizar mi salario
+                {t("home.hero.cta")}
                 <ArrowRight className="w-6 h-6" />
               </Link>
             </motion.div>
@@ -252,8 +257,8 @@ export default function Home() {
               >
                 <TrendingUp className="w-4 h-4 text-green-400" />
                 <div className="text-xs">
-                  <p className="font-bold text-white">Demanda de mercado</p>
-                  <p className="text-green-400 font-semibold">+15% este mes</p>
+                  <p className="font-bold text-white">{t("home.floating.demandTitle")}</p>
+                  <p className="text-green-400 font-semibold">{t("home.floating.demandSub")}</p>
                 </div>
               </motion.div>
             </div>
@@ -271,8 +276,8 @@ export default function Home() {
               >
                 <Target className="w-4 h-4 text-primary" />
                 <div className="text-xs">
-                  <p className="font-bold text-white">Brecha salarial</p>
-                  <p className="text-primary font-semibold">Identificada</p>
+                  <p className="font-bold text-white">{t("home.floating.gapTitle")}</p>
+                  <p className="text-primary font-semibold">{t("home.floating.gapSub")}</p>
                 </div>
               </motion.div>
             </div>
@@ -285,9 +290,9 @@ export default function Home() {
               className="flex flex-wrap items-center justify-center gap-4"
             >
               {[
-                { icon: Lock, text: "100% confidencial" },
-                { icon: Sparkles, text: "Creado para mujeres en tech" },
-                { icon: CheckCircle2, text: "Gratis y sin registro" },
+                { icon: Lock, text: t("home.trust.confidential") },
+                { icon: Sparkles, text: t("home.trust.womenTech") },
+                { icon: CheckCircle2, text: t("home.trust.free") },
               ].map((item, i) => (
                 <div
                   key={i}
@@ -312,7 +317,7 @@ export default function Home() {
                 href="/salary-input"
                 className="text-xs md:text-lg inline-flex h-16 w-full items-center justify-center gap-3 px-10 rounded-full bg-gradient-to-r from-primary to-[#FF5EAB] text-white font-extrabold shadow-[0_0_30px_rgba(255,46,147,0.5)] hover:scale-105 transition-all"
               >
-                Analizar mi salario
+                {t("home.hero.cta")}
                 <ArrowRight className="w-6 h-6" />
               </Link>
             </motion.div>
@@ -333,7 +338,7 @@ export default function Home() {
               <img
                 key={i}
                 src={src}
-                alt="Usuaria"
+                alt={t("home.social.avatarAlt")}
                 className="w-10 h-10 rounded-full border-2 border-white object-cover"
               />
             ))}
@@ -344,10 +349,15 @@ export default function Home() {
           <p className="text-sm md:text-base text-muted-foreground text-center sm:text-left">
             <span className="font-semibold text-foreground">
               {submissionCount === null
-                ? "Más de … mujeres en tecnología"
-                : `Más de ${formatEsInteger(submissionCount)} mujeres en tecnología`}
+                ? t("home.social.moreThan")
+                : t("home.social.moreThanCount", {
+                    count: new Intl.NumberFormat(
+                      locale === "en" ? "en-US" : "es-ES",
+                      { maximumFractionDigits: 0 },
+                    ).format(submissionCount),
+                  })}
             </span>{" "}
-            ya han analizado su salario con NegocIA+
+            {t("home.social.suffix")}
           </p>
         </div>
       </section>
@@ -364,13 +374,10 @@ export default function Home() {
             <Users className="w-7 h-7 text-secondary" />
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold font-heading text-foreground mb-6">
-            Nuestro propósito: Cerrar la brecha salarial
+            {t("home.purpose.title")}
           </h2>
           <p className="text-muted-foreground text-lg leading-relaxed">
-            En Latinoamérica, las mujeres en tecnología ganan en promedio un 20%
-            menos que sus pares masculinos por el mismo trabajo. NegocIA+ existe
-            para cambiar eso, brindándote herramientas para comunicar tu valor y
-            alcanzar acuerdos que impulsen tu crecimiento profesional.
+            {t("home.purpose.text")}
           </p>
         </motion.div>
       </section>
@@ -388,11 +395,10 @@ export default function Home() {
             className="text-center mb-14"
           >
             <h2 className="text-3xl md:text-5xl font-extrabold font-heading mb-4">
-              Comparaciones reales en tecnología
+              {t("home.comparison.title")}
             </h2>
             <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Explora cómo otras mujeres en tecnología están posicionando su
-              salario.
+              {t("home.comparison.subtitle")}
             </p>
           </motion.div>
 
@@ -467,7 +473,7 @@ export default function Home() {
                   <div className="flex">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10 text-sm font-medium text-white/80">
                       <Sparkles className="w-4 h-4 text-[#A78BFA]" />
-                      Análisis de Mercado AI
+                      {t("home.comparison.aiBadge")}
                     </div>
                   </div>
 
@@ -476,7 +482,7 @@ export default function Home() {
                     {/* Salary card */}
                     <div className="bg-[#3A0CA3]/30 border border-[#3A0CA3]/40 rounded-xl p-5">
                       <p className="text-xs font-semibold text-white/50 mb-1.5">
-                        Salario promedio analizado
+                        {t("home.comparison.avgLabel")}
                       </p>
                       <p className="text-2xl md:text-3xl font-black font-heading text-white">
                         {comparisonProfiles[activeProfile]?.salary_avg}
@@ -487,7 +493,7 @@ export default function Home() {
                     <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-5">
                       <p className="text-xs font-semibold text-white/50 mb-1.5 flex items-center gap-1.5">
                         <CircleAlert className="w-3.5 h-3.5 text-white/40" />
-                        Brecha salarial detectada
+                        {t("home.comparison.gapLabel")}
                       </p>
                       <p className="text-lg md:text-xl font-bold font-heading text-[#FF2E93] leading-tight">
                         {comparisonProfiles[activeProfile]?.gap}
@@ -502,7 +508,7 @@ export default function Home() {
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-white/50">
-                        Región con mayor crecimiento
+                        {t("home.comparison.regionLabel")}
                       </p>
                       <p className="text-base font-bold text-white">
                         {comparisonProfiles[activeProfile]?.region}
@@ -528,11 +534,11 @@ export default function Home() {
                           }}
                           className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
                         />
-                        Cargando...
+                        {t("home.comparison.loading")}
                       </>
                     ) : (
                       <>
-                        Analizar mi perfil específico
+                        {t("home.comparison.ctaProfile")}
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
@@ -554,13 +560,13 @@ export default function Home() {
 
         <div className="max-w-4xl mx-auto flex flex-col items-center relative z-10">
           <h2 className="text-4xl md:text-6xl font-black font-heading mb-8">
-            Toma el control de tu futuro hoy
+            {t("home.bottom.title")}
           </h2>
           <Link
             href="/salary-input"
             className="inline-flex h-16 items-center justify-center gap-3 px-12 rounded-full bg-primary text-white font-extrabold text-xl shadow-[0_0_30px_rgba(255,46,147,0.5)] hover:scale-105 transition-transform"
           >
-            Comenzar mi análisis gratuito
+            {t("home.bottom.cta")}
             <ArrowRight className="w-6 h-6" />
           </Link>
         </div>

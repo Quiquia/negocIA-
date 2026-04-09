@@ -5,7 +5,8 @@ import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
 
 function FooterSection({
@@ -59,6 +60,7 @@ function FooterSection({
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -91,23 +93,26 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     };
   }, [isMobileMenuOpen]);
 
-  const navLinks = [
-    {
-      label: "Producto",
-      path: "/producto",
-      icon: <Package className="w-5 h-5" />,
-    },
-    {
-      label: "Cómo funciona",
-      path: "/como-funciona",
-      icon: <Info className="w-5 h-5" />,
-    },
-    {
-      label: "Sobre nosotros",
-      path: "/sobre-nosotros",
-      icon: <Users className="w-5 h-5" />,
-    },
-  ];
+  const navLinks = useMemo(
+    () => [
+      {
+        label: t("layout.nav.producto"),
+        path: "/producto",
+        icon: <Package className="w-5 h-5" />,
+      },
+      {
+        label: t("layout.nav.comoFunciona"),
+        path: "/como-funciona",
+        icon: <Info className="w-5 h-5" />,
+      },
+      {
+        label: t("layout.nav.sobreNosotros"),
+        path: "/sobre-nosotros",
+        icon: <Users className="w-5 h-5" />,
+      },
+    ],
+    [t],
+  );
 
   const handleLinkClick = () => {
     setIsMobileMenuOpen(false);
@@ -176,7 +181,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="relative w-12 h-12 flex items-center justify-center text-foreground hover:text-primary transition-colors focus:outline-none"
-              aria-label="Toggle menu"
+              aria-label={t("layout.aria.menu")}
             >
               <div className="relative w-6 h-5 flex flex-col justify-between items-center">
                 <span
@@ -278,39 +283,39 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
               
               </div>
 
-              <FooterSection title="Producto">
+              <FooterSection title={t("layout.footer.producto")}>
                 <Link
                   href="/simulator"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors py-1 md:py-0"
                 >
-                  Simulador de negociación
+                  {t("layout.footer.simulator")}
                 </Link>
                 <Link
                   href="/salary-input"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors py-1 md:py-0"
                 >
-                  Análisis salarial
+                  {t("layout.footer.salaryAnalysis")}
                 </Link>
                 <Link
                   href="/como-funciona"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors py-1 md:py-0"
                 >
-                  Cómo funciona
+                  {t("layout.footer.howItWorks")}
                 </Link>
               </FooterSection>
 
-              <FooterSection title="Contacto">
+              <FooterSection title={t("layout.footer.contacto")}>
                 <a
                   href="#"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 py-1 md:py-0"
                 >
-                  <Linkedin className="w-4 h-4" /> LinkedIn
+                  <Linkedin className="w-4 h-4" /> {t("layout.footer.linkedin")}
                 </a>
                 <a
                   href="mailto:hola@negociaplus.com"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 py-1 md:py-0"
                 >
-                  Email
+                  {t("layout.footer.email")}
                 </a>
               </FooterSection>
             </div>
@@ -318,11 +323,10 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex flex-col items-center md:items-start gap-1">
                 <p className="text-sm font-medium text-muted-foreground text-center md:text-left">
-                  © 2026 NegocIA+
+                  {t("layout.footer.copyright")}
                 </p>
                 <p className="text-xs font-medium text-muted-foreground/80 text-center md:text-left">
-                  Empoderando a mujeres en tecnología con inteligencia salarial
-                  basada en datos.
+                  {t("layout.footer.tagline")}
                 </p>
               </div>
               <div className="flex flex-wrap justify-center items-center gap-6 text-sm font-bold text-muted-foreground">
@@ -330,13 +334,13 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
                   href="#"
                   className="hover:text-primary transition-colors p-2 md:p-0"
                 >
-                  Política de Privacidad
+                  {t("layout.footer.privacy")}
                 </a>
                 <a
                   href="#"
                   className="hover:text-primary transition-colors p-2 md:p-0"
                 >
-                  Términos de Servicio
+                  {t("layout.footer.terms")}
                 </a>
               </div>
             </div>
