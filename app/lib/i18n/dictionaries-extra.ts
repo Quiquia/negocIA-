@@ -137,6 +137,144 @@ export const extraEs: Record<string, string> = {
 
   "reality.errorNoId":
     "No se encontró el ID del perfil. Vuelve a completar el formulario.",
+
+  "reality.title": "Verificación de la realidad salarial",
+  "reality.subtitle":
+    "Analizamos tu perfil y lo comparamos con el mercado tecnológico.",
+  "reality.loadingAi": "Analizando tu perfil con IA...",
+  "reality.errBanner":
+    "No pudimos completar el análisis con IA: {{error}}. Mostrando estimaciones aproximadas.",
+  "reality.err.noSubmissionId": "No se proporcionó un ID de perfil.",
+  "reality.err.profileNotFound": "No se encontró el perfil.",
+  "reality.err.analysisFailed": "Error al analizar el perfil.",
+  "reality.err.invalidAiJson":
+    "No se encontró JSON válido en la respuesta de la IA",
+
+  "reality.sectionMarketTitle": "Tu salario comparado con el mercado",
+  "reality.amountsIn": "Montos en {{currencyLabel}}{{region}}",
+  "reality.barLower": "Menor",
+  "reality.barAverage": "Promedio",
+  "reality.barHigher": "Mayor",
+  "reality.tooltipCurrentSalary": "Tu salario actual",
+  "reality.gapBelowIntro": "Tu salario está aproximadamente",
+  "reality.gapBelowStrong": "{{gapPercent}}% por debajo",
+  "reality.gapBelowOutro": "del promedio del mercado para tu perfil.",
+  "reality.gapBelowLead": "Podrías estar ganando hasta",
+  "reality.gapBelowAmount": "{{amount}} más al mes",
+  "reality.gapBelowFoot":
+    "La buena noticia: con las habilidades adecuadas y una negociación estratégica, podrías alcanzar el rango del mercado.",
+  "reality.gapAtMarketIntro": "Tu salario se encuentra",
+  "reality.gapAtMarketStrong": "dentro del rango esperado",
+  "reality.gapAtMarketOutro": "del mercado.",
+  "reality.gapAboveIntro": "¡Excelente! Tu salario está",
+  "reality.gapAboveStrong": "{{gapPercent}}% por encima del promedio",
+  "reality.gapAboveOutro": "del mercado.",
+  "reality.confidenceLabel": "Confianza del análisis: 92%",
+  "reality.confidenceHint":
+    "Basado en datos de perfiles similares en el mercado tecnológico.",
+
+  "reality.insightTitle": "Insight para tu perfil",
+  "reality.insightBody":
+    "Las profesionales {{roleLead}} con {{stack}} y nivel {{seniority}} que negocian activamente su salario suelen aumentar su compensación entre {{min}}% y {{max}}%.",
+
+  "reality.sourcesTitle": "Fuentes utilizadas para este análisis",
+  "reality.sourcesFallback":
+    "Este análisis se basa en datos agregados del mercado tecnológico en {{country}} y a nivel regional, considerando perfiles similares al tuyo en la ciudad de {{city}}.",
+  "reality.source.stackoverflow": "Stack Overflow Developer Survey",
+  "reality.source.glassdoor": "Glassdoor Market Reports",
+  "reality.source.github": "GitHub Developer Trends",
+  "reality.source.latam": "Estudios salariales tech LATAM",
+  "reality.source.negocia": "Datos agregados NegocIA+",
+
+  "reality.aiDetectedTitle": "Lo que detectamos sobre tu perfil",
+  "reality.growthTitle": "Cómo podrías aumentar tu valor en el mercado",
+  "reality.growthLead": "Para avanzar hacia un rol {{targetRole}} podrías fortalecer:",
+
+  "reality.negotiationAlertTitle":
+    "Puede ser un buen momento para renegociar tu salario.",
+  "reality.negotiationAlertBody":
+    "Muchas profesionales permanecen años sin renegociar su salario. Esto no significa que tu trabajo valga menos.",
+  "reality.negotiationCta": "Practicar negociación con IA",
+
+  "reality.nextTitle": "¿Qué te gustaría hacer ahora?",
+  "reality.card1Badge": "Recomendado",
+  "reality.card1Title": "Preparar una negociación salarial",
+  "reality.card1Highlight":
+    "Este es el siguiente paso más recomendado según tu análisis.",
+  "reality.card1Body":
+    "Practica una conversación con IA para negociar tu salario con más confianza.",
+  "reality.card1Btn": "Practicar con IA",
+  "reality.card2Title": "Explorar oportunidades mejor pagadas",
+  "reality.card2Body":
+    "Descubre qué rangos salariales ofrecen otras empresas para perfiles como el tuyo.",
+  "reality.card2Soon": "Próximamente",
+  "reality.card3Title": "Comparar con otros perfiles",
+  "reality.card3Body":
+    "Entiende dónde te ubicas respecto a otros profesionales y qué los diferencia.",
+
+  "reality.fallback.i0":
+    "Profesionales con tu nivel de experiencia suelen aumentar su salario significativamente al cambiar de empresa o negociar responsabilidades técnicas más complejas.",
+  "reality.fallback.i1":
+    "El stack {{techStack}} tiene alta demanda en empresas de producto digital internacionales.",
+  "reality.fallback.i2junior":
+    "Estás en una excelente posición para comenzar a tomar tickets de mayor impacto y pedir ser promovida a Mid.",
+  "reality.fallback.i2senior":
+    "Tu nivel actual te posiciona muy cerca de roles Lead o de Arquitectura en ciertos mercados emergentes.",
+  "reality.fallback.skill0": "Arquitectura Frontend",
+  "reality.fallback.skill1": "Testing automatizado",
+  "reality.fallback.skill2": "Liderazgo técnico",
+  "reality.fallback.skill3": "Optimización de rendimiento",
+
+  "sim.initialAi":
+    "Hola, gracias por reunirte conmigo hoy. Hemos revisado tu perfil como {{role}} {{seniority}} y estamos muy interesados en que te unas al equipo. Sin embargo, entiendo tu expectativa salarial, pero nuestro presupuesto actual para este rol es más limitado. ¿Podrías considerar un rango menor?",
+  "sim.recordingFill":
+    "Basándome en datos del mercado, creo que un rango entre {{low}} y {{high}} sería justo.",
+  "sim.errConnection":
+    "Lo siento, hubo un problema de conexión. ¿Podrías repetir tu último punto?",
+  "sim.fallbackSug0":
+    "Me gustaría que revisáramos el rango salarial considerando mi experiencia.",
+  "sim.fallbackSug1":
+    "Según datos del mercado, mi perfil justifica una compensación más competitiva.",
+  "sim.fallbackSug2":
+    "Estoy abierta a explorar beneficios adicionales junto con un ajuste salarial.",
+  "sim.fallbackSug3":
+    "Valoro la oportunidad, y me gustaría encontrar un punto medio justo.",
+  "sim.defaultRegion": "Latinoamérica",
+
+  "sim.newSimulation": "Nueva simulación",
+  "sim.history": "Historial",
+  "sim.currentSimulation": "Simulación actual",
+  "sim.messageCount": "{{count}} mensajes",
+  "sim.title": "Simulador de Negociación AI",
+  "sim.round": "Ronda {{round}} de 5",
+  "sim.typing": "Escribiendo...",
+  "sim.managerConnected": "Gerente Virtual conectado",
+  "sim.finish": "Finalizar simulación",
+  "sim.finishShort": "Finalizar",
+  "sim.objectiveLabel": "Objetivo:",
+  "sim.objectiveValue": "Negociar aumento salarial",
+  "sim.targetLabel": "Meta sugerida:",
+  "sim.stageLabel": "Etapa:",
+  "sim.stageValue": "Objeción salarial",
+  "sim.hiringManager": "Gerente de contratación",
+  "sim.coachTitle": "Análisis de tu respuesta",
+  "sim.stat.clarity": "Claridad",
+  "sim.stat.confidence": "Confianza",
+  "sim.stat.data": "Uso de datos",
+  "sim.aiRecommendation": "Recomendación de IA",
+  "sim.improvedVersion": "Versión mejorada",
+  "sim.useThisResponse": "Usar esta respuesta",
+  "sim.listenTitle": "Escuchar respuesta",
+  "sim.voiceFemale": "Voz femenina",
+  "sim.voiceMale": "Voz masculina",
+  "sim.ideasToReply": "Ideas para responder",
+  "sim.hide": "Ocultar",
+  "sim.show": "Mostrar",
+  "sim.placeholder":
+    "Escribe tu mensaje… (Ideas: pulsa Mostrar arriba)",
+  "sim.recording": "Grabando...",
+  "sim.stop": "Detener",
+  "sim.voiceRecordTitle": "Grabar mensaje de voz",
 };
 
 export const extraEn: Record<string, string> = {
@@ -277,4 +415,142 @@ export const extraEn: Record<string, string> = {
 
   "reality.errorNoId":
     "Profile ID not found. Please complete the form again.",
+
+  "reality.title": "Salary reality check",
+  "reality.subtitle":
+    "We analyzed your profile and compared it with the tech market.",
+  "reality.loadingAi": "Analyzing your profile with AI...",
+  "reality.errBanner":
+    "We could not complete the AI analysis: {{error}}. Showing approximate estimates.",
+  "reality.err.noSubmissionId": "No profile ID was provided.",
+  "reality.err.profileNotFound": "Profile not found.",
+  "reality.err.analysisFailed": "Error analyzing the profile.",
+  "reality.err.invalidAiJson":
+    "No valid JSON was found in the AI response.",
+
+  "reality.sectionMarketTitle": "Your salary vs. the market",
+  "reality.amountsIn": "Amounts in {{currencyLabel}}{{region}}",
+  "reality.barLower": "Lower",
+  "reality.barAverage": "Average",
+  "reality.barHigher": "Higher",
+  "reality.tooltipCurrentSalary": "Your current salary",
+  "reality.gapBelowIntro": "Your salary is approximately",
+  "reality.gapBelowStrong": "{{gapPercent}}% below",
+  "reality.gapBelowOutro": "the market average for your profile.",
+  "reality.gapBelowLead": "You could be earning up to",
+  "reality.gapBelowAmount": "{{amount}} more per month",
+  "reality.gapBelowFoot":
+    "The good news: with the right skills and a strategic negotiation, you can reach the market range.",
+  "reality.gapAtMarketIntro": "Your salary is",
+  "reality.gapAtMarketStrong": "within the expected range",
+  "reality.gapAtMarketOutro": "for the market.",
+  "reality.gapAboveIntro": "Great! Your salary is",
+  "reality.gapAboveStrong": "{{gapPercent}}% above the average",
+  "reality.gapAboveOutro": "for the market.",
+  "reality.confidenceLabel": "Analysis confidence: 92%",
+  "reality.confidenceHint":
+    "Based on data from similar profiles in the tech market.",
+
+  "reality.insightTitle": "Insight for your profile",
+  "reality.insightBody":
+    "{{roleLead}} professionals with {{stack}} at {{seniority}} level who negotiate actively often increase compensation by {{min}}%–{{max}}%.",
+
+  "reality.sourcesTitle": "Sources used for this analysis",
+  "reality.sourcesFallback":
+    "This analysis draws on aggregated tech market data in {{country}} and regionally, including profiles similar to yours in {{city}}.",
+  "reality.source.stackoverflow": "Stack Overflow Developer Survey",
+  "reality.source.glassdoor": "Glassdoor Market Reports",
+  "reality.source.github": "GitHub Developer Trends",
+  "reality.source.latam": "LATAM tech salary studies",
+  "reality.source.negocia": "Aggregated NegocIA+ data",
+
+  "reality.aiDetectedTitle": "What we detected about your profile",
+  "reality.growthTitle": "How you could increase your market value",
+  "reality.growthLead": "To move toward a {{targetRole}} role, consider strengthening:",
+
+  "reality.negotiationAlertTitle":
+    "It may be a good time to renegotiate your salary.",
+  "reality.negotiationAlertBody":
+    "Many professionals go years without renegotiating pay. That does not mean your work is worth less.",
+  "reality.negotiationCta": "Practice negotiation with AI",
+
+  "reality.nextTitle": "What would you like to do next?",
+  "reality.card1Badge": "Recommended",
+  "reality.card1Title": "Prepare a salary negotiation",
+  "reality.card1Highlight":
+    "This is the most recommended next step based on your analysis.",
+  "reality.card1Body":
+    "Practice a conversation with AI to negotiate your salary with more confidence.",
+  "reality.card1Btn": "Practice with AI",
+  "reality.card2Title": "Explore higher-paying opportunities",
+  "reality.card2Body":
+    "See what salary ranges other companies offer for profiles like yours.",
+  "reality.card2Soon": "Coming soon",
+  "reality.card3Title": "Compare with other profiles",
+  "reality.card3Body":
+    "See where you stand compared to other professionals and what sets them apart.",
+
+  "reality.fallback.i0":
+    "Professionals at your experience level often increase pay significantly by changing employers or negotiating more complex technical ownership.",
+  "reality.fallback.i1":
+    "The {{techStack}} stack is in high demand at international digital product companies.",
+  "reality.fallback.i2junior":
+    "You are in a strong position to take on higher-impact work and ask to be promoted to Mid.",
+  "reality.fallback.i2senior":
+    "Your current level puts you close to Lead or Architecture roles in some emerging markets.",
+  "reality.fallback.skill0": "Frontend architecture",
+  "reality.fallback.skill1": "Automated testing",
+  "reality.fallback.skill2": "Technical leadership",
+  "reality.fallback.skill3": "Performance optimization",
+
+  "sim.initialAi":
+    "Hi, thanks for meeting with me today. We've reviewed your profile as a {{role}} {{seniority}} and we're very interested in having you join the team. However, I understand your salary expectations, but our current budget for this role is more limited. Could you consider a lower range?",
+  "sim.recordingFill":
+    "Based on market data, I believe a range between {{low}} and {{high}} would be fair.",
+  "sim.errConnection":
+    "Sorry, there was a connection issue. Could you repeat your last point?",
+  "sim.fallbackSug0":
+    "I'd like us to revisit the salary range given my experience.",
+  "sim.fallbackSug1":
+    "Based on market data, my profile supports a more competitive offer.",
+  "sim.fallbackSug2":
+    "I'm open to exploring additional benefits along with a salary adjustment.",
+  "sim.fallbackSug3":
+    "I value the opportunity, and I'd like to find a fair middle ground.",
+  "sim.defaultRegion": "Latin America",
+
+  "sim.newSimulation": "New simulation",
+  "sim.history": "History",
+  "sim.currentSimulation": "Current simulation",
+  "sim.messageCount": "{{count}} messages",
+  "sim.title": "AI salary negotiation simulator",
+  "sim.round": "Round {{round}} of 5",
+  "sim.typing": "Typing...",
+  "sim.managerConnected": "Virtual manager connected",
+  "sim.finish": "End simulation",
+  "sim.finishShort": "End",
+  "sim.objectiveLabel": "Goal:",
+  "sim.objectiveValue": "Negotiate a salary increase",
+  "sim.targetLabel": "Suggested target:",
+  "sim.stageLabel": "Stage:",
+  "sim.stageValue": "Salary objection",
+  "sim.hiringManager": "Hiring manager",
+  "sim.coachTitle": "Analysis of your reply",
+  "sim.stat.clarity": "Clarity",
+  "sim.stat.confidence": "Confidence",
+  "sim.stat.data": "Use of data",
+  "sim.aiRecommendation": "AI recommendation",
+  "sim.improvedVersion": "Improved version",
+  "sim.useThisResponse": "Use this reply",
+  "sim.listenTitle": "Listen to reply",
+  "sim.voiceFemale": "Female voice",
+  "sim.voiceMale": "Male voice",
+  "sim.ideasToReply": "Ideas to reply",
+  "sim.hide": "Hide",
+  "sim.show": "Show",
+  "sim.placeholder":
+    "Write your message… (Tip: tap Show above for ideas)",
+  "sim.recording": "Recording...",
+  "sim.stop": "Stop",
+  "sim.voiceRecordTitle": "Record voice message",
 };

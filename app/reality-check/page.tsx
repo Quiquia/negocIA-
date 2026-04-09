@@ -1,6 +1,6 @@
 "use client";
 
-import { formatEsInteger } from "@/app/lib/format-es";
+import type { Locale } from "@/app/providers/LanguageProvider";
 import {
   getNegotiationUpliftRange,
   type SalaryEstimate,
@@ -26,14 +26,43 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { getCurrencyDisplayForCountryAndCode } from "../data/latam-countries";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 import { useTranslation } from "@/app/lib/i18n/use-translation";
 import { analyzeProfile } from "./actions";
 
+const SERVER_REALITY_ERR: Record<string, string> = {
+  "No se proporcionó un ID de perfil.": "reality.err.noSubmissionId",
+  "No se encontró el perfil.": "reality.err.profileNotFound",
+  "Error al analizar el perfil.": "reality.err.analysisFailed",
+  "No se encontró JSON válido en la respuesta de la IA":
+    "reality.err.invalidAiJson",
+};
+
+function translateRealityServerError(
+  msg: string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+): string {
+  const key = SERVER_REALITY_ERR[msg];
+  return key ? t(key) : msg;
+}
+
+function formatLocaleInteger(n: number, locale: Locale): string {
+  return n.toLocaleString(locale === "en" ? "en-US" : "es-ES", {
+    maximumFractionDigits: 0,
+  });
+}
+
+const LAST_RAISE_NEGOTIATION_HINT = new Set([
+  "Más de 2 años",
+  "Nunca he recibido un aumento",
+  "More than 2 years ago",
+  "I have never received a raise",
+]);
+
 export default function RealityCheckPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const router = useRouter();
   const {
     submissionId,
@@ -69,7 +98,10 @@ export default function RealityCheckPage() {
   const role = profileData?.role || "Frontend Developer";
   const seniority = profileData?.seniority || "Mid";
   const city = profileData?.city || "Lima";
-  const country = countryResolved || profileData?.country || "Perú";
+  const country =
+    countryResolved ||
+    profileData?.country ||
+    (locale === "en" ? "Peru" : "Perú");
   const techStack = profileData?.techStack?.join(" / ") || "React / TypeScript";
 
   // Only show real data from AI — no fake multipliers
@@ -86,8 +118,8 @@ export default function RealityCheckPage() {
   const isAtMarket = gapDirection === "at_market";
 
   const needsNegotiationHelp =
-    profileData?.lastIncrease === "Más de 2 años" ||
-    profileData?.lastIncrease === "Nunca he recibido un aumento";
+    !!profileData?.lastIncrease &&
+    LAST_RAISE_NEGOTIATION_HINT.has(profileData.lastIncrease);
 
   const rangeSpan = upperSalary - lowerSalary;
   const positionInRange = currentSalary - lowerSalary;
@@ -123,20 +155,52 @@ export default function RealityCheckPage() {
     });
   }, [submissionId, t]);
 
-  // Fallback insights while AI loads
-  const fallbackInsights = [
-    "Profesionales con tu nivel de experiencia suelen aumentar su salario significativamente al cambiar de empresa o negociar responsabilidades técnicas más complejas.",
-    `El stack ${techStack} tiene alta demanda en empresas de producto digital internacionales.`,
-    seniority === "Junior" || seniority === "Trainee"
-      ? "Estás en una excelente posición para comenzar a tomar tickets de mayor impacto y pedir ser promovida a Mid."
-      : "Tu nivel actual te posiciona muy cerca de roles Lead o de Arquitectura en ciertos mercados emergentes.",
-  ];
-  const fallbackSkills = [
-    "Arquitectura Frontend",
-    "Testing automatizado",
-    "Liderazgo técnico",
-    "Performance optimization",
-  ];
+  const fallbackInsights = useMemo(
+    () => [
+      t("reality.fallback.i0"),
+      t("reality.fallback.i1", { techStack }),
+      seniority === "Junior" || seniority === "Trainee"
+        ? t("reality.fallback.i2junior")
+        : t("reality.fallback.i2senior"),
+    ],
+    [t, techStack, seniority],
+  );
+  const fallbackSkills = useMemo(
+    () => [
+      t("reality.fallback.skill0"),
+      t("reality.fallback.skill1"),
+      t("reality.fallback.skill2"),
+      t("reality.fallback.skill3"),
+    ],
+    [t],
+  );
+
+  const sourceChips = useMemo(
+    () =>
+      [
+        {
+          nameKey: "reality.source.stackoverflow" as const,
+          color: "bg-orange-50 text-orange-700 border-orange-200",
+        },
+        {
+          nameKey: "reality.source.glassdoor" as const,
+          color: "bg-green-50 text-green-700 border-green-200",
+        },
+        {
+          nameKey: "reality.source.github" as const,
+          color: "bg-slate-100 text-slate-700 border-slate-300",
+        },
+        {
+          nameKey: "reality.source.latam" as const,
+          color: "bg-blue-50 text-blue-700 border-blue-200",
+        },
+        {
+          nameKey: "reality.source.negocia" as const,
+          color: "bg-primary/10 text-primary border-primary/20",
+        },
+      ] as const,
+    [],
+  );
   const fallbackTargetRole =
     seniority === "Junior"
       ? "Mid"
@@ -151,6 +215,8 @@ export default function RealityCheckPage() {
   const negotiationRange = estimate
     ? getNegotiationUpliftRange(estimate)
     : { min: 18, max: 35 };
+
+  const roleLead = role.split(" ")[0] || role;
 
   const insightIcons = [
     <Lightbulb key="lb" className="w-6 h-6 text-yellow-500 mb-4" />,
@@ -171,10 +237,10 @@ export default function RealityCheckPage() {
           <BarChart3 className="w-7 h-7 sm:w-8 sm:h-8" />
         </div>
         <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold font-heading tracking-tight mb-3 sm:mb-4 text-foreground">
-          Verificación de la realidad salarial
+          {t("reality.title")}
         </h1>
         <p className="text-base sm:text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-medium mb-6 sm:mb-8">
-          Analizamos tu perfil y lo comparamos con el mercado tecnológico.
+          {t("reality.subtitle")}
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-2 max-w-3xl mx-auto">
@@ -202,17 +268,16 @@ export default function RealityCheckPage() {
           className="w-full bg-accent/5 border border-accent/20 p-6 rounded-2xl mb-8 flex items-center justify-center gap-3"
         >
           <Loader2 className="w-5 h-5 animate-spin text-accent" />
-          <p className="text-accent font-semibold">
-            Analizando tu perfil con IA...
-          </p>
+          <p className="text-accent font-semibold">{t("reality.loadingAi")}</p>
         </motion.div>
       )}
 
       {/* AI ERROR */}
       {aiError && (
         <div className="w-full bg-rose-50 border border-rose-200 p-4 rounded-2xl mb-8 text-rose-700 text-sm font-medium">
-          No pudimos completar el análisis con IA: {aiError}. Mostrando
-          estimaciones aproximadas.
+          {t("reality.errBanner", {
+            error: translateRealityServerError(aiError, t),
+          })}
         </div>
       )}
 
@@ -227,11 +292,13 @@ export default function RealityCheckPage() {
 
         <div className="text-center mb-6 sm:mb-10">
           <h2 className="text-lg sm:text-2xl md:text-3xl font-bold font-heading text-foreground">
-            Tu salario comparado con el mercado
+            {t("reality.sectionMarketTitle")}
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-muted-foreground font-medium">
-            Montos en {currencyLabel}
-            {countryResolved ? ` · ${countryResolved}` : ""}
+            {t("reality.amountsIn", {
+              currencyLabel,
+              region: countryResolved ? ` · ${countryResolved}` : "",
+            })}
           </p>
         </div>
 
@@ -258,9 +325,9 @@ export default function RealityCheckPage() {
             <div className="relative pt-10 sm:pt-12 pb-20 sm:pb-16 px-2 sm:px-8 md:px-12 max-w-4xl mx-auto">
               {/* Labels: Menor / Promedio / Mayor */}
               <div className="flex justify-between text-[11px] sm:text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 sm:mb-5 px-0 sm:px-0">
-                <span>Menor</span>
-                <span>Promedio</span>
-                <span>Mayor</span>
+                <span>{t("reality.barLower")}</span>
+                <span>{t("reality.barAverage")}</span>
+                <span>{t("reality.barHigher")}</span>
               </div>
 
               {/* Salary bar */}
@@ -292,11 +359,11 @@ export default function RealityCheckPage() {
                   <div className="absolute top-full mt-3 sm:mt-4 bg-foreground text-white px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl whitespace-nowrap">
                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 border-8 border-transparent border-b-foreground" />
                     <p className="text-[9px] sm:text-xs text-white/70 font-bold uppercase tracking-wider mb-0.5 sm:mb-1 text-center">
-                      Tu salario actual
+                      {t("reality.tooltipCurrentSalary")}
                     </p>
                     <p className="text-base sm:text-2xl font-black font-heading text-center">
                       {currencySymbol}
-                      {formatEsInteger(currentSalary)}
+                      {formatLocaleInteger(currentSalary, locale)}
                     </p>
                   </div>
                 </motion.div>
@@ -306,15 +373,15 @@ export default function RealityCheckPage() {
               <div className="flex justify-between text-[10px] sm:text-lg font-black text-foreground mt-3 sm:mt-4 px-0">
                 <span className="text-muted-foreground">
                   {currencySymbol}
-                  {formatEsInteger(lowerSalary)}
+                  {formatLocaleInteger(lowerSalary, locale)}
                 </span>
                 <span className="text-secondary">
                   {currencySymbol}
-                  {formatEsInteger(averageSalary)}
+                  {formatLocaleInteger(averageSalary, locale)}
                 </span>
                 <span className="text-muted-foreground">
                   {currencySymbol}
-                  {formatEsInteger(upperSalary)}
+                  {formatLocaleInteger(upperSalary, locale)}
                 </span>
               </div>
             </div>
@@ -326,50 +393,55 @@ export default function RealityCheckPage() {
                     <div className="flex items-start gap-3">
                       <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 shrink-0 mt-0.5" />
                       <p className="text-sm sm:text-base font-semibold text-left leading-relaxed">
-                        Tu salario está aproximadamente{" "}
+                        {t("reality.gapBelowIntro")}{" "}
                         <strong className="font-black">
-                          {gapPercentage}% por debajo
+                          {t("reality.gapBelowStrong", {
+                            gapPercent: gapPercentage,
+                          })}
                         </strong>{" "}
-                        del promedio del mercado para tu perfil.
+                        {t("reality.gapBelowOutro")}
                       </p>
                     </div>
                     <div className="flex flex-col items-center pt-2 border-t border-rose-200/60 w-full text-rose-800">
                       <span className="text-xs sm:text-sm font-medium mb-2">
-                        Podrías estar ganando hasta
+                        {t("reality.gapBelowLead")}
                       </span>
                       <span className="text-xl sm:text-2xl font-black text-rose-600 bg-white px-5 py-2 rounded-xl border border-rose-100 shadow-sm">
-                        {currencySymbol}
-                        {formatEsInteger(averageSalary - currentSalary)} más
-                        al mes
+                        {t("reality.gapBelowAmount", {
+                          amount: `${currencySymbol}${formatLocaleInteger(
+                            averageSalary - currentSalary,
+                            locale,
+                          )}`,
+                        })}
                       </span>
                     </div>
                   </div>
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground max-w-md text-center leading-relaxed px-2">
-                    La buena noticia: con las habilidades adecuadas y una
-                    negociación estratégica, podrías alcanzar el rango del
-                    mercado.
+                    {t("reality.gapBelowFoot")}
                   </p>
                 </div>
               ) : isAtMarket ? (
                 <div className="inline-flex items-center gap-2 sm:gap-3 bg-emerald-50 text-emerald-700 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl border border-emerald-200">
                   <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
                   <p className="text-sm sm:text-lg font-semibold text-left">
-                    Tu salario se encuentra{" "}
+                    {t("reality.gapAtMarketIntro")}{" "}
                     <strong className="font-black">
-                      dentro del rango esperado
+                      {t("reality.gapAtMarketStrong")}
                     </strong>{" "}
-                    del mercado.
+                    {t("reality.gapAtMarketOutro")}
                   </p>
                 </div>
               ) : (
                 <div className="inline-flex items-center gap-2 sm:gap-3 bg-purple-50 text-purple-700 px-3 py-3 sm:px-6 sm:py-4 rounded-2xl border border-purple-200">
                   <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
                   <p className="text-sm sm:text-lg font-semibold text-left">
-                    ¡Excelente! Tu salario está{" "}
+                    {t("reality.gapAboveIntro")}{" "}
                     <strong className="font-black">
-                      {gapPercentage}% por encima del promedio
+                      {t("reality.gapAboveStrong", {
+                        gapPercent: gapPercentage,
+                      })}
                     </strong>{" "}
-                    del mercado.
+                    {t("reality.gapAboveOutro")}
                   </p>
                 </div>
               )}
@@ -379,12 +451,11 @@ export default function RealityCheckPage() {
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-muted/50 rounded-full mb-2">
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                   <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    Confianza del análisis: 92%
+                    {t("reality.confidenceLabel")}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground font-medium max-w-sm">
-                  Basado en datos de perfiles similares en el mercado
-                  tecnológico.
+                  {t("reality.confidenceHint")}
                 </p>
               </div>
             </div>
@@ -404,13 +475,16 @@ export default function RealityCheckPage() {
         </div>
         <div>
           <h3 className="text-lg font-bold text-amber-900 mb-2 text-center md:text-left">
-            Insight para tu perfil
+            {t("reality.insightTitle")}
           </h3>
           <p className="text-amber-800 font-medium leading-relaxed text-center md:text-left">
-            Las profesionales {role.split(" ")[0]} con{" "}
-            {techStack.split(" / ")[0]} y nivel {seniority} que negocian
-            activamente su salario suelen aumentar su compensación entre{" "}
-            {negotiationRange.min}% y {negotiationRange.max}%.
+            {t("reality.insightBody", {
+              roleLead,
+              stack: techStack.split(" / ")[0] || "React",
+              seniority,
+              min: negotiationRange.min,
+              max: negotiationRange.max,
+            })}
           </p>
         </div>
       </motion.div>
@@ -423,43 +497,22 @@ export default function RealityCheckPage() {
         className="w-full bg-muted/20 border border-border p-6 md:p-8 rounded-[2rem] mb-8"
       >
         <h3 className="text-xl font-bold font-heading text-foreground mb-6 flex items-center gap-3">
-          <ShieldCheck className="w-6 h-6 text-primary" /> Fuentes utilizadas
-          para este análisis
+          <ShieldCheck className="w-6 h-6 text-primary" />{" "}
+          {t("reality.sourcesTitle")}
         </h3>
         <p className="text-muted-foreground font-medium mb-8">
           {estimate
             ? estimate.summary
-            : `Este análisis se basa en datos agregados del mercado tecnológico en ${country} y a nivel regional, considerando perfiles similares al tuyo en la ciudad de ${city}.`}
+            : t("reality.sourcesFallback", { country, city })}
         </p>
         <div className="flex flex-wrap gap-4">
-          {[
-            {
-              name: "Stack Overflow Developer Survey",
-              color: "bg-orange-50 text-orange-700 border-orange-200",
-            },
-            {
-              name: "Glassdoor Market Reports",
-              color: "bg-green-50 text-green-700 border-green-200",
-            },
-            {
-              name: "GitHub Developer Trends",
-              color: "bg-slate-100 text-slate-700 border-slate-300",
-            },
-            {
-              name: "LATAM Tech Salary Studies",
-              color: "bg-blue-50 text-blue-700 border-blue-200",
-            },
-            {
-              name: "Aggregated NegocIA+ Data",
-              color: "bg-primary/10 text-primary border-primary/20",
-            },
-          ].map((source, idx) => (
+          {sourceChips.map((source, idx) => (
             <div
               key={idx}
               className={`px-4 py-2 rounded-xl border text-sm font-bold flex items-center gap-2 ${source.color}`}
             >
               <CheckCircle2 className="w-4 h-4 opacity-50" />
-              {source.name}
+              {t(source.nameKey)}
             </div>
           ))}
         </div>
@@ -473,8 +526,8 @@ export default function RealityCheckPage() {
         className="w-full mb-8"
       >
         <h3 className="text-2xl font-bold font-heading text-foreground mb-6 flex items-center gap-3">
-          <Bot className="w-6 h-6 text-primary" /> Lo que detectamos sobre tu
-          perfil
+          <Bot className="w-6 h-6 text-primary" />{" "}
+          {t("reality.aiDetectedTitle")}
         </h3>
         {isPending && !hasAiData ? (
           <div className="grid md:grid-cols-3 gap-4">
@@ -516,7 +569,7 @@ export default function RealityCheckPage() {
         className="w-full bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/10 p-8 rounded-[2rem] mb-8"
       >
         <h3 className="text-xl font-bold font-heading text-foreground mb-6">
-          Cómo podrías aumentar tu valor en el mercado
+          {t("reality.growthTitle")}
         </h3>
         {isPending && !hasAiData ? (
           <div className="space-y-4">
@@ -533,7 +586,7 @@ export default function RealityCheckPage() {
         ) : (
           <>
             <p className="text-muted-foreground font-medium mb-6">
-              Para avanzar hacia un rol {targetRole} podrías fortalecer:
+              {t("reality.growthLead", { targetRole })}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {growthSkills.map((skill, idx) => (
@@ -563,19 +616,18 @@ export default function RealityCheckPage() {
             <div className="flex items-center gap-3 mb-2">
               <AlertCircle className="w-6 h-6 text-rose-600" />
               <h3 className="text-xl font-bold text-rose-900">
-                Puede ser un buen momento para renegociar tu salario.
+                {t("reality.negotiationAlertTitle")}
               </h3>
             </div>
             <p className="text-rose-700 font-medium text-lg">
-              Muchas profesionales permanecen años sin renegociar su salario.
-              Esto no significa que tu trabajo valga menos.
+              {t("reality.negotiationAlertBody")}
             </p>
           </div>
           <button
             onClick={() => router.push("/simulator")}
             className="shrink-0 h-12 px-6 rounded-full bg-primary text-white font-bold hover:opacity-90 transition-colors shadow-lg shadow-primary/30"
           >
-            Practicar negociación con IA
+            {t("reality.negotiationCta")}
           </button>
         </motion.div>
       )}
@@ -588,7 +640,7 @@ export default function RealityCheckPage() {
         className="w-full"
       >
         <h3 className="text-2xl font-bold font-heading text-foreground mb-6 text-center md:text-left">
-          ¿Qué te gustaría hacer ahora?
+          {t("reality.nextTitle")}
         </h3>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -601,27 +653,26 @@ export default function RealityCheckPage() {
               </div>
               <div className="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
-                Recomendado
+                {t("reality.card1Badge")}
               </div>
             </div>
             <div className="flex flex-col mb-6 mt-2">
               <h4 className="text-xl font-bold font-heading mb-3">
-                Preparar una negociación salarial
+                {t("reality.card1Title")}
               </h4>
               <p className="text-sm font-medium text-primary">
-                Este es el siguiente paso más recomendado según tu análisis.
+                {t("reality.card1Highlight")}
               </p>
             </div>
             <p className="text-muted-foreground mb-4 flex-1">
-              Practica una conversación con IA para negociar tu salario con más
-              confianza.
+              {t("reality.card1Body")}
             </p>
             <div className="mt-8">
               <button
                 onClick={() => router.push("/simulator")}
                 className="w-full h-14 rounded-full bg-gradient-to-r from-primary to-accent text-white font-extrabold text-lg shadow-lg shadow-primary/25 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
               >
-                Practicar con IA
+                {t("reality.card1Btn")}
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -633,14 +684,13 @@ export default function RealityCheckPage() {
               <Target className="w-7 h-7" />
             </div>
             <h4 className="text-xl font-bold font-heading mb-3">
-              Explorar oportunidades mejor pagadas
+              {t("reality.card2Title")}
             </h4>
             <p className="text-muted-foreground mb-8 flex-1">
-              Descubre qué rangos salariales ofrecen otras empresas para
-              perfiles como el tuyo.
+              {t("reality.card2Body")}
             </p>
             <span className="w-full h-12 rounded-full bg-muted/20 text-muted-foreground font-bold flex items-center justify-center cursor-default opacity-50">
-              Próximamente
+              {t("reality.card2Soon")}
             </span>
           </div>
 
@@ -650,14 +700,13 @@ export default function RealityCheckPage() {
               <Calculator className="w-7 h-7" />
             </div>
             <h4 className="text-xl font-bold font-heading mb-3">
-              Comparar con otros perfiles
+              {t("reality.card3Title")}
             </h4>
             <p className="text-muted-foreground mb-8 flex-1">
-              Entiende dónde te ubicas respecto a otros profesionales y qué los
-              diferencia.
+              {t("reality.card3Body")}
             </p>
             <span className="w-full h-12 rounded-full bg-muted/20 text-muted-foreground font-bold flex items-center justify-center cursor-default opacity-50">
-              Próximamente
+              {t("reality.card3Soon")}
             </span>
           </div>
         </div>

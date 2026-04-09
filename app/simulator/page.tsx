@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import type { Locale } from "@/app/providers/LanguageProvider";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -25,8 +26,14 @@ import {
   type CoachAnalysis,
   type ProfileContext,
 } from "./actions";
-import { formatEsInteger } from "@/app/lib/format-es";
 import { useSalaryData } from "../providers/SalaryDataProvider";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
+
+function formatLocaleInteger(n: number, locale: Locale): string {
+  return n.toLocaleString(locale === "en" ? "en-US" : "es-ES", {
+    maximumFractionDigits: 0,
+  });
+}
 
 type Message = {
   id: string;
@@ -38,8 +45,9 @@ type Message = {
 };
 
 export default function AiNegotiationSimulatorPage() {
+  const { t, locale } = useTranslation();
   const router = useRouter();
-  const { profileData, currentSalary, averageSalary, gapPercentage, setSimulationChat } =
+  const { profileData, currentSalary, averageSalary, setSimulationChat } =
     useSalaryData();
 
   // Datos del perfil para personalizar
@@ -50,17 +58,19 @@ export default function AiNegotiationSimulatorPage() {
   const seniority = profileData?.seniority || "Mid";
   const techStack =
     profileData?.techStack?.join(", ") || "React, TypeScript";
-  const yearsExp = profileData?.yearsExperience || "2-3 años";
 
-  // Formatear salarios para las sugerencias
-  const fmtSalary = (n: number) => `${currencySymbol}${formatEsInteger(n)}`;
+  const initialAiMessage = useMemo(
+    () => t("sim.initialAi", { role, seniority }),
+    [t, role, seniority],
+  );
+
+  const fmtSalary = (n: number) =>
+    `${currencySymbol}${formatLocaleInteger(n, locale)}`;
   const targetLow = fmtSalary(averageSalary);
   const targetHigh = fmtSalary(Math.round(averageSalary * 1.1));
 
-  const INITIAL_AI_MESSAGE = `Hola, gracias por reunirte conmigo hoy. Hemos revisado tu perfil como ${role} ${seniority} y estamos muy interesados en que te unas al equipo. Sin embargo, entiendo tu expectativa salarial, pero nuestro presupuesto actual para este rol es más limitado. ¿Podrías considerar un rango menor?`;
-
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "1", role: "ai", text: INITIAL_AI_MESSAGE },
+  const [messages, setMessages] = useState<Message[]>(() => [
+    { id: "1", role: "ai", text: initialAiMessage },
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [inputText, setInputText] = useState("");
@@ -79,11 +89,39 @@ export default function AiNegotiationSimulatorPage() {
         role,
         seniority,
         techStack,
-        country: profileData.country || "Latinoamérica",
+        country: profileData.country || t("sim.defaultRegion"),
         currentSalary: fmtSalary(currentSalary),
         marketSalary: fmtSalary(averageSalary),
       }
     : undefined;
+
+  const coachStatDefs = useMemo(
+    () =>
+      [
+        {
+          stat: "clarity" as const,
+          label: t("sim.stat.clarity"),
+          color: "text-secondary",
+          bg: "bg-secondary/10",
+          bar: "bg-secondary",
+        },
+        {
+          stat: "confidence" as const,
+          label: t("sim.stat.confidence"),
+          color: "text-primary",
+          bg: "bg-primary/10",
+          bar: "bg-primary",
+        },
+        {
+          stat: "data" as const,
+          label: t("sim.stat.data"),
+          color: "text-accent",
+          bg: "bg-accent/10",
+          bar: "bg-accent",
+        },
+      ] as const,
+    [t],
+  );
 
   // Recording timer
   useEffect(() => {
@@ -105,7 +143,7 @@ export default function AiNegotiationSimulatorPage() {
   const handleStopRecording = () => {
     setIsRecording(false);
     setInputText(
-      `Basándome en datos del mercado, creo que un rango entre ${targetLow} y ${targetHigh} sería justo.`
+      t("sim.recordingFill", { low: targetLow, high: targetHigh }),
     );
   };
 
@@ -134,10 +172,10 @@ export default function AiNegotiationSimulatorPage() {
       setSuggestions(newSuggestions);
     } catch {
       setSuggestions([
-        "Me gustaría que revisáramos el rango salarial considerando mi experiencia.",
-        "Según datos del mercado, mi perfil justifica una compensación más competitiva.",
-        "Estoy abierta a explorar beneficios adicionales junto con un ajuste salarial.",
-        "Valoro la oportunidad, y me gustaría encontrar un punto medio justo.",
+        t("sim.fallbackSug0"),
+        t("sim.fallbackSug1"),
+        t("sim.fallbackSug2"),
+        t("sim.fallbackSug3"),
       ]);
     } finally {
       setLoadingSuggestions(false);
@@ -223,7 +261,7 @@ export default function AiNegotiationSimulatorPage() {
       const errorMsg: Message = {
         id: Date.now().toString() + "-error",
         role: "ai",
-        text: "Lo siento, hubo un problema de conexión. ¿Podrías repetir tu último punto?",
+        text: t("sim.errConnection"),
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
@@ -237,7 +275,7 @@ export default function AiNegotiationSimulatorPage() {
   };
 
   const handleNewSimulation = () => {
-    setMessages([{ id: "1", role: "ai", text: INITIAL_AI_MESSAGE }]);
+    setMessages([{ id: "1", role: "ai", text: initialAiMessage }]);
     setInputText("");
     setShowSuggestions(false);
   };
@@ -267,22 +305,26 @@ export default function AiNegotiationSimulatorPage() {
           className="flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-gradient-to-r from-primary to-accent text-white rounded-2xl font-bold hover:shadow-[0_0_15px_rgba(255,46,147,0.4)] hover:-translate-y-0.5 transition-all mb-8"
         >
           <Plus className="w-5 h-5" />
-          Nueva simulación
+          {t("sim.newSimulation")}
         </button>
 
         <div className="flex items-center gap-2 mb-4 px-2 text-muted-foreground">
           <History className="w-5 h-5" />
           <span className="text-xs font-bold uppercase tracking-wider">
-            Historial
+            {t("sim.history")}
           </span>
         </div>
 
         <div className="flex flex-col gap-3">
           <button className="text-left px-5 py-4 rounded-2xl bg-primary/5 border border-primary/20 text-primary transition-colors relative overflow-hidden group">
             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary" />
-            <div className="font-bold mb-1 truncate">Simulación actual</div>
+            <div className="font-bold mb-1 truncate">
+              {t("sim.currentSimulation")}
+            </div>
             <div className="text-xs font-medium text-muted-foreground truncate">
-              {messages.filter((m) => m.role === "user").length} mensajes
+              {t("sim.messageCount", {
+                count: messages.filter((m) => m.role === "user").length,
+              })}
             </div>
           </button>
         </div>
@@ -307,13 +349,13 @@ export default function AiNegotiationSimulatorPage() {
               </div>
               <div className="min-w-0">
                 <h1 className="text-sm sm:text-lg md:text-xl font-extrabold font-heading text-foreground leading-tight flex items-center gap-3">
-                  <span className="truncate">Simulador de Negociación AI</span>
+                  <span className="truncate">{t("sim.title")}</span>
                   <span className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full bg-muted/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border">
-                    Ronda{" "}
-                    {Math.ceil(
-                      messages.filter((m) => m.role !== "coach").length / 2
-                    )}{" "}
-                    de 5
+                    {t("sim.round", {
+                      round: Math.ceil(
+                        messages.filter((m) => m.role !== "coach").length / 2,
+                      ),
+                    })}
                   </span>
                 </h1>
                 <div className="flex items-center gap-3">
@@ -321,14 +363,16 @@ export default function AiNegotiationSimulatorPage() {
                     <span
                       className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isTyping ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`}
                     />
-                    {isTyping ? "Escribiendo..." : "Gerente Virtual conectado"}
+                    {isTyping
+                      ? t("sim.typing")
+                      : t("sim.managerConnected")}
                   </p>
                   <span className="md:hidden items-center px-2 py-0.5 rounded-full bg-muted/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border">
-                    Ronda{" "}
-                    {Math.ceil(
-                      messages.filter((m) => m.role !== "coach").length / 2
-                    )}{" "}
-                    de 5
+                    {t("sim.round", {
+                      round: Math.ceil(
+                        messages.filter((m) => m.role !== "coach").length / 2,
+                      ),
+                    })}
                   </span>
                 </div>
               </div>
@@ -346,29 +390,35 @@ export default function AiNegotiationSimulatorPage() {
             className="px-3 py-2 sm:px-5 sm:py-2.5 rounded-full bg-foreground text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 hover:bg-foreground/90 transition-colors shadow-md whitespace-nowrap shrink-0"
           >
             <StopCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Finalizar simulación</span>
-            <span className="sm:hidden">Finalizar</span>
+            <span className="hidden sm:inline">{t("sim.finish")}</span>
+            <span className="sm:hidden">{t("sim.finishShort")}</span>
           </button>
         </div>
 
         {/* Session Context */}
         <div className="bg-slate-50/80 border-b border-border px-6 py-2.5 flex flex-wrap gap-4 items-center text-xs font-medium text-slate-600 z-10 relative">
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-700">Objetivo:</span>
-            <span>Negociar aumento salarial</span>
+            <span className="font-bold text-slate-700">
+              {t("sim.objectiveLabel")}
+            </span>
+            <span>{t("sim.objectiveValue")}</span>
           </div>
           <div className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-700">Meta sugerida:</span>
+            <span className="font-bold text-slate-700">
+              {t("sim.targetLabel")}
+            </span>
             <span className="text-primary font-bold">
               {targetLow} – {targetHigh}
             </span>
           </div>
           <div className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-700">Etapa:</span>
+            <span className="font-bold text-slate-700">
+              {t("sim.stageLabel")}
+            </span>
             <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-sm">
-              Objeción salarial
+              {t("sim.stageValue")}
             </span>
           </div>
         </div>
@@ -401,7 +451,7 @@ export default function AiNegotiationSimulatorPage() {
                       </div>
                       {msg.role === "ai" && (
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-white px-2 py-0.5 rounded-full shadow-sm border border-border mt-1 whitespace-nowrap hidden md:block">
-                          Gerente de contratación
+                          {t("sim.hiringManager")}
                         </span>
                       )}
                     </div>
@@ -419,36 +469,14 @@ export default function AiNegotiationSimulatorPage() {
                             <TrendingUp className="w-6 h-6 text-primary" />
                           </div>
                           <h3 className="font-extrabold text-xl text-foreground">
-                            Análisis de tu respuesta
+                            {t("sim.coachTitle")}
                           </h3>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 relative z-10">
-                          {[
-                            {
-                              label: "Claridad",
-                              score: msg.scores?.clarity,
-                              color: "text-secondary",
-                              bg: "bg-secondary/10",
-                              bar: "bg-secondary",
-                            },
-                            {
-                              label: "Confianza",
-                              score: msg.scores?.confidence,
-                              color: "text-primary",
-                              bg: "bg-primary/10",
-                              bar: "bg-primary",
-                            },
-                            {
-                              label: "Uso de datos",
-                              score: msg.scores?.data,
-                              color: "text-accent",
-                              bg: "bg-accent/10",
-                              bar: "bg-accent",
-                            },
-                          ].map((stat, i) => (
+                          {coachStatDefs.map((stat, i) => (
                             <div
-                              key={i}
+                              key={stat.stat}
                               className="flex flex-col p-4 bg-white rounded-2xl border border-border shadow-sm"
                             >
                               <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-2">
@@ -466,7 +494,7 @@ export default function AiNegotiationSimulatorPage() {
                                   }}
                                   className={`text-3xl font-black leading-none ${stat.color}`}
                                 >
-                                  {stat.score}
+                                  {msg.scores?.[stat.stat]}
                                 </motion.span>
                                 <span className="text-sm text-muted-foreground/50 font-bold mb-1">
                                   /10
@@ -476,7 +504,7 @@ export default function AiNegotiationSimulatorPage() {
                                 <motion.div
                                   initial={false}
                                   animate={{
-                                    width: `${(stat.score || 0) * 10}%`,
+                                    width: `${(msg.scores?.[stat.stat] || 0) * 10}%`,
                                   }}
                                   transition={{
                                     duration: 1,
@@ -509,7 +537,7 @@ export default function AiNegotiationSimulatorPage() {
                           <div className="flex-1 bg-white border border-border p-5 rounded-2xl shadow-sm">
                             <div className="flex items-center gap-2 text-sm font-bold text-foreground mb-3">
                               <Lightbulb className="w-5 h-5 text-amber-500" />
-                              Recomendación de IA
+                              {t("sim.aiRecommendation")}
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                               {msg.improvementText}
@@ -519,7 +547,7 @@ export default function AiNegotiationSimulatorPage() {
                           <div className="flex-1 bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 p-5 rounded-2xl shadow-sm text-foreground">
                             <div className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
                               <Sparkles className="w-4 h-4 text-primary" />
-                              Versión mejorada
+                              {t("sim.improvedVersion")}
                             </div>
                             <p className="text-[15px] font-medium leading-relaxed mb-5 text-slate-700">
                               &ldquo;{msg.improvedResponse}&rdquo;
@@ -531,7 +559,7 @@ export default function AiNegotiationSimulatorPage() {
                               className="w-full text-sm font-bold bg-primary text-white px-4 py-2.5 rounded-xl shadow-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
                             >
                               <CheckCircle2 className="w-5 h-5" />
-                              Usar esta respuesta
+                              {t("sim.useThisResponse")}
                             </button>
                           </div>
                         </div>
@@ -543,7 +571,7 @@ export default function AiNegotiationSimulatorPage() {
                     >
                       {msg.role === "ai" && (
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider md:hidden px-1">
-                          Gerente de contratación
+                          {t("sim.hiringManager")}
                         </span>
                       )}
                       <div
@@ -573,7 +601,7 @@ export default function AiNegotiationSimulatorPage() {
                                 )
                               }
                               className="text-muted-foreground/60 hover:text-primary transition-colors p-1.5 rounded-full hover:bg-primary/5"
-                              title="Escuchar respuesta"
+                              title={t("sim.listenTitle")}
                             >
                               <Volume2 className="w-4 h-4" />
                             </button>
@@ -587,19 +615,19 @@ export default function AiNegotiationSimulatorPage() {
                                   className="absolute bottom-full right-0 mb-2 w-44 bg-white rounded-xl shadow-lg border border-border p-2 z-50 origin-bottom-right"
                                 >
                                   <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2 pt-1">
-                                    Escuchar respuesta
+                                    {t("sim.listenTitle")}
                                   </div>
                                   <button
                                     onClick={() => handlePlayAudio(msg.id)}
                                     className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50 rounded-lg transition-colors"
                                   >
-                                    Voz femenina
+                                    {t("sim.voiceFemale")}
                                   </button>
                                   <button
                                     onClick={() => handlePlayAudio(msg.id)}
                                     className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50 rounded-lg transition-colors"
                                   >
-                                    Voz masculina
+                                    {t("sim.voiceMale")}
                                   </button>
                                 </motion.div>
                               )}
@@ -625,12 +653,12 @@ export default function AiNegotiationSimulatorPage() {
                       <Bot className="w-5 h-5 md:w-6 md:h-6" />
                     </div>
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-white px-2 py-0.5 rounded-full shadow-sm border border-border mt-1 whitespace-nowrap hidden md:block">
-                      Gerente de contratación
+                      {t("sim.hiringManager")}
                     </span>
                   </div>
                   <div className="flex flex-col gap-1 items-start">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider md:hidden px-1">
-                      Gerente de contratación
+                      {t("sim.hiringManager")}
                     </span>
                   <div className="bg-white border border-border rounded-3xl rounded-tl-none px-6 py-5 shadow-sm flex items-center gap-2 w-fit">
                     <motion.div
@@ -685,14 +713,14 @@ export default function AiNegotiationSimulatorPage() {
               <div className="flex items-center justify-between mb-2 gap-2">
                 <span className="text-[11px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 min-w-0">
                   <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary shrink-0" />
-                  <span className="truncate">Ideas para responder</span>
+                  <span className="truncate">{t("sim.ideasToReply")}</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowSuggestions(!showSuggestions)}
                   className="text-[11px] md:text-xs font-bold text-primary hover:text-primary/80 transition-colors bg-primary/10 px-2.5 py-1 rounded-full shrink-0"
                 >
-                  {showSuggestions ? "Ocultar" : "Mostrar"}
+                  {showSuggestions ? t("sim.hide") : t("sim.show")}
                 </button>
               </div>
 
@@ -749,7 +777,7 @@ export default function AiNegotiationSimulatorPage() {
                       className="w-3 h-3 rounded-full bg-red-500"
                     />
                     <span className="font-bold text-red-600 text-sm">
-                      Grabando...
+                      {t("sim.recording")}
                     </span>
                     <span className="text-red-500 font-medium text-sm font-mono ml-2">
                       {formatTime(recordingTime)}
@@ -760,7 +788,7 @@ export default function AiNegotiationSimulatorPage() {
                     className="p-3 bg-red-500 hover:bg-red-600 text-white rounded-xl hover:scale-105 transition-all shadow-sm flex items-center gap-2"
                   >
                     <StopCircle className="w-4 h-4 fill-current" />
-                    <span className="text-xs font-bold">Detener</span>
+                    <span className="text-xs font-bold">{t("sim.stop")}</span>
                   </button>
                 </div>
               ) : (
@@ -769,7 +797,7 @@ export default function AiNegotiationSimulatorPage() {
                     onClick={handleStartRecording}
                     disabled={isTyping}
                     className="p-3 sm:p-4 mb-0.5 ml-0.5 sm:mb-1 sm:ml-1 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-full transition-colors disabled:opacity-50 shrink-0"
-                    title="Grabar mensaje de voz"
+                    title={t("sim.voiceRecordTitle")}
                   >
                     <Mic className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
@@ -782,7 +810,7 @@ export default function AiNegotiationSimulatorPage() {
                         handleSend(inputText);
                       }
                     }}
-                    placeholder="Escribe tu mensaje… (Ideas: pulsa Mostrar arriba)"
+                    placeholder={t("sim.placeholder")}
                     className="flex-1 max-h-32 min-h-[48px] sm:min-h-[60px] bg-transparent outline-none resize-none py-3 sm:py-4 text-sm sm:text-[16px] text-foreground font-medium placeholder:text-muted-foreground"
                     disabled={isTyping}
                     rows={1}
