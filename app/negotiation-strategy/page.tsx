@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { ArrowRight, CheckCircle2, Play, ShieldAlert, Sparkles, TrendingUp } from "lucide-react";
 import { motion } from "motion/react";
-import { CheckCircle2, TrendingUp, ShieldAlert, ArrowRight, Play, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function NegotiationStrategyPage() {
   const strategies = [
@@ -32,7 +32,7 @@ export default function NegotiationStrategyPage() {
   return (
     <div className="flex flex-col items-center justify-center py-12 md:py-20 px-4 max-w-5xl mx-auto w-full">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center mb-16 max-w-3xl mx-auto"
@@ -53,7 +53,7 @@ export default function NegotiationStrategyPage() {
         {strategies.map((strategy, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 30 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.2, duration: 0.6 }}
             className="bg-card border border-border/60 p-8 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all group flex flex-col"
@@ -70,7 +70,7 @@ export default function NegotiationStrategyPage() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={false}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.8, duration: 0.5 }}
         className="w-full max-w-xl mx-auto flex flex-col items-center"
@@ -80,7 +80,7 @@ export default function NegotiationStrategyPage() {
           className="w-full h-16 rounded-full bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-3 shadow-2xl shadow-primary/30 hover:bg-primary/90 hover:-translate-y-1 transition-all"
         >
           <Play className="w-6 h-6 fill-secondary text-secondary" />
-          Practicar negociación con IA
+          Practicar con IA
           <ArrowRight className="w-5 h-5 ml-2" />
         </Link>
         <p className="text-sm font-medium text-muted-foreground mt-4 text-center">

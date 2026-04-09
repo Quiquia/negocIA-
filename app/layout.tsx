@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SalaryDataProvider } from "./providers/SalaryDataProvider";
 import { LayoutShell } from "./LayoutShell";
+import { LanguageProvider } from "./providers/LanguageProvider";
+import { SalaryDataProvider } from "./providers/SalaryDataProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -39,6 +40,11 @@ export const metadata: Metadata = {
     description:
       "Herramienta gratuita de análisis salarial y simulación de negociaciones para mujeres en tech.",
   },
+  icons: {
+    icon: "/assets/logo.jpg",
+    shortcut: "/assets/logo.jpg",
+    apple: "/assets/logo.jpg",
+  },
   robots: {
     index: true,
     follow: true,
@@ -51,11 +57,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className="font-sans antialiased">
-        <SalaryDataProvider>
-          <LayoutShell>{children}</LayoutShell>
-        </SalaryDataProvider>
+    <html lang="es" suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <LanguageProvider>
+          <SalaryDataProvider>
+            <LayoutShell>{children}</LayoutShell>
+          </SalaryDataProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

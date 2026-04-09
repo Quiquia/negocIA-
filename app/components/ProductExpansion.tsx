@@ -4,120 +4,61 @@ import {
   ArrowRight,
   Bot,
   Check,
-  Quote,
   Sparkles,
   Star,
-  Target,
+  Target
 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 
-const DEMO_STEPS = [
-  {
-    messages: [
-      {
-        role: "ai" as const,
-        text: "Gracias por tu trabajo este año. ¿En qué puedo ayudarte?",
-      },
-    ],
-    button: "Responder",
-  },
-  {
-    messages: [
-      {
-        role: "ai" as const,
-        text: "Gracias por tu trabajo este año. ¿En qué puedo ayudarte?",
-      },
-      {
-        role: "user" as const,
-        text: "Quiero conversar sobre mi salario actual.",
-      },
-    ],
-    button: "Ver Feedback",
-  },
-  {
-    messages: [
-      {
-        role: "ai" as const,
-        text: "Gracias por tu trabajo este año. ¿En qué puedo ayudarte?",
-      },
-      {
-        role: "user" as const,
-        text: "Quiero conversar sobre mi salario actual.",
-      },
-    ],
-    feedback: {
-      positive: "Buen argumento inicial, vas directo al punto.",
-      warning: "Podrías respaldarlo con un logro clave.",
-      suggestion:
-        '"Basado en mi impacto en el proyecto X, me gustaría revisar mi compensación."',
-    },
-    button: "Reiniciar demo",
-  },
-];
-
-const confidenceCards = [
-  {
-    icon: Bot,
-    title: "AI Confidence Coach",
-  },
-  {
-    icon: Target,
-    title: "Confidence Exercises",
-  },
-  {
-    icon: Star,
-    title: "Coaching Profesional",
-  },
-];
-
-const plans = [
-  {
-    name: "Free",
-    subtitle: "Descubre tu valor",
-    price: "$0",
-    period: "",
-    features: [
-      "Reality Check salarial",
-      "Análisis básico de mercado tecnológico",
-      "1 simulación de negociación por mes",
-      "2 intentos de simulación por voz (demo)",
-    ],
-    cta: "Comenzar gratis",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    subtitle: "Domina la negociación",
-    price: "$15",
-    period: "/ mes",
-    features: [
-      "Simulaciones de negociación ilimitadas",
-      "Simulación completa por voz",
-      "Feedback avanzado de IA",
-      "Evaluación de tono, claridad y seguridad",
-      "Análisis salarial completo",
-    ],
-    cta: "Empezar con Pro",
-    highlighted: true,
-  },
-  {
-    name: "Premium",
-    subtitle: "Acompañamiento experto",
-    price: "$49",
-    period: "/ mes",
-    features: [
-      "Todo lo incluido en Pro",
-      "Coaching personalizado",
-      "Preparación para negociación real",
-      "Mentoría profesional",
-      "Revisión de estrategia salarial",
-    ],
-    cta: "Ir Premium",
-    highlighted: false,
-  },
-];
+// const plans = [
+// {
+//   name: "Free",
+//   subtitle: "Explora el mercado",
+//   price: "$0",
+//   period: "",
+//   features: [
+//     "Reality Check salarial",
+//     "Análisis básico de mercado tecnológico",
+//     "1 simulación de negociación por mes",
+//     "2 intentos de simulación por voz (demo)",
+//   ],
+//   cta: "Comenzar gratis",
+//   highlighted: false,
+// },
+// {
+//   name: "Pro",
+//   subtitle: "Entrena tu negociación",
+//   price: "$15",
+//   period: "/ mes",
+//   features: [
+//     "Simulaciones de negociación ilimitadas",
+//     "Simulación completa por voz",
+//     "Feedback avanzado de IA",
+//     "Evaluación de tono, claridad y seguridad",
+//     "Análisis salarial completo",
+//   ],
+//   cta: "Empezar con Pro",
+//   highlighted: true,
+// },
+// {
+//   name: "Premium",
+//   subtitle: "Acompañamiento experto",
+//   price: "$49",
+//   period: "/ mes",
+//   features: [
+//     "Todo lo incluido en Pro",
+//     "Coaching personalizado",
+//     "Preparación para negociación real",
+//     "Mentoría profesional",
+//     "Revisión de estrategia salarial",
+//   ],
+//   cta: "Ir Premium",
+//   highlighted: false,
+// },
+// ];
 
 const testimonials = [
   {
@@ -139,13 +80,53 @@ const testimonials = [
 ];
 
 export function ProductExpansion() {
-  const [activePlan, setActivePlan] = useState(1);
+  const { t } = useTranslation();
   const [demoStep, setDemoStep] = useState(0);
 
-  const currentStep = DEMO_STEPS[demoStep];
+  const demoSteps = useMemo(
+    () => [
+      {
+        messages: [
+          { role: "ai" as const, text: t("expand.demoAi1") },
+        ],
+        button: t("expand.btnReply"),
+      },
+      {
+        messages: [
+          { role: "ai" as const, text: t("expand.demoAi1") },
+          { role: "user" as const, text: t("expand.demoUser1") },
+        ],
+        button: t("expand.btnFeedback"),
+      },
+      {
+        messages: [
+          { role: "ai" as const, text: t("expand.demoAi1") },
+          { role: "user" as const, text: t("expand.demoUser1") },
+        ],
+        feedback: {
+          positive: t("expand.demoFbPos"),
+          warning: t("expand.demoFbWarn"),
+          suggestion: t("expand.demoFbSug"),
+        },
+        button: t("expand.btnRestart"),
+      },
+    ],
+    [t],
+  );
+
+  const confidenceCards = useMemo(
+    () => [
+      { icon: Bot, title: t("expand.card1") },
+      { icon: Target, title: t("expand.card2") },
+      { icon: Star, title: t("expand.card3") },
+    ],
+    [t],
+  );
+
+  const currentStep = demoSteps[demoStep];
 
   const handleDemoClick = () => {
-    if (demoStep >= DEMO_STEPS.length - 1) {
+    if (demoStep >= demoSteps.length - 1) {
       setDemoStep(0);
     } else {
       setDemoStep(demoStep + 1);
@@ -162,20 +143,19 @@ export function ProductExpansion() {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center space-y-4 mb-16">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-[#F1E9FF]"
             >
               <Bot className="w-4 h-4 text-[#FF2E93]" />
-              Simulador con IA
+              {t("expand.badge")}
             </motion.div>
             <h2 className="text-3xl md:text-5xl font-extrabold font-heading">
-              Practica tu negociación antes de la reunión real
+              {t("expand.title")}
             </h2>
             <p className="text-xl text-[#F1E9FF]/70 max-w-2xl mx-auto">
-              Nuestro simulador con IA te prepara para cualquier escenario que
-              puedas enfrentar.
+              {t("expand.subtitle")}
             </p>
           </div>
 
@@ -187,9 +167,11 @@ export function ProductExpansion() {
                   <Bot className="w-5 h-5 text-white/80" />
                 </div>
                 <div>
-                  <p className="font-bold text-base text-white">AI Manager</p>
+                  <p className="font-bold text-base text-white">
+                    {t("expand.managerTitle")}
+                  </p>
                   <p className="text-xs text-[#F1E9FF]/50 font-medium">
-                    Simulación en progreso...
+                    {t("expand.simProgress")}
                   </p>
                 </div>
               </div>
@@ -199,7 +181,7 @@ export function ProductExpansion() {
                 {currentStep.messages.map((msg, i) => (
                   <motion.div
                     key={`${demoStep}-${i}`}
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={false}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.15, duration: 0.3 }}
                     className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
@@ -219,7 +201,7 @@ export function ProductExpansion() {
                 {/* AI Feedback card (step 3) */}
                 {"feedback" in currentStep && currentStep.feedback && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={false}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.4 }}
                     className="bg-gradient-to-br from-[#1E1145] to-[#1A1040] border border-[#4361EE]/30 rounded-2xl p-4 space-y-2.5"
@@ -227,7 +209,7 @@ export function ProductExpansion() {
                     <div className="flex items-center gap-2 mb-1">
                       <Sparkles className="w-4 h-4 text-[#FF2E93]" />
                       <span className="font-bold text-sm text-white">
-                        AI Feedback
+                        {t("expand.feedbackLabel")}
                       </span>
                     </div>
                     <div className="flex items-start gap-2">
@@ -272,7 +254,7 @@ export function ProductExpansion() {
                 href="/simulator"
                 className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#FF2E93] to-[#3A0CA3] text-white font-bold rounded-full hover:shadow-lg hover:shadow-[#FF2E93]/25 transition-all text-lg"
               >
-                Probar simulador completo
+                {t("expand.ctaFull")}
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
@@ -284,30 +266,28 @@ export function ProductExpansion() {
       <section className="w-full py-24 px-6 md:px-12 lg:px-24 bg-gradient-to-b from-[#F3F0FF] to-white text-foreground">
         <div className="max-w-4xl mx-auto text-center">
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-3xl md:text-5xl font-extrabold font-heading text-[#0F172A] mb-4"
           >
-            Negociar también es emocional
+            {t("expand.emotionalTitle")}
           </motion.h2>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
             className="text-lg text-[#64748B] max-w-2xl mx-auto mb-14 leading-relaxed"
           >
-            Muchas mujeres en tecnología sienten miedo o inseguridad al
-            negociar. NegocIA+ también te apoya emocionalmente para que puedas
-            expresar tu valor con confianza.
+            {t("expand.emotionalText")}
           </motion.p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {confidenceCards.map((card, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
@@ -326,11 +306,11 @@ export function ProductExpansion() {
       </section>
 
       {/* Pricing Plans — light bg */}
-      <section className="w-full py-24 px-6 md:px-12 lg:px-24 bg-white text-foreground">
+      {/* <section className="w-full py-24 px-6 md:px-12 lg:px-24 bg-white text-foreground">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <motion.h2
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="text-3xl md:text-5xl font-extrabold font-heading text-[#0F172A] mb-4"
@@ -338,7 +318,7 @@ export function ProductExpansion() {
               Planes de NegocIA+
             </motion.h2>
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
@@ -346,13 +326,13 @@ export function ProductExpansion() {
             >
               Elige el nivel de acompañamiento que necesitas.
             </motion.p>
-          </div>
+          </div> */}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             {plans.map((plan, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
@@ -418,16 +398,16 @@ export function ProductExpansion() {
                 </Link>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
+          </div> */}
+        {/* </div> */}
+      {/* </section> */}
 
       {/* Success Stories */}
-      <section className="w-full py-24 px-6 md:px-12 lg:px-24 relative overflow-hidden">
+      {/* <section className="w-full py-24 px-6 md:px-12 lg:px-24 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center space-y-4 mb-16">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-[#F1E9FF]"
@@ -447,7 +427,7 @@ export function ProductExpansion() {
             {testimonials.map((testimonial, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15 }}
@@ -500,7 +480,7 @@ export function ProductExpansion() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 }

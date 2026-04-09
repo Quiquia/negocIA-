@@ -13,14 +13,16 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { formatEsInteger } from "@/app/lib/format-es";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 import { getQuickSalaryEstimate, type QuickEstimate } from "./hero-actions";
 import { isTechRole } from "../data/tech-roles";
 
 export function HeroSalaryForm() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<QuickEstimate | null>(null);
-  const [aiMessage, setAiMessage] = useState("Analizando tu perfil...");
   const [roleError, setRoleError] = useState("");
   const [formData, setFormData] = useState({
     role: "Frontend Developer",
@@ -37,13 +39,12 @@ export function HeroSalaryForm() {
     const resolvedRole = formData.role === "Otro" ? formData.customRole : formData.role;
     if (!resolvedRole || !formData.salary || !formData.experience || !formData.location) return;
     if (formData.role === "Otro" && !isTechRole(formData.customRole)) {
-      setRoleError("Ingresa un rol relacionado con tecnología.");
+      setRoleError(t("heroForm.roleError"));
       return;
     }
     setRoleError("");
 
     startTransition(async () => {
-      setAiMessage("Analizando tu perfil...");
       const estimate = await getQuickSalaryEstimate({
         role: resolvedRole,
         experience: formData.experience,
@@ -64,11 +65,11 @@ export function HeroSalaryForm() {
     parseInt(formData.salary, 10) >= 100;
   const showSalaryError =
     formData.salary !== "" && parseInt(formData.salary, 10) < 100;
-  const fmt = (n: number) => `$${n.toLocaleString()}`;
+  const fmt = (n: number) => `$${formatEsInteger(n)}`;
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={false}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.4 }}
       className="w-full max-w-lg bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_20px_60px_rgba(58,12,163,0.4)] relative overflow-hidden"
@@ -84,15 +85,14 @@ export function HeroSalaryForm() {
           <div className="w-full">
             <div className="flex items-center justify-between w-full">
               <h3 className="text-xl font-black font-heading text-white">
-                AI Salary Scanner
+                {t("heroForm.title")}
               </h3>
               <span className="w-[100px]  text-xs font-bold px-2 py-1 bg-white/10 rounded-full text-white/80">
-                Paso 1 de 4
+                {t("heroForm.step")}
               </span>
             </div>
             <p className="text-sm font-medium text-white/70 mt-1">
-              Prueba rápida: descubre si tu salario está alineado con el mercado
-              tecnológico
+              {t("heroForm.lead")}
             </p>
           </div>
         </div>
@@ -101,7 +101,7 @@ export function HeroSalaryForm() {
           {!result && !isPending ? (
             <motion.form
               key="form"
-              initial={{ opacity: 0, x: -10 }}
+              initial={false}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               onSubmit={handleSubmit}
@@ -110,7 +110,7 @@ export function HeroSalaryForm() {
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5 text-[#4361EE]" />
-                  ¿Cuál es tu rol?
+                  {t("heroForm.roleLabel")}
                 </label>
                 <select
                   required
@@ -126,26 +126,26 @@ export function HeroSalaryForm() {
                   } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
                 >
                   <option value="" disabled>
-                    Selecciona tu rol...
+                    {t("heroForm.rolePlaceholder")}
                   </option>
                   <option value="Frontend Developer">Frontend Developer</option>
                   <option value="Backend Developer">Backend Developer</option>
                   <option value="Data Analyst">Data Analyst</option>
                   <option value="UX Designer">UX Designer</option>
-                  <option value="Otro">Otro</option>
+                  <option value="Otro">{t("heroForm.other")}</option>
                 </select>
                 {formData.role === "Otro" && (
                   <>
                     <input
                       type="text"
                       required
-                      placeholder="Ej: DevOps, QA, Product Manager..."
+                      placeholder={t("heroForm.customPlaceholder")}
                       value={formData.customRole}
                       onChange={(e) => {
                         const val = e.target.value;
                         setFormData({ ...formData, customRole: val });
                         if (val.trim().length >= 3 && !isTechRole(val)) {
-                          setRoleError("Ingresa un rol relacionado con tecnología.");
+                          setRoleError(t("heroForm.roleError"));
                         } else {
                           setRoleError("");
                         }
@@ -167,12 +167,12 @@ export function HeroSalaryForm() {
                           {roleError}
                         </p>
                         <p className="text-xs text-white/60">
-                          Prueba con: <span className="text-white/80 font-medium">DevOps Engineer, QA Tester, Scrum Master, Data Scientist, Product Manager, Soporte técnico</span>
+                          {t("heroForm.roleHint")}
                         </p>
                       </div>
                     ) : formData.customRole && isTechRole(formData.customRole) ? (
                       <p className="text-xs font-semibold text-green-400 mt-1 ml-1">
-                        Rol válido
+                        {t("heroForm.roleValid")}
                       </p>
                     ) : null}
                   </>
@@ -182,7 +182,7 @@ export function HeroSalaryForm() {
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
                   <DollarSign className="w-3.5 h-3.5 text-[#FF2E93]" />
-                  Salario Mensual Actual (USD)
+                  {t("heroForm.salaryLabel")}
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 font-medium">
@@ -207,7 +207,7 @@ export function HeroSalaryForm() {
                 {showSalaryError && (
                   <p className="text-xs font-semibold text-[#FF2E93] mt-1 ml-1 animate-pulse flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    El salario debe ser mayor a 100 USD
+                    {t("heroForm.salaryError")}
                   </p>
                 )}
               </div>
@@ -216,7 +216,7 @@ export function HeroSalaryForm() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
                     <Briefcase className="w-3.5 h-3.5 text-[#4361EE]" />
-                    Años de experiencia
+                    {t("heroForm.expLabel")}
                   </label>
                   <select
                     required
@@ -231,20 +231,20 @@ export function HeroSalaryForm() {
                     } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
                   >
                     <option value="" disabled>
-                      Selecciona...
+                      {t("heroForm.select")}
                     </option>
-                    <option value="0-1">0-1 años</option>
-                    <option value="2-3">2-3 años</option>
-                    <option value="4-5">4-5 años</option>
-                    <option value="6-8">6-8 años</option>
-                    <option value="9+">9+ años</option>
+                    <option value="0-1">{t("heroForm.exp.0-1")}</option>
+                    <option value="2-3">{t("heroForm.exp.2-3")}</option>
+                    <option value="4-5">{t("heroForm.exp.4-5")}</option>
+                    <option value="6-8">{t("heroForm.exp.6-8")}</option>
+                    <option value="9+">{t("heroForm.exp.9+")}</option>
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-semibold text-white/90 flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-[#4361EE]" />
-                    Ubicación
+                    {t("heroForm.locationLabel")}
                   </label>
                   <select
                     required
@@ -259,12 +259,12 @@ export function HeroSalaryForm() {
                     } focus:border-[#FF2E93] focus:shadow-[0_0_20px_rgba(255,46,147,0.4)] focus:bg-white/10`}
                   >
                     <option value="" disabled>
-                      Selecciona...
+                      {t("heroForm.select")}
                     </option>
-                    <option value="LatAm">LatAm</option>
-                    <option value="Europa">Europa</option>
-                    <option value="Estados Unidos">Estados Unidos</option>
-                    <option value="Remoto global">Remoto global</option>
+                    <option value="LatAm">{t("heroForm.loc.latam")}</option>
+                    <option value="Europa">{t("heroForm.loc.europe")}</option>
+                    <option value="Estados Unidos">{t("heroForm.loc.us")}</option>
+                    <option value="Remoto global">{t("heroForm.loc.remote")}</option>
                   </select>
                 </div>
               </div>
@@ -278,23 +278,23 @@ export function HeroSalaryForm() {
                     : "bg-white/5 border border-white/10 text-white/40 cursor-not-allowed"
                 }`}
               >
-                Ver estimación rápida
+                {t("heroForm.submit")}
                 <ArrowRight className="w-4 h-4" />
               </button>
 
               <div className="pt-3 text-center flex flex-col gap-1">
                 <p className="text-xs text-white/60 font-medium">
-                  Análisis gratuito, confidencial y sin registro.
+                  {t("heroForm.disclaimer")}
                 </p>
                 <p className="text-xs text-[#FF2E93] font-semibold">
-                  Solo toma 3 minutos.
+                  {t("heroForm.time")}
                 </p>
               </div>
             </motion.form>
           ) : isPending ? (
             <motion.div
               key="calculating"
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex flex-col items-center justify-center py-16 space-y-6 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 shadow-[inset_0_0_30px_rgba(255,46,147,0.1)]"
@@ -308,7 +308,7 @@ export function HeroSalaryForm() {
 
               <div className="w-full max-w-[200px] h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
-                  initial={{ width: "0%" }}
+                  initial={false}
                   animate={{ width: "100%" }}
                   transition={{ duration: 3, ease: "linear" }}
                   className="h-full bg-gradient-to-r from-[#FF2E93] to-[#4361EE]"
@@ -316,13 +316,13 @@ export function HeroSalaryForm() {
               </div>
 
               <p className="text-sm font-semibold text-white animate-pulse text-center px-4">
-                Analizando tu perfil con IA...
+                {t("heroForm.pending")}
               </p>
             </motion.div>
           ) : result ? (
             <motion.div
               key="result"
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
               className="space-y-6 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-[inset_0_0_30px_rgba(67,97,238,0.1)] text-center relative overflow-hidden"
             >
@@ -331,7 +331,7 @@ export function HeroSalaryForm() {
 
               <div className="relative z-10">
                 <p className="text-sm font-medium text-white/80 mb-2">
-                  Tu salario estimado de mercado podría estar entre:
+                  {t("heroForm.resultLead")}
                 </p>
                 <div className="text-4xl font-black font-heading text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] mb-4">
                   {fmt(result.min_salary)} – {fmt(result.max_salary)}
@@ -349,7 +349,7 @@ export function HeroSalaryForm() {
                 onClick={() => router.push("/salary-input")}
                 className="relative z-10 w-full py-4 px-4 bg-white hover:bg-[#F1E9FF] text-[#3A0CA3] rounded-xl font-black text-sm transition-all shadow-[0_4px_25px_rgba(255,255,255,0.2)] flex items-center justify-center gap-2 group"
               >
-                Continuar simulación completa (Gratis)
+                {t("heroForm.continue")}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform text-[#FF2E93]" />
               </button>
 
@@ -358,7 +358,7 @@ export function HeroSalaryForm() {
                 onClick={() => setResult(null)}
                 className="relative z-10 w-full py-3 px-4 bg-transparent hover:bg-white/10 border border-white/20 text-white/80 hover:text-white rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
               >
-                Volver a analizar
+                {t("heroForm.again")}
               </button>
             </motion.div>
           ) : null}

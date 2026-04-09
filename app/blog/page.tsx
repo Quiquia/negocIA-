@@ -1,67 +1,70 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { Clock, ArrowRight, Tag } from "lucide-react";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 
-const posts = [
-  {
-    title: "Cómo negociar tu salario en tech: guía completa para mujeres",
-    excerpt:
-      "Aprende las estrategias más efectivas para preparar y ejecutar una negociación salarial exitosa en el sector tecnológico.",
-    image:
-      "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=800&q=80",
-    category: "Negociación",
-    author: "Lucía Gil",
-    date: "5 Mar 2026",
-    readTime: "8 min",
-  },
-  {
-    title: "Brecha salarial en Latinoamérica: datos actualizados 2026",
-    excerpt:
-      "Analizamos los últimos datos sobre la brecha salarial de género en el sector tecnológico de la región.",
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80",
-    category: "Datos",
-    author: "Carolina Vargas",
-    date: "28 Feb 2026",
-    readTime: "6 min",
-  },
-  {
-    title: "5 señales de que estás siendo subvalorada en tu trabajo",
-    excerpt:
-      "Identifica las señales clave que indican que tu compensación no refleja tu verdadero valor en el mercado.",
-    image:
-      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80",
-    category: "Carrera",
-    author: "Alexandra Canchis",
-    date: "20 Feb 2026",
-    readTime: "5 min",
-  },
-  {
-    title: "Inteligencia artificial al servicio de la equidad salarial",
-    excerpt:
-      "Descubre cómo la IA está transformando la forma en que las profesionales acceden a datos salariales y negocian.",
-    image:
-      "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80",
-    category: "Tecnología",
-    author: "Vanessa Quiquia",
-    date: "12 Feb 2026",
-    readTime: "7 min",
-  },
-];
+type BlogCat = "neg" | "data" | "career" | "tech";
 
-const categoryColors: Record<string, string> = {
-  Negociación: "bg-[#FF2E93]/10 text-[#FF2E93]",
-  Datos: "bg-[#4361EE]/10 text-[#4361EE]",
-  Carrera: "bg-emerald-50 text-emerald-600",
-  Tecnología: "bg-[#3A0CA3]/10 text-[#3A0CA3]",
+const categoryColors: Record<BlogCat, string> = {
+  neg: "bg-[#FF2E93]/10 text-[#FF2E93]",
+  data: "bg-[#4361EE]/10 text-[#4361EE]",
+  career: "bg-emerald-50 text-emerald-600",
+  tech: "bg-[#3A0CA3]/10 text-[#3A0CA3]",
 };
 
 export default function BlogPage() {
+  const { t } = useTranslation();
   const [visibleCount, setVisibleCount] = useState(4);
+
+  const posts = useMemo(
+    () =>
+      [
+        {
+          titleKey: "blog.p1.title",
+          excerptKey: "blog.p1.excerpt",
+          image:
+            "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=800&q=80",
+          category: "neg" as BlogCat,
+          author: "Lucía Gil",
+          date: "5 Mar 2026",
+          readTime: "8 min",
+        },
+        {
+          titleKey: "blog.p2.title",
+          excerptKey: "blog.p2.excerpt",
+          image:
+            "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80",
+          category: "data" as BlogCat,
+          author: "Carolina Vargas",
+          date: "28 Feb 2026",
+          readTime: "6 min",
+        },
+        {
+          titleKey: "blog.p3.title",
+          excerptKey: "blog.p3.excerpt",
+          image:
+            "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80",
+          category: "career" as BlogCat,
+          author: "Alexandra Canchis",
+          date: "20 Feb 2026",
+          readTime: "5 min",
+        },
+        {
+          titleKey: "blog.p4.title",
+          excerptKey: "blog.p4.excerpt",
+          image:
+            "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80",
+          category: "tech" as BlogCat,
+          author: "Vanessa Quiquia",
+          date: "12 Feb 2026",
+          readTime: "7 min",
+        },
+      ] as const,
+    [],
+  );
 
   return (
     <main className="min-h-screen bg-white">
@@ -69,20 +72,20 @@ export default function BlogPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-[#3A0CA3] to-[#4361EE] px-6 py-20 text-white">
         <div className="mx-auto max-w-5xl text-center">
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="font-heading text-4xl font-bold md:text-5xl"
           >
-            Blog
+            {t("blog.title")}
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.15 }}
             className="mt-4 text-lg text-white/80 md:text-xl"
           >
-            Recursos, datos y consejos para cerrar la brecha salarial en tech.
+            {t("blog.subtitle")}
           </motion.p>
         </div>
       </section>
@@ -92,8 +95,8 @@ export default function BlogPage() {
         <div className="grid gap-8 md:grid-cols-2">
           {posts.slice(0, visibleCount).map((post, i) => (
             <motion.article
-              key={post.title}
-              initial={{ opacity: 0, y: 20 }}
+              key={post.titleKey}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
@@ -102,7 +105,7 @@ export default function BlogPage() {
               <div className="relative h-52 w-full overflow-hidden">
                 <Image
                   src={post.image}
-                  alt={post.title}
+                  alt={t(post.titleKey)}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -110,15 +113,15 @@ export default function BlogPage() {
                   className={`absolute left-4 top-4 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${categoryColors[post.category] ?? "bg-gray-100 text-gray-600"}`}
                 >
                   <Tag className="h-3 w-3" />
-                  {post.category}
+                  {t(`blog.cat.${post.category}`)}
                 </span>
               </div>
               <div className="p-6">
                 <h2 className="font-heading text-lg font-bold text-gray-900 line-clamp-2">
-                  {post.title}
+                  {t(post.titleKey)}
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-gray-600 line-clamp-3">
-                  {post.excerpt}
+                  {t(post.excerptKey)}
                 </p>
                 <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
                   <span>
@@ -137,10 +140,11 @@ export default function BlogPage() {
         {/* Load more */}
         <div className="mt-12 text-center">
           <button
+            type="button"
             onClick={() => setVisibleCount((c) => c + 4)}
             className="inline-flex items-center gap-2 rounded-full border border-[#3A0CA3] px-8 py-3 font-semibold text-[#3A0CA3] transition-colors hover:bg-[#3A0CA3] hover:text-white"
           >
-            Cargar más artículos
+            {t("blog.loadMore")}
             <ArrowRight className="h-5 w-5" />
           </button>
         </div>

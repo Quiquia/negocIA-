@@ -1,33 +1,13 @@
 "use client";
 
-import {
-  ArrowRight,
-  BookOpen,
-  ChevronDown,
-  Info,
-  Linkedin,
-  Newspaper,
-  Package,
-  Users,
-} from "lucide-react";
+import { ChevronDown, Info, Linkedin, Package, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useContext, useEffect, useRef, useState } from "react";
-
-// Freeze the router context during exit animations so the old page
-// content stays visible while AnimatePresence plays the exit transition.
-function FrozenRouter({ children }: { children: React.ReactNode }) {
-  const context = useContext(LayoutRouterContext);
-  const frozen = useRef(context).current;
-  return (
-    <LayoutRouterContext.Provider value={frozen}>
-      {children}
-    </LayoutRouterContext.Provider>
-  );
-}
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
+import { LanguageSwitcher } from "./components/LanguageSwitcher";
 
 function FooterSection({
   title,
@@ -36,7 +16,8 @@ function FooterSection({
   title: string;
   children: React.ReactNode;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  /** Abierto por defecto: el HTML del servidor coincide con escritorio y evita hidratar vacío. */
+  const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -67,24 +48,19 @@ function FooterSection({
           />
         )}
       </button>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={isMobile ? { height: 0, opacity: 0 } : undefined}
-            animate={isMobile ? { height: "auto", opacity: 1 } : undefined}
-            exit={isMobile ? { height: 0, opacity: 0 } : undefined}
-            className="overflow-hidden md:overflow-visible"
-          >
-            <div className="flex flex-col gap-4 pt-4 md:pt-0">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Sin motion aquí: evita estilos inline distintos entre SSR y cliente en el footer. */}
+      {(!isMobile || isOpen) && (
+        <div className="overflow-hidden md:overflow-visible">
+          <div className="flex flex-col gap-4 pt-4 md:pt-0">{children}</div>
+        </div>
+      )}
     </div>
   );
 }
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -117,33 +93,26 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     };
   }, [isMobileMenuOpen]);
 
-  const navLinks = [
-    {
-      label: "Producto",
-      path: "/producto",
-      icon: <Package className="w-5 h-5" />,
-    },
-    {
-      label: "Cómo funciona",
-      path: "/como-funciona",
-      icon: <Info className="w-5 h-5" />,
-    },
-    {
-      label: "Recursos",
-      path: "/recursos",
-      icon: <BookOpen className="w-5 h-5" />,
-    },
-    {
-      label: "Noticias",
-      path: "/noticias",
-      icon: <Newspaper className="w-5 h-5" />,
-    },
-    {
-      label: "Sobre nosotros",
-      path: "/sobre-nosotros",
-      icon: <Users className="w-5 h-5" />,
-    },
-  ];
+  const navLinks = useMemo(
+    () => [
+      {
+        label: t("layout.nav.producto"),
+        path: "/producto",
+        icon: <Package className="w-5 h-5" />,
+      },
+      {
+        label: t("layout.nav.comoFunciona"),
+        path: "/como-funciona",
+        icon: <Info className="w-5 h-5" />,
+      },
+      {
+        label: t("layout.nav.sobreNosotros"),
+        path: "/sobre-nosotros",
+        icon: <Users className="w-5 h-5" />,
+      },
+    ],
+    [t],
+  );
 
   const handleLinkClick = () => {
     setIsMobileMenuOpen(false);
@@ -203,26 +172,16 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          {pathname !== "/salary-input" && (
-            <div className="hidden xl:flex items-center gap-4">
-              <Link
-                href="/salary-input"
-                className="group relative overflow-hidden inline-flex items-center justify-center gap-2 px-7 h-11 bg-foreground hover:bg-primary text-white rounded-full font-semibold text-sm transition-all duration-300 shadow-[0_4px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(255,46,147,0.35)] hover:-translate-y-0.5"
-              >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                <span className="relative z-10 flex items-center gap-2">
-                  Analizar mi negociación
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </span>
-              </Link>
-            </div>
-          )}
+          <div className="hidden xl:flex items-center gap-4">
+            <LanguageSwitcher />
+          </div>
 
-          <div className="flex xl:hidden items-center gap-4">
+          <div className="flex xl:hidden items-center gap-3 sm:gap-4">
+            <LanguageSwitcher />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="relative w-12 h-12 flex items-center justify-center text-foreground hover:text-primary transition-colors focus:outline-none"
-              aria-label="Toggle menu"
+              aria-label={t("layout.aria.menu")}
             >
               <div className="relative w-6 h-5 flex flex-col justify-between items-center">
                 <span
@@ -281,25 +240,6 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
                     </Link>
                   ))}
                 </nav>
-
-                {pathname !== "/salary-input" && (
-                <div className="mt-6 pt-6 sm:mt-8 sm:pt-8 border-t border-border/50 flex flex-col pb-8">
-                  <Link
-                    href="/salary-input"
-                    onClick={handleLinkClick}
-                    className="group relative w-full flex items-center justify-center gap-2 h-14 bg-foreground hover:bg-primary text-white rounded-xl font-bold text-[16px] md:text-[18px] transition-all duration-300 shadow-[0_4px_14px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_25px_rgba(255,46,147,0.35)] hover:-translate-y-1 active:translate-y-0 overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                    <span className="relative z-10 flex items-center gap-2">
-                      Analizar mi negociación
-                      <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-                    </span>
-                  </Link>
-                  <p className="text-center text-[13px] text-muted-foreground mt-4 font-medium leading-tight px-4">
-                    Descubre si estás ganando lo que realmente mereces.
-                  </p>
-                </div>
-                )}
               </div>
             </motion.div>
           </>
@@ -313,30 +253,24 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             : "max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12"
         }`}
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className={
-              pathname === "/simulator"
-                ? "flex-1 flex flex-col h-[calc(100vh-4rem)]"
-                : pathname === "/"
-                  ? "min-h-[calc(100vh-4rem)]"
-                  : "min-h-[calc(100vh-14rem)]"
-            }
-          >
-            <FrozenRouter>{children}</FrozenRouter>
-          </motion.div>
-        </AnimatePresence>
+        <div
+          key={pathname}
+          className={
+            pathname === "/simulator"
+              ? "flex-1 flex flex-col h-[calc(100vh-4rem)]"
+              : pathname === "/"
+                ? "min-h-[calc(100vh-4rem)]"
+                : "min-h-[calc(100vh-14rem)]"
+          }
+        >
+          {children}
+        </div>
       </main>
 
       {pathname !== "/simulator" && (
         <footer className="border-t border-border bg-white mt-auto pt-16 pb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
               <div className="flex flex-col pr-0 lg:pr-8 border-b border-border/50 md:border-none pb-8 md:pb-0">
                 <Link href="/" className="flex items-center gap-2.5 mb-6 group">
                   <Image
@@ -346,66 +280,42 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
                     height={40}
                   />
                 </Link>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                  Empoderando a mujeres en tecnología con inteligencia salarial
-                  y herramientas de negociación para cerrar la brecha de género.
-                </p>
+              
               </div>
 
-              <FooterSection title="Producto">
+              <FooterSection title={t("layout.footer.producto")}>
                 <Link
                   href="/simulator"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors py-1 md:py-0"
                 >
-                  Simulador de negociación
+                  {t("layout.footer.simulator")}
                 </Link>
                 <Link
                   href="/salary-input"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors py-1 md:py-0"
                 >
-                  Análisis salarial
+                  {t("layout.footer.salaryAnalysis")}
                 </Link>
                 <Link
                   href="/como-funciona"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors py-1 md:py-0"
                 >
-                  Cómo funciona
+                  {t("layout.footer.howItWorks")}
                 </Link>
               </FooterSection>
 
-              <FooterSection title="Recursos">
-                <Link
-                  href="/casos-de-exito"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors py-1 md:py-0"
-                >
-                  Casos de éxito
-                </Link>
-                <Link
-                  href="/blog"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors py-1 md:py-0"
-                >
-                  Blog
-                </Link>
-                <Link
-                  href="/faq"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors py-1 md:py-0"
-                >
-                  Preguntas frecuentes
-                </Link>
-              </FooterSection>
-
-              <FooterSection title="Contacto">
+              <FooterSection title={t("layout.footer.contacto")}>
                 <a
                   href="#"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 py-1 md:py-0"
                 >
-                  <Linkedin className="w-4 h-4" /> LinkedIn
+                  <Linkedin className="w-4 h-4" /> {t("layout.footer.linkedin")}
                 </a>
                 <a
                   href="mailto:hola@negociaplus.com"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 py-1 md:py-0"
                 >
-                  Email
+                  {t("layout.footer.email")}
                 </a>
               </FooterSection>
             </div>
@@ -413,11 +323,10 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
             <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex flex-col items-center md:items-start gap-1">
                 <p className="text-sm font-medium text-muted-foreground text-center md:text-left">
-                  © 2026 NegocIA+
+                  {t("layout.footer.copyright")}
                 </p>
                 <p className="text-xs font-medium text-muted-foreground/80 text-center md:text-left">
-                  Empoderando a mujeres en tecnología con inteligencia salarial
-                  basada en datos.
+                  {t("layout.footer.tagline")}
                 </p>
               </div>
               <div className="flex flex-wrap justify-center items-center gap-6 text-sm font-bold text-muted-foreground">
@@ -425,13 +334,13 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
                   href="#"
                   className="hover:text-primary transition-colors p-2 md:p-0"
                 >
-                  Política de Privacidad
+                  {t("layout.footer.privacy")}
                 </a>
                 <a
                   href="#"
                   className="hover:text-primary transition-colors p-2 md:p-0"
                 >
-                  Términos de Servicio
+                  {t("layout.footer.terms")}
                 </a>
               </div>
             </div>

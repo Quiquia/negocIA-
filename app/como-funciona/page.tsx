@@ -1,73 +1,79 @@
 "use client";
 
-import { UserCircle, Brain, FileText, MessagesSquare, ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  Brain,
+  FileText,
+  MessagesSquare,
+  UserCircle,
+} from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
-
-const steps = [
-  {
-    number: "01",
-    icon: UserCircle,
-    title: "Completa tu perfil",
-    description:
-      "Ingresa tu información profesional: rol, experiencia, ubicación, tecnologías y salario actual. Toda tu data se mantiene privada y segura.",
-  },
-  {
-    number: "02",
-    icon: Brain,
-    title: "Análisis con IA",
-    description:
-      "Nuestra inteligencia artificial analiza tu perfil contra miles de datos salariales del mercado tech en Latinoamérica y el mundo.",
-  },
-  {
-    number: "03",
-    icon: FileText,
-    title: "Reporte personalizado",
-    description:
-      "Recibe un reporte detallado con tu posición en el mercado, brecha salarial de género, proyección de crecimiento y recomendaciones específicas.",
-  },
-  {
-    number: "04",
-    icon: MessagesSquare,
-    title: "Entrena tu negociación",
-    description:
-      "Practica con nuestro simulador de negociación impulsado por IA. Recibe coaching en tiempo real y desarrolla la confianza para pedir lo que mereces.",
-  },
-];
+import { useMemo } from "react";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
 
 export default function ComoFuncionaPage() {
+  const { t } = useTranslation();
+  const steps = useMemo(
+    () => [
+      {
+        number: "01",
+        icon: UserCircle,
+        title: t("como.s1.title"),
+        description: t("como.s1.desc"),
+      },
+      {
+        number: "02",
+        icon: Brain,
+        title: t("como.s2.title"),
+        description: t("como.s2.desc"),
+      },
+      {
+        number: "03",
+        icon: FileText,
+        title: t("como.s3.title"),
+        description: t("como.s3.desc"),
+      },
+      {
+        number: "04",
+        icon: MessagesSquare,
+        title: t("como.s4.title"),
+        description: t("como.s4.desc"),
+      },
+    ],
+    [t],
+  );
   return (
     <main className="min-h-screen">
       {/* Hero */}
       <section className="relative overflow-hidden px-4 py-20 md:py-32">
         <div className="mx-auto max-w-6xl text-center">
           <motion.span
-            initial={{ opacity: 0, y: 10 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             className="mb-4 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent"
           >
-            Proceso Simple
+            {t("como.badge")}
           </motion.span>
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="font-heading text-4xl font-bold text-foreground md:text-6xl"
           >
-            ¿Cómo funciona{" "}
+            {t("como.hero.title")}{" "}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               NegocIA+
             </span>
-            ?
+            {t("como.hero.titleEnd")}
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground"
           >
-            En 4 simples pasos, descubre tu valor real en el mercado y prepárate
-            para negociar con confianza y datos.
+            {t("como.hero.subtitle")}
           </motion.p>
         </div>
       </section>
@@ -82,7 +88,7 @@ export default function ComoFuncionaPage() {
             {steps.map((step, index) => (
               <motion.div
                 key={step.number}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -40 : 40 }}
+                initial={false}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
@@ -127,23 +133,22 @@ export default function ComoFuncionaPage() {
       {/* CTA */}
       <section className="px-4 pb-24">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={false}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mx-auto max-w-4xl rounded-[2rem] bg-gradient-to-r from-primary to-accent p-10 text-center text-white md:p-16"
         >
           <h2 className="font-heading text-3xl font-bold md:text-4xl">
-            ¿Lista para dar el primer paso?
+            {t("como.cta.title")}
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-white/80">
-            Comienza tu análisis salarial gratuito y descubre cuánto deberías
-            estar ganando.
+            {t("como.cta.subtitle")}
           </p>
           <Link
             href="/salary-input"
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 font-semibold text-primary transition-transform hover:scale-105"
           >
-            Comenzar análisis <ArrowRight className="h-5 w-5" />
+            {t("como.cta.button")} <ArrowRight className="h-5 w-5" />
           </Link>
         </motion.div>
       </section>

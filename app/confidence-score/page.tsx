@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
-import { motion } from "motion/react";
+import { formatEsInteger } from "@/app/lib/format-es";
 import {
-  Download,
-  RotateCcw,
-  Trophy,
-  Target,
-  MessageSquare,
-  TrendingUp,
-  Sparkles,
-  CheckCircle2,
   AlertTriangle,
+  CheckCircle2,
+  Download,
+  MessageSquare,
+  RotateCcw,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Trophy,
 } from "lucide-react";
+import { motion } from "motion/react";
+import Link from "next/link";
+import { useEffect, useState, useTransition } from "react";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 import {
   analyzeNegotiationPerformance,
@@ -46,8 +47,8 @@ export default function ConfidenceScorePage() {
         seniority: profileData?.seniority || "Mid",
         techStack: profileData?.techStack?.join(", ") || "General",
         country: profileData?.country || "Latinoamérica",
-        currentSalary: `${symbol}${currentSalary.toLocaleString()}`,
-        marketSalary: `${symbol}${averageSalary.toLocaleString()}`,
+        currentSalary: `${symbol}${formatEsInteger(currentSalary)}`,
+        marketSalary: `${symbol}${formatEsInteger(averageSalary)}`,
         gapPercentage,
       });
       setResult(analysis);
@@ -112,7 +113,7 @@ export default function ConfidenceScorePage() {
   return (
     <div className="flex flex-col items-center justify-center py-8 sm:py-12 px-2 sm:px-4 max-w-4xl mx-auto w-full min-h-[70vh]">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={false}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, type: "spring" }}
         className="w-full bg-white border border-border rounded-[2rem] sm:rounded-[3rem] p-4 sm:p-8 md:p-14 shadow-xl relative overflow-hidden"
@@ -139,10 +140,7 @@ export default function ConfidenceScorePage() {
             <div className="w-56 h-56 rounded-full bg-slate-100" />
             <div className="flex flex-col gap-4 w-full max-w-sm">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-[72px] bg-slate-100 rounded-2xl"
-                />
+                <div key={i} className="h-[72px] bg-slate-100 rounded-2xl" />
               ))}
             </div>
           </div>
@@ -150,7 +148,7 @@ export default function ConfidenceScorePage() {
           <>
             <div className="flex flex-col md:flex-row gap-6 sm:gap-8 lg:gap-16 items-center justify-center mb-8 sm:mb-12 relative z-10">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 className="relative flex flex-col items-center justify-center w-40 h-40 sm:w-56 sm:h-56 rounded-full bg-white shadow-xl border border-slate-100"
@@ -168,7 +166,7 @@ export default function ConfidenceScorePage() {
                     strokeWidth="8"
                   />
                   <motion.circle
-                    initial={{ strokeDasharray: "0 1000" }}
+                    initial={false}
                     animate={{ strokeDasharray: dashArray }}
                     transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
                     cx="50"
@@ -204,7 +202,7 @@ export default function ConfidenceScorePage() {
                 {scores.map((item, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={false}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.1 }}
                     className="bg-white p-3 sm:p-4 rounded-2xl flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md transition-shadow group"
@@ -213,7 +211,9 @@ export default function ConfidenceScorePage() {
                       <div
                         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ${item.bg} group-hover:scale-110 transition-transform shrink-0`}
                       >
-                        <item.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${item.color}`} />
+                        <item.icon
+                          className={`w-5 h-5 sm:w-6 sm:h-6 ${item.color}`}
+                        />
                       </div>
                       <span className="font-bold text-sm sm:text-base text-slate-700">
                         {item.label}
@@ -225,7 +225,7 @@ export default function ConfidenceScorePage() {
                   </motion.div>
                 ))}
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
                   className="mt-4 bg-amber-50 border border-amber-200 p-5 rounded-3xl flex gap-4 shadow-sm"
@@ -234,17 +234,29 @@ export default function ConfidenceScorePage() {
                     <Sparkles className="w-5 h-5 text-amber-500" />
                   </div>
                   <div>
-                    <span className="text-[13px] font-extrabold text-amber-800 uppercase tracking-wider block mb-1">Oportunidad de mejora</span>
+                    <span className="text-[13px] font-extrabold text-amber-800 uppercase tracking-wider block mb-1">
+                      Oportunidad de mejora
+                    </span>
                     <p className="text-[15px] font-medium text-amber-900 leading-relaxed">
                       {result.improvements.length > 0 ? (
                         <>
-                          {result.improvements[0].replace(/\.$/, '')}{' '}
+                          {result.improvements[0].replace(/\.$/, "")}{" "}
                           <strong className="font-extrabold bg-amber-200/50 px-1 rounded">
-                            {result.improvements.length > 1 ? result.improvements[1].toLowerCase() : 'claridad al comunicar el valor que aportas al negocio'}
-                          </strong>.
+                            {result.improvements.length > 1
+                              ? result.improvements[1].toLowerCase()
+                              : "claridad al comunicar el valor que aportas al negocio"}
+                          </strong>
+                          .
                         </>
                       ) : (
-                        <>Para alcanzar el rango sugerido, necesitas fortalecer tu <strong className="font-extrabold bg-amber-200/50 px-1 rounded">claridad al comunicar el valor</strong> que aportas al negocio.</>
+                        <>
+                          Para alcanzar el rango sugerido, necesitas fortalecer
+                          tu{" "}
+                          <strong className="font-extrabold bg-amber-200/50 px-1 rounded">
+                            claridad al comunicar el valor
+                          </strong>{" "}
+                          que aportas al negocio.
+                        </>
                       )}
                     </p>
                   </div>
@@ -254,7 +266,7 @@ export default function ConfidenceScorePage() {
 
             {/* AI Summary */}
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={false}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
               className="bg-primary/5 rounded-2xl sm:rounded-[2rem] p-4 sm:p-8 mb-8 sm:mb-12 flex items-start gap-3 sm:gap-4 max-w-2xl mx-auto border border-primary/10 shadow-inner"
@@ -270,7 +282,7 @@ export default function ConfidenceScorePage() {
         )}
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
           className="flex flex-col items-center gap-6 relative z-10 w-full max-w-3xl mx-auto"
@@ -278,11 +290,28 @@ export default function ConfidenceScorePage() {
           <div className="w-full flex flex-col sm:flex-row items-stretch justify-center gap-4">
             <div className="flex flex-col w-full sm:w-auto">
               <div className="bg-slate-50 border border-slate-200 p-5 rounded-t-3xl border-b-0">
-                <span className="font-extrabold text-slate-800 block mb-3 text-[15px]">Tu plan personalizado incluye:</span>
+                <span className="font-extrabold text-slate-800 block mb-3 text-[15px]">
+                  Tu plan personalizado incluye:
+                </span>
                 <ul className="flex flex-col gap-2.5 text-[15px] font-medium text-slate-600">
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-5 h-5 text-primary shrink-0" /> <span className="leading-tight">Argumentos clave para negociar</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-5 h-5 text-primary shrink-0" /> <span className="leading-tight">Datos del mercado tecnológico</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-5 h-5 text-primary shrink-0" /> <span className="leading-tight">Estrategia táctica personalizada</span></li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />{" "}
+                    <span className="leading-tight">
+                      Argumentos clave para negociar
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />{" "}
+                    <span className="leading-tight">
+                      Datos del mercado tecnológico
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />{" "}
+                    <span className="leading-tight">
+                      Estrategia táctica personalizada
+                    </span>
+                  </li>
                 </ul>
               </div>
               <button
@@ -290,16 +319,21 @@ export default function ConfidenceScorePage() {
                   if (!result) return;
                   const currency = profileData?.currency || "USD";
                   const symbol =
-                    currency === "USD" ? "$" : currency === "COP" ? "COL$" : "S/";
+                    currency === "USD"
+                      ? "$"
+                      : currency === "COP"
+                        ? "COL$"
+                        : "S/";
                   generateNegotiationPDF({
                     result,
                     profile: {
                       role: profileData?.role || "Developer",
                       seniority: profileData?.seniority || "Mid",
-                      techStack: profileData?.techStack?.join(", ") || "General",
+                      techStack:
+                        profileData?.techStack?.join(", ") || "General",
                       country: profileData?.country || "Latinoamérica",
-                      currentSalary: `${symbol}${currentSalary.toLocaleString()}`,
-                      marketSalary: `${symbol}${averageSalary.toLocaleString()}`,
+                      currentSalary: `${symbol}${formatEsInteger(currentSalary)}`,
+                      marketSalary: `${symbol}${formatEsInteger(averageSalary)}`,
                       gapPercentage,
                     },
                   });
@@ -317,7 +351,9 @@ export default function ConfidenceScorePage() {
               <Link
                 href="/simulator"
                 aria-disabled={!result}
-                onClick={(e) => { if (!result) e.preventDefault(); }}
+                onClick={(e) => {
+                  if (!result) e.preventDefault();
+                }}
                 className={`h-14 sm:h-16 px-8 rounded-full bg-white border-2 border-slate-200 text-slate-700 font-extrabold text-base sm:text-lg flex items-center justify-center gap-3 transition-colors w-full ${!result ? "opacity-50 pointer-events-none" : "hover:bg-slate-50"}`}
               >
                 <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -326,45 +362,117 @@ export default function ConfidenceScorePage() {
             </div>
           </div>
 
-          <div className="w-full mt-12 sm:mt-16 pt-10 sm:pt-12 border-t border-slate-100 flex flex-col items-center">
+          {/* <div className="w-full mt-12 sm:mt-16 pt-10 sm:pt-12 border-t border-slate-100 flex flex-col items-center">
             <div className="text-center mb-8">
-              <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-slate-800 mb-2">¿Quieres seguir mejorando?</h3>
-              <p className="text-sm sm:text-base text-slate-500 font-medium">Continúa entrenando tus habilidades de negociación con NegocIA+</p>
+              <h3 className="text-xl sm:text-2xl font-extrabold font-heading text-slate-800 mb-2">
+                ¿Quieres seguir mejorando?
+              </h3>
+              <p className="text-sm sm:text-base text-slate-500 font-medium">
+                Continúa entrenando tus habilidades de negociación con NegocIA+
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
               <div className="bg-slate-50/80 rounded-3xl p-6 border border-slate-200 flex flex-col">
-                <div className="font-extrabold text-lg sm:text-xl text-slate-800 mb-1">Free — Descubre tu valor</div>
-                <div className="text-slate-500 text-sm font-medium mb-6">Para empezar con seguridad</div>
+                <div className="font-extrabold text-lg sm:text-xl text-slate-800 mb-1">
+                  Free — Descubre tu valor
+                </div>
+                <div className="text-slate-500 text-sm font-medium mb-6">
+                  Para empezar con seguridad
+                </div>
                 <ul className="text-sm text-slate-600 flex flex-col gap-3 mb-6 flex-1">
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">Reality Check salarial</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">Análisis básico de mercado tecnológico</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">1 simulación de negociación por mes</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">2 intentos de simulación por voz (demo)</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /> <span className="leading-snug">Feedback básico de comunicación</span></li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">Reality Check salarial</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Análisis básico de mercado tecnológico
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      1 simulación de negociación por mes
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      2 intentos de simulación por voz (demo)
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Feedback básico de comunicación
+                    </span>
+                  </li>
                 </ul>
                 <div className="text-center font-bold text-slate-400 text-sm py-2">
                   Plan actual
                 </div>
               </div>
               <div className="bg-gradient-to-b from-primary/[0.08] to-transparent rounded-3xl p-6 border-2 border-primary/20 relative overflow-hidden group hover:shadow-xl hover:shadow-primary/5 transition-all flex flex-col">
-                <div className="absolute top-0 right-0 bg-gradient-to-r from-primary to-accent text-white text-[10px] font-black px-3 py-1 rounded-bl-xl tracking-wider uppercase">RECOMENDADO</div>
-                <div className="font-extrabold text-lg sm:text-xl text-primary mb-1">Pro — Domina la negociación</div>
-                <div className="text-slate-600 text-sm font-medium mb-6">Para dominar cualquier escenario</div>
+                <div className="absolute top-0 right-0 bg-gradient-to-r from-primary to-accent text-white text-[10px] font-black px-3 py-1 rounded-bl-xl tracking-wider uppercase">
+                  RECOMENDADO
+                </div>
+                <div className="font-extrabold text-lg sm:text-xl text-primary mb-1">
+                  Pro — Domina la negociación
+                </div>
+                <div className="text-slate-600 text-sm font-medium mb-6">
+                  Para practicar cualquier escenario
+                </div>
                 <ul className="text-sm text-slate-700 flex flex-col gap-3 mb-6 flex-1">
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Simulaciones de negociación ilimitadas</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Simulación completa por voz</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Feedback avanzado de IA</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Evaluación de tono, claridad y seguridad</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Análisis salarial completo</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Escenarios reales adaptados a tu rol</span></li>
-                  <li className="flex items-start gap-2.5"><CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" /> <span className="leading-snug">Plan de crecimiento profesional</span></li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Simulaciones de negociación ilimitadas
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Simulación completa por voz
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Feedback avanzado de IA
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Evaluación de tono, claridad y seguridad
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Análisis salarial completo
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Escenarios reales adaptados a tu rol
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />{" "}
+                    <span className="leading-snug">
+                      Plan de crecimiento profesional
+                    </span>
+                  </li>
                 </ul>
                 <button className="w-full py-3 bg-white text-primary font-bold rounded-xl border border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all shadow-sm mt-auto">
                   Probar Pro
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
         </motion.div>
       </motion.div>
     </div>

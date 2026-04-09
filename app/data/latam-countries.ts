@@ -174,6 +174,70 @@ export function getCountryByName(name: string): LatamCountry | undefined {
   return latamCountries.find((c) => c.name === name);
 }
 
+/** Símbolo de moneda para UI según código ISO (alineado con países LATAM del formulario). */
+export function getCurrencySymbolByCode(code: string | null | undefined): string {
+  if (!code || typeof code !== "string") return "$";
+  const upper = code.trim().toUpperCase();
+  if (upper === "COP") return "COL$";
+  const fromCountry = latamCountries.find((c) => c.currency.code === upper);
+  if (fromCountry) return fromCountry.currency.symbol;
+  if (upper === "EUR") return "€";
+  return "$";
+}
+
+export type CurrencyDisplay = {
+  code: string;
+  symbol: string;
+  /** Etiqueta legible (ej. "Pesos mexicanos (MXN)") */
+  label: string;
+};
+
+/**
+ * Resuelve símbolo y etiqueta usando el país elegido + código de moneda del salario.
+ * Así México+MXN → "$" y etiqueta de México; Perú+PEN → "S/" y soles; Ecuador+USD → "$" USD.
+ */
+export function getCurrencyDisplayForCountryAndCode(
+  countryName: string | null | undefined,
+  currencyCode: string | null | undefined
+): CurrencyDisplay {
+  const code = (currencyCode ?? "USD").trim().toUpperCase();
+
+  if (code === "COP") {
+    return {
+      code: "COP",
+      symbol: "COL$",
+      label: "Pesos colombianos (COP)",
+    };
+  }
+
+  const country = countryName ? getCountryByName(countryName) : undefined;
+
+  if (country) {
+    if (country.currency.code === code) {
+      return {
+        code: country.currency.code,
+        symbol: country.currency.symbol,
+        label: country.currency.label,
+      };
+    }
+    if (code === "USD") {
+      return {
+        code: "USD",
+        symbol: "$",
+        label: "Dólares (USD)",
+      };
+    }
+  }
+
+  const sym = getCurrencySymbolByCode(code);
+  const match = latamCountries.find((c) => c.currency.code === code);
+  return {
+    code,
+    symbol: sym,
+    label: match?.currency.label ?? code,
+  };
+}
+
 const timezoneToCountry: Record<string, string> = {
   "America/Argentina/Buenos_Aires": "Argentina",
   "America/Argentina/Cordoba": "Argentina",

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import type { Locale } from "@/app/providers/LanguageProvider";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -26,6 +27,13 @@ import {
   type ProfileContext,
 } from "./actions";
 import { useSalaryData } from "../providers/SalaryDataProvider";
+import { useTranslation } from "@/app/lib/i18n/use-translation";
+
+function formatLocaleInteger(n: number, locale: Locale): string {
+  return n.toLocaleString(locale === "en" ? "en-US" : "es-ES", {
+    maximumFractionDigits: 0,
+  });
+}
 
 type Message = {
   id: string;
@@ -37,8 +45,9 @@ type Message = {
 };
 
 export default function AiNegotiationSimulatorPage() {
+  const { t, locale } = useTranslation();
   const router = useRouter();
-  const { profileData, currentSalary, averageSalary, gapPercentage, setSimulationChat } =
+  const { profileData, currentSalary, averageSalary, setSimulationChat } =
     useSalaryData();
 
   // Datos del perfil para personalizar
@@ -49,21 +58,23 @@ export default function AiNegotiationSimulatorPage() {
   const seniority = profileData?.seniority || "Mid";
   const techStack =
     profileData?.techStack?.join(", ") || "React, TypeScript";
-  const yearsExp = profileData?.yearsExperience || "2-3 años";
 
-  // Formatear salarios para las sugerencias
-  const fmtSalary = (n: number) => `${currencySymbol}${n.toLocaleString()}`;
+  const initialAiMessage = useMemo(
+    () => t("sim.initialAi", { role, seniority }),
+    [t, role, seniority],
+  );
+
+  const fmtSalary = (n: number) =>
+    `${currencySymbol}${formatLocaleInteger(n, locale)}`;
   const targetLow = fmtSalary(averageSalary);
   const targetHigh = fmtSalary(Math.round(averageSalary * 1.1));
 
-  const INITIAL_AI_MESSAGE = `Hola, gracias por reunirte conmigo hoy. Hemos revisado tu perfil como ${role} ${seniority} y estamos muy interesados en que te unas al equipo. Sin embargo, entiendo tu expectativa salarial, pero nuestro presupuesto actual para este rol es más limitado. ¿Podrías considerar un rango menor?`;
-
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "1", role: "ai", text: INITIAL_AI_MESSAGE },
+  const [messages, setMessages] = useState<Message[]>(() => [
+    { id: "1", role: "ai", text: initialAiMessage },
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [inputText, setInputText] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -71,17 +82,46 @@ export default function AiNegotiationSimulatorPage() {
   const [activePopover, setActivePopover] = useState<string | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const suggestionsPanelRef = useRef<HTMLDivElement>(null);
 
   const profileCtx: ProfileContext | undefined = profileData
     ? {
         role,
         seniority,
         techStack,
-        country: profileData.country || "Latinoamérica",
+        country: profileData.country || t("sim.defaultRegion"),
         currentSalary: fmtSalary(currentSalary),
         marketSalary: fmtSalary(averageSalary),
       }
     : undefined;
+
+  const coachStatDefs = useMemo(
+    () =>
+      [
+        {
+          stat: "clarity" as const,
+          label: t("sim.stat.clarity"),
+          color: "text-secondary",
+          bg: "bg-secondary/10",
+          bar: "bg-secondary",
+        },
+        {
+          stat: "confidence" as const,
+          label: t("sim.stat.confidence"),
+          color: "text-primary",
+          bg: "bg-primary/10",
+          bar: "bg-primary",
+        },
+        {
+          stat: "data" as const,
+          label: t("sim.stat.data"),
+          color: "text-accent",
+          bg: "bg-accent/10",
+          bar: "bg-accent",
+        },
+      ] as const,
+    [t],
+  );
 
   // Recording timer
   useEffect(() => {
@@ -103,7 +143,7 @@ export default function AiNegotiationSimulatorPage() {
   const handleStopRecording = () => {
     setIsRecording(false);
     setInputText(
-      `Basándome en datos del mercado, creo que un rango entre ${targetLow} y ${targetHigh} sería justo.`
+      t("sim.recordingFill", { low: targetLow, high: targetHigh }),
     );
   };
 
@@ -132,10 +172,10 @@ export default function AiNegotiationSimulatorPage() {
       setSuggestions(newSuggestions);
     } catch {
       setSuggestions([
-        "Me gustaría que revisáramos el rango salarial considerando mi experiencia.",
-        "Según datos del mercado, mi perfil justifica una compensación más competitiva.",
-        "Estoy abierta a explorar beneficios adicionales junto con un ajuste salarial.",
-        "Valoro la oportunidad, y me gustaría encontrar un punto medio justo.",
+        t("sim.fallbackSug0"),
+        t("sim.fallbackSug1"),
+        t("sim.fallbackSug2"),
+        t("sim.fallbackSug3"),
       ]);
     } finally {
       setLoadingSuggestions(false);
@@ -211,32 +251,46 @@ export default function AiNegotiationSimulatorPage() {
       };
       setMessages((prev) => {
         const updated = [...prev, aiMsg];
-        // Refresh suggestions based on new conversation state
-        refreshSuggestions(updated);
+        // Defer: never call other setStates inside a setState updater (breaks React / App Router).
+        queueMicrotask(() => {
+          void refreshSuggestions(updated);
+        });
         return updated;
       });
     } catch {
       const errorMsg: Message = {
         id: Date.now().toString() + "-error",
         role: "ai",
-        text: "Lo siento, hubo un problema de conexión. ¿Podrías repetir tu último punto?",
+        text: t("sim.errConnection"),
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsTyping(false);
-      setShowSuggestions(true);
     }
   };
 
   const useImprovedResponse = (text: string) => {
     setInputText(text);
+    setShowSuggestions(false);
   };
 
   const handleNewSimulation = () => {
-    setMessages([{ id: "1", role: "ai", text: INITIAL_AI_MESSAGE }]);
+    setMessages([{ id: "1", role: "ai", text: initialAiMessage }]);
     setInputText("");
-    setShowSuggestions(true);
+    setShowSuggestions(false);
   };
+
+  useEffect(() => {
+    if (!showSuggestions) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const el = suggestionsPanelRef.current;
+      if (!el?.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [showSuggestions]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -251,22 +305,26 @@ export default function AiNegotiationSimulatorPage() {
           className="flex items-center justify-center gap-2 w-full py-3.5 px-4 bg-gradient-to-r from-primary to-accent text-white rounded-2xl font-bold hover:shadow-[0_0_15px_rgba(255,46,147,0.4)] hover:-translate-y-0.5 transition-all mb-8"
         >
           <Plus className="w-5 h-5" />
-          Nueva simulación
+          {t("sim.newSimulation")}
         </button>
 
         <div className="flex items-center gap-2 mb-4 px-2 text-muted-foreground">
           <History className="w-5 h-5" />
           <span className="text-xs font-bold uppercase tracking-wider">
-            Historial
+            {t("sim.history")}
           </span>
         </div>
 
         <div className="flex flex-col gap-3">
           <button className="text-left px-5 py-4 rounded-2xl bg-primary/5 border border-primary/20 text-primary transition-colors relative overflow-hidden group">
             <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-primary" />
-            <div className="font-bold mb-1 truncate">Simulación actual</div>
+            <div className="font-bold mb-1 truncate">
+              {t("sim.currentSimulation")}
+            </div>
             <div className="text-xs font-medium text-muted-foreground truncate">
-              {messages.filter((m) => m.role === "user").length} mensajes
+              {t("sim.messageCount", {
+                count: messages.filter((m) => m.role === "user").length,
+              })}
             </div>
           </button>
         </div>
@@ -291,13 +349,13 @@ export default function AiNegotiationSimulatorPage() {
               </div>
               <div className="min-w-0">
                 <h1 className="text-sm sm:text-lg md:text-xl font-extrabold font-heading text-foreground leading-tight flex items-center gap-3">
-                  <span className="truncate">Simulador de Negociación AI</span>
+                  <span className="truncate">{t("sim.title")}</span>
                   <span className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full bg-muted/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border">
-                    Ronda{" "}
-                    {Math.ceil(
-                      messages.filter((m) => m.role !== "coach").length / 2
-                    )}{" "}
-                    de 5
+                    {t("sim.round", {
+                      round: Math.ceil(
+                        messages.filter((m) => m.role !== "coach").length / 2,
+                      ),
+                    })}
                   </span>
                 </h1>
                 <div className="flex items-center gap-3">
@@ -305,14 +363,16 @@ export default function AiNegotiationSimulatorPage() {
                     <span
                       className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isTyping ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`}
                     />
-                    {isTyping ? "Escribiendo..." : "Gerente Virtual conectado"}
+                    {isTyping
+                      ? t("sim.typing")
+                      : t("sim.managerConnected")}
                   </p>
                   <span className="md:hidden items-center px-2 py-0.5 rounded-full bg-muted/50 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border border-border">
-                    Ronda{" "}
-                    {Math.ceil(
-                      messages.filter((m) => m.role !== "coach").length / 2
-                    )}{" "}
-                    de 5
+                    {t("sim.round", {
+                      round: Math.ceil(
+                        messages.filter((m) => m.role !== "coach").length / 2,
+                      ),
+                    })}
                   </span>
                 </div>
               </div>
@@ -330,29 +390,35 @@ export default function AiNegotiationSimulatorPage() {
             className="px-3 py-2 sm:px-5 sm:py-2.5 rounded-full bg-foreground text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 hover:bg-foreground/90 transition-colors shadow-md whitespace-nowrap shrink-0"
           >
             <StopCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Finalizar simulación</span>
-            <span className="sm:hidden">Finalizar</span>
+            <span className="hidden sm:inline">{t("sim.finish")}</span>
+            <span className="sm:hidden">{t("sim.finishShort")}</span>
           </button>
         </div>
 
         {/* Session Context */}
         <div className="bg-slate-50/80 border-b border-border px-6 py-2.5 flex flex-wrap gap-4 items-center text-xs font-medium text-slate-600 z-10 relative">
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-700">Objetivo:</span>
-            <span>Negociar aumento salarial</span>
+            <span className="font-bold text-slate-700">
+              {t("sim.objectiveLabel")}
+            </span>
+            <span>{t("sim.objectiveValue")}</span>
           </div>
           <div className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-700">Meta sugerida:</span>
+            <span className="font-bold text-slate-700">
+              {t("sim.targetLabel")}
+            </span>
             <span className="text-primary font-bold">
               {targetLow} – {targetHigh}
             </span>
           </div>
           <div className="w-1 h-1 rounded-full bg-slate-300 hidden sm:block" />
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-700">Etapa:</span>
+            <span className="font-bold text-slate-700">
+              {t("sim.stageLabel")}
+            </span>
             <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-sm">
-              Objeción salarial
+              {t("sim.stageValue")}
             </span>
           </div>
         </div>
@@ -364,7 +430,7 @@ export default function AiNegotiationSimulatorPage() {
               {messages.map((msg) => (
                 <motion.div
                   key={msg.id}
-                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   className={`flex gap-3 md:gap-4 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"} ${msg.role === "coach" ? "w-full justify-center" : ""}`}
                 >
@@ -385,7 +451,7 @@ export default function AiNegotiationSimulatorPage() {
                       </div>
                       {msg.role === "ai" && (
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-white px-2 py-0.5 rounded-full shadow-sm border border-border mt-1 whitespace-nowrap hidden md:block">
-                          Gerente de contratación
+                          {t("sim.hiringManager")}
                         </span>
                       )}
                     </div>
@@ -403,36 +469,14 @@ export default function AiNegotiationSimulatorPage() {
                             <TrendingUp className="w-6 h-6 text-primary" />
                           </div>
                           <h3 className="font-extrabold text-xl text-foreground">
-                            Análisis de tu respuesta
+                            {t("sim.coachTitle")}
                           </h3>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8 relative z-10">
-                          {[
-                            {
-                              label: "Claridad",
-                              score: msg.scores?.clarity,
-                              color: "text-secondary",
-                              bg: "bg-secondary/10",
-                              bar: "bg-secondary",
-                            },
-                            {
-                              label: "Confianza",
-                              score: msg.scores?.confidence,
-                              color: "text-primary",
-                              bg: "bg-primary/10",
-                              bar: "bg-primary",
-                            },
-                            {
-                              label: "Uso de datos",
-                              score: msg.scores?.data,
-                              color: "text-accent",
-                              bg: "bg-accent/10",
-                              bar: "bg-accent",
-                            },
-                          ].map((stat, i) => (
+                          {coachStatDefs.map((stat, i) => (
                             <div
-                              key={i}
+                              key={stat.stat}
                               className="flex flex-col p-4 bg-white rounded-2xl border border-border shadow-sm"
                             >
                               <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider mb-2">
@@ -440,7 +484,7 @@ export default function AiNegotiationSimulatorPage() {
                               </span>
                               <div className="flex items-end gap-1 mb-3">
                                 <motion.span
-                                  initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                                  initial={false}
                                   animate={{ opacity: 1, scale: 1, y: 0 }}
                                   transition={{
                                     duration: 0.5,
@@ -450,7 +494,7 @@ export default function AiNegotiationSimulatorPage() {
                                   }}
                                   className={`text-3xl font-black leading-none ${stat.color}`}
                                 >
-                                  {stat.score}
+                                  {msg.scores?.[stat.stat]}
                                 </motion.span>
                                 <span className="text-sm text-muted-foreground/50 font-bold mb-1">
                                   /10
@@ -458,9 +502,9 @@ export default function AiNegotiationSimulatorPage() {
                               </div>
                               <div className="w-full h-2 bg-muted/20 rounded-full overflow-hidden relative">
                                 <motion.div
-                                  initial={{ width: 0 }}
+                                  initial={false}
                                   animate={{
-                                    width: `${(stat.score || 0) * 10}%`,
+                                    width: `${(msg.scores?.[stat.stat] || 0) * 10}%`,
                                   }}
                                   transition={{
                                     duration: 1,
@@ -470,7 +514,7 @@ export default function AiNegotiationSimulatorPage() {
                                   className={`h-full rounded-full ${stat.bar} relative`}
                                 >
                                   <motion.div
-                                    initial={{ opacity: 0, x: "-100%" }}
+                                    initial={false}
                                     animate={{
                                       opacity: [0, 1, 0],
                                       x: "100%",
@@ -493,7 +537,7 @@ export default function AiNegotiationSimulatorPage() {
                           <div className="flex-1 bg-white border border-border p-5 rounded-2xl shadow-sm">
                             <div className="flex items-center gap-2 text-sm font-bold text-foreground mb-3">
                               <Lightbulb className="w-5 h-5 text-amber-500" />
-                              Recomendación de IA
+                              {t("sim.aiRecommendation")}
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                               {msg.improvementText}
@@ -503,7 +547,7 @@ export default function AiNegotiationSimulatorPage() {
                           <div className="flex-1 bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 p-5 rounded-2xl shadow-sm text-foreground">
                             <div className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
                               <Sparkles className="w-4 h-4 text-primary" />
-                              Versión mejorada
+                              {t("sim.improvedVersion")}
                             </div>
                             <p className="text-[15px] font-medium leading-relaxed mb-5 text-slate-700">
                               &ldquo;{msg.improvedResponse}&rdquo;
@@ -515,7 +559,7 @@ export default function AiNegotiationSimulatorPage() {
                               className="w-full text-sm font-bold bg-primary text-white px-4 py-2.5 rounded-xl shadow-sm hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
                             >
                               <CheckCircle2 className="w-5 h-5" />
-                              Usar esta respuesta
+                              {t("sim.useThisResponse")}
                             </button>
                           </div>
                         </div>
@@ -527,7 +571,7 @@ export default function AiNegotiationSimulatorPage() {
                     >
                       {msg.role === "ai" && (
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider md:hidden px-1">
-                          Gerente de contratación
+                          {t("sim.hiringManager")}
                         </span>
                       )}
                       <div
@@ -540,7 +584,7 @@ export default function AiNegotiationSimulatorPage() {
                         {playingMessageId === msg.id && (
                           <div className="absolute inset-0 z-0 rounded-3xl rounded-tl-none overflow-hidden">
                             <motion.div
-                              initial={{ width: "0%" }}
+                              initial={false}
                               animate={{ width: "100%" }}
                               transition={{ duration: 4, ease: "linear" }}
                               className="absolute top-0 left-0 bottom-0 bg-primary/10"
@@ -557,7 +601,7 @@ export default function AiNegotiationSimulatorPage() {
                                 )
                               }
                               className="text-muted-foreground/60 hover:text-primary transition-colors p-1.5 rounded-full hover:bg-primary/5"
-                              title="Escuchar respuesta"
+                              title={t("sim.listenTitle")}
                             >
                               <Volume2 className="w-4 h-4" />
                             </button>
@@ -565,25 +609,25 @@ export default function AiNegotiationSimulatorPage() {
                             <AnimatePresence>
                               {activePopover === msg.id && (
                                 <motion.div
-                                  initial={{ opacity: 0, y: 5, scale: 0.95 }}
+                                  initial={false}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
                                   exit={{ opacity: 0, y: 5, scale: 0.95 }}
                                   className="absolute bottom-full right-0 mb-2 w-44 bg-white rounded-xl shadow-lg border border-border p-2 z-50 origin-bottom-right"
                                 >
                                   <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 px-2 pt-1">
-                                    Escuchar respuesta
+                                    {t("sim.listenTitle")}
                                   </div>
                                   <button
                                     onClick={() => handlePlayAudio(msg.id)}
                                     className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50 rounded-lg transition-colors"
                                   >
-                                    Voz femenina
+                                    {t("sim.voiceFemale")}
                                   </button>
                                   <button
                                     onClick={() => handlePlayAudio(msg.id)}
                                     className="w-full text-left px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/50 rounded-lg transition-colors"
                                   >
-                                    Voz masculina
+                                    {t("sim.voiceMale")}
                                   </button>
                                 </motion.div>
                               )}
@@ -599,7 +643,7 @@ export default function AiNegotiationSimulatorPage() {
               {isTyping && (
                 <motion.div
                   key="typing"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   className="flex gap-3 md:gap-4"
@@ -609,12 +653,12 @@ export default function AiNegotiationSimulatorPage() {
                       <Bot className="w-5 h-5 md:w-6 md:h-6" />
                     </div>
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider bg-white px-2 py-0.5 rounded-full shadow-sm border border-border mt-1 whitespace-nowrap hidden md:block">
-                      Gerente de contratación
+                      {t("sim.hiringManager")}
                     </span>
                   </div>
                   <div className="flex flex-col gap-1 items-start">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider md:hidden px-1">
-                      Gerente de contratación
+                      {t("sim.hiringManager")}
                     </span>
                   <div className="bg-white border border-border rounded-3xl rounded-tl-none px-6 py-5 shadow-sm flex items-center gap-2 w-fit">
                     <motion.div
@@ -665,48 +709,50 @@ export default function AiNegotiationSimulatorPage() {
         {/* Bottom Area */}
         <div className="bg-white/90 backdrop-blur-xl border-t border-border shrink-0 shadow-[0_-10px_40px_rgba(0,0,0,0.04)] z-20 rounded-t-[2rem]">
           <div className="max-w-4xl mx-auto w-full">
-            <div className="pt-4 pb-2 px-4 md:px-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-secondary" />
-                  Ideas para responder
+            <div ref={suggestionsPanelRef} className="pt-3 pb-2 px-4 md:px-6">
+              <div className="flex items-center justify-between mb-2 gap-2">
+                <span className="text-[11px] md:text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 min-w-0">
+                  <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-secondary shrink-0" />
+                  <span className="truncate">{t("sim.ideasToReply")}</span>
                 </span>
                 <button
+                  type="button"
                   onClick={() => setShowSuggestions(!showSuggestions)}
-                  className="text-xs font-bold text-primary hover:text-primary/80 transition-colors bg-primary/10 px-3 py-1 rounded-full"
+                  className="text-[11px] md:text-xs font-bold text-primary hover:text-primary/80 transition-colors bg-primary/10 px-2.5 py-1 rounded-full shrink-0"
                 >
-                  {showSuggestions ? "Ocultar" : "Mostrar"}
+                  {showSuggestions ? t("sim.hide") : t("sim.show")}
                 </button>
               </div>
 
               <AnimatePresence>
                 {showSuggestions && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
+                    initial={false}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
                     <div className="relative">
-                      {/* Fade hint derecha para indicar scroll */}
-                      <div className="absolute right-0 top-0 bottom-3 w-12 bg-gradient-to-l from-white/90 to-transparent z-10 pointer-events-none rounded-r-2xl" />
+                      <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-white/90 to-transparent z-10 pointer-events-none rounded-r-xl" />
                       <div
-                        className="flex overflow-x-auto pb-3 pt-1 gap-3 snap-x snap-mandatory pr-8"
+                        className="flex overflow-x-auto pb-2 pt-0.5 gap-2 snap-x snap-mandatory pr-6 max-h-[88px] md:max-h-[96px]"
                         style={{ scrollbarWidth: "thin", scrollbarColor: "#e5e7eb transparent" }}
                       >
                         {loadingSuggestions
                           ? Array.from({ length: 4 }).map((_, i) => (
                               <div
                                 key={i}
-                                className="snap-start shrink-0 w-[260px] md:w-[300px] h-[76px] bg-muted/30 border border-border rounded-2xl animate-pulse"
+                                className="snap-start shrink-0 w-[200px] sm:w-[220px] md:w-[240px] h-[64px] md:h-[72px] bg-muted/30 border border-border rounded-xl animate-pulse"
                               />
                             ))
                           : suggestions.map((suggestion, i) => (
                               <button
                                 key={`${i}-${suggestion.slice(0, 20)}`}
+                                type="button"
                                 onClick={() => handleSend(suggestion)}
                                 disabled={isTyping}
-                                className="snap-start shrink-0 w-[260px] md:w-[300px] text-left px-5 py-3.5 bg-white hover:bg-primary/5 text-foreground hover:text-primary font-medium text-sm rounded-2xl border border-border hover:border-primary/30 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-normal leading-relaxed"
+                                className="snap-start shrink-0 w-[200px] sm:w-[220px] md:w-[240px] max-h-[72px] md:max-h-[80px] text-left px-3 py-2 bg-white hover:bg-primary/5 text-foreground hover:text-primary font-medium text-xs rounded-xl border border-border hover:border-primary/30 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed leading-snug line-clamp-3 overflow-hidden"
                               >
                                 &ldquo;{suggestion}&rdquo;
                               </button>
@@ -731,7 +777,7 @@ export default function AiNegotiationSimulatorPage() {
                       className="w-3 h-3 rounded-full bg-red-500"
                     />
                     <span className="font-bold text-red-600 text-sm">
-                      Grabando...
+                      {t("sim.recording")}
                     </span>
                     <span className="text-red-500 font-medium text-sm font-mono ml-2">
                       {formatTime(recordingTime)}
@@ -742,7 +788,7 @@ export default function AiNegotiationSimulatorPage() {
                     className="p-3 bg-red-500 hover:bg-red-600 text-white rounded-xl hover:scale-105 transition-all shadow-sm flex items-center gap-2"
                   >
                     <StopCircle className="w-4 h-4 fill-current" />
-                    <span className="text-xs font-bold">Detener</span>
+                    <span className="text-xs font-bold">{t("sim.stop")}</span>
                   </button>
                 </div>
               ) : (
@@ -751,7 +797,7 @@ export default function AiNegotiationSimulatorPage() {
                     onClick={handleStartRecording}
                     disabled={isTyping}
                     className="p-3 sm:p-4 mb-0.5 ml-0.5 sm:mb-1 sm:ml-1 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-full transition-colors disabled:opacity-50 shrink-0"
-                    title="Grabar mensaje de voz"
+                    title={t("sim.voiceRecordTitle")}
                   >
                     <Mic className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
@@ -764,7 +810,7 @@ export default function AiNegotiationSimulatorPage() {
                         handleSend(inputText);
                       }
                     }}
-                    placeholder="Escribe tu mensaje o usa una sugerencia arriba..."
+                    placeholder={t("sim.placeholder")}
                     className="flex-1 max-h-32 min-h-[48px] sm:min-h-[60px] bg-transparent outline-none resize-none py-3 sm:py-4 text-sm sm:text-[16px] text-foreground font-medium placeholder:text-muted-foreground"
                     disabled={isTyping}
                     rows={1}

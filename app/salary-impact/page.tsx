@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { AlertCircle, Briefcase, ChevronRight, Clock, DollarSign, Sparkles, TrendingUp } from "lucide-react";
 import { motion } from "motion/react";
-import { TrendingUp, AlertCircle, Sparkles, Briefcase, ChevronRight, DollarSign, Clock } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import Link from "next/link";
+import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { formatEsInteger } from "@/app/lib/format-es";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 
 export default function SalaryImpactPage() {
@@ -24,7 +25,7 @@ export default function SalaryImpactPage() {
         <div className="bg-white p-4 rounded-xl shadow-2xl border border-gray-100">
           <p className="font-semibold text-gray-600 text-sm mb-1">{payload[0].payload.name}</p>
           <p className="font-black text-2xl" style={{ color: payload[0].payload.fill }}>
-            S/{payload[0].value.toLocaleString()}
+            S/{formatEsInteger(Number(payload[0].value))}
           </p>
         </div>
       );
@@ -35,7 +36,7 @@ export default function SalaryImpactPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] py-12 px-4 sm:px-6 max-w-5xl mx-auto w-full">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-12 w-full bg-gradient-to-r from-secondary to-[#200560] rounded-[3rem] p-10 md:p-16 text-white shadow-2xl relative overflow-hidden"
       >
@@ -56,7 +57,7 @@ export default function SalaryImpactPage() {
 
       <div className="grid md:grid-cols-2 gap-6 w-full mb-10">
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
+          initial={false}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
           className="bg-white border-2 border-border p-8 rounded-[2rem] shadow-lg flex flex-col relative overflow-hidden group hover:border-[#9333EA] transition-colors"
@@ -70,15 +71,15 @@ export default function SalaryImpactPage() {
           </div>
           <div className="space-y-2 mt-auto pl-4">
             <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Ingresos estimados (10 años)</p>
-            <p className="text-4xl md:text-5xl font-black font-heading text-foreground">S/{current10Years.toLocaleString()}</p>
+            <p className="text-4xl md:text-5xl font-black font-heading text-foreground">S/{formatEsInteger(current10Years)}</p>
             <p className="text-sm text-muted-foreground pt-4 font-medium">
-              Basado en tu salario actual de S/{currentSalary.toLocaleString()}/mes
+              Basado en tu salario actual de S/{formatEsInteger(currentSalary)}/mes
             </p>
           </div>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
+          initial={false}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
           className="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 p-8 rounded-[2rem] shadow-lg flex flex-col relative overflow-hidden group hover:border-blue-400 transition-colors"
@@ -92,16 +93,16 @@ export default function SalaryImpactPage() {
           </div>
           <div className="space-y-2 mt-auto pl-4">
             <p className="text-sm font-bold uppercase tracking-wider text-accent">Ingresos estimados (10 años)</p>
-            <p className="text-4xl md:text-5xl font-black font-heading text-accent">S/{average10Years.toLocaleString()}</p>
+            <p className="text-4xl md:text-5xl font-black font-heading text-accent">S/{formatEsInteger(average10Years)}</p>
             <p className="text-sm text-accent/80 pt-4 font-medium">
-              Basado en un mercado de S/{averageSalary.toLocaleString()}/mes
+              Basado en un mercado de S/{formatEsInteger(averageSalary)}/mes
             </p>
           </div>
         </motion.div>
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
         className="w-full bg-white p-8 md:p-12 rounded-[2rem] shadow-xl border border-gray-100 mb-12 relative overflow-hidden"
@@ -129,14 +130,14 @@ export default function SalaryImpactPage() {
               <AlertCircle className="w-10 h-10 text-rose-500" />
             </div>
             <p className="text-rose-800 font-bold uppercase tracking-wider text-sm mb-3">Diferencia acumulada en 10 años</p>
-            <p className="text-5xl font-black font-heading text-rose-900">S/{difference.toLocaleString()}</p>
+            <p className="text-5xl font-black font-heading text-rose-900">S/{formatEsInteger(difference)}</p>
             <p className="mt-4 text-rose-600 font-medium">Este es el costo real de no negociar.</p>
           </div>
         </div>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={false}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.6 }}
         className="flex flex-col items-center w-full max-w-2xl text-center bg-gradient-to-r from-primary to-[#FF5EAB] p-10 rounded-[2rem] text-white shadow-[0_0_20px_rgba(255,46,147,0.4)]"
@@ -152,7 +153,7 @@ export default function SalaryImpactPage() {
           href="/simulator"
           className="w-full h-16 rounded-full bg-white text-primary font-extrabold text-xl flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(255,46,147,0.4)] hover:scale-105 transition-transform"
         >
-          Practicar negociación con IA
+          Practicar con IA
           <ChevronRight className="w-6 h-6" />
         </Link>
       </motion.div>
