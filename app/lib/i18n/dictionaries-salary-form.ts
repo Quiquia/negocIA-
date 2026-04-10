@@ -44,8 +44,14 @@ export const salaryFormEs: Record<string, string> = {
   "salary.years.4": "9+ años",
 
   "salary.label.stack": "¿Cuál es tu stack tecnológico principal?",
-  "salary.stackHintOther":
-    "Selecciona las que apliquen o agrega las tuyas con el campo de texto.",
+  "salary.stackHintDesktop":
+    "Elige las que te representen. ¿Quieres sumar algo más? Escríbelo y pulsa Intro o Enter: se convierte en etiqueta y puedes seguir añadiendo.",
+  "salary.stackHintMobile":
+    "Elige las que te representen. Para sumar algo más, escribe y pulsa Intro o Retorno en el teclado (a veces «Ir» o «Hecho»): se crea la etiqueta y puedes seguir.",
+  "salary.toolsHintDesktop":
+    "Marca las que uses cada día. ¿Falta alguna? Escríbela y pulsa Intro o Enter para añadirla.",
+  "salary.toolsHintMobile":
+    "Marca las que uses cada día. ¿Falta alguna? Escríbela y pulsa Intro o Retorno en el teclado; es lo mismo que Enter.",
   "salary.err.selectTech": "Selecciona al menos una tecnología.",
   "salary.ph.techShort": "Otro...",
   "salary.ph.techOther": "Ej. Kotlin, Terraform...",
@@ -236,8 +242,14 @@ export const salaryFormEn: Record<string, string> = {
   "salary.years.4": "9+ years",
 
   "salary.label.stack": "What is your main tech stack?",
-  "salary.stackHintOther":
-    "Select what applies or add your own in the text field.",
+  "salary.stackHintDesktop":
+    "Pick what fits you. Want to add something else? Type it and press Enter — it becomes a tag and you can keep going.",
+  "salary.stackHintMobile":
+    "Pick what fits you. To add something else, type it and tap Return or Enter on the keyboard (sometimes labeled Go or Done).",
+  "salary.toolsHintDesktop":
+    "Check the tools you use daily. Missing one? Type it and press Enter to add it.",
+  "salary.toolsHintMobile":
+    "Check the tools you use daily. Missing one? Type it and tap Return on the keyboard — same as Enter.",
   "salary.err.selectTech": "Select at least one technology.",
   "salary.ph.techShort": "Other...",
   "salary.ph.techOther": "e.g. Kotlin, Terraform...",
