@@ -50,5 +50,92 @@ export function isTechRole(role: string): boolean {
   return techKeywords.some((keyword) => normalized.includes(keyword.trim()));
 }
 
+/** Presets que tienen listas de stack/herramientas en el formulario de salario. */
+export const KNOWN_ROLE_PRESETS = [
+  "Frontend Developer",
+  "Backend Developer",
+  "Data Analyst",
+  "UX Designer",
+] as const;
+
+export type KnownRolePreset = (typeof KNOWN_ROLE_PRESETS)[number];
+
+function normalizeForRoleMatch(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "");
+}
+
+/**
+ * Si el texto del rol «Otro» encaja con uno de los perfiles predefinidos, devuelve ese preset
+ * para mostrar sus chips de stack/herramientas. Si no hay coincidencia (p. ej. DevOps, QA),
+ * devuelve null y el formulario solo muestra los inputs libres.
+ */
+export function matchCustomRoleToPreset(
+  input: string,
+): KnownRolePreset | null {
+  const s = normalizeForRoleMatch(input);
+  if (!s) return null;
+
+  const looksLikeUiUxDev =
+    /\b(ui|ux)\s+developer\b/.test(s) ||
+    /\bdeveloper\s+(de\s+)?(ui|ux)\b/.test(s) ||
+    /\bdesarrollador(a)?\s+(de\s+)?(ui|ux)\b/.test(s);
+
+  // UX / UI diseño (no implementación)
+  if (
+    /\b(ui|ux)\s+(designer|diseñador|diseñadora|researcher|research)\b/.test(s) ||
+    /\b(diseñador|diseñadora)\s+(de\s+)?(ux|ui|experiencia|producto)\b/.test(s) ||
+    /\b(ui|ux)\s*\/\s*(ui|ux)\b/.test(s) ||
+    /\bproduct\s+designer\b/.test(s) ||
+    /\bdiseñador(a)?\s+de\s+producto\b/.test(s)
+  ) {
+    if (looksLikeUiUxDev) return "Frontend Developer";
+    return "UX Designer";
+  }
+
+  // Data / BI / analítica
+  if (
+    /\bdata\s+(analyst|scientist|engineer|analytics)\b/.test(s) ||
+    /\banalista\s+de\s+datos\b/.test(s) ||
+    /\bcientifico\s+de\s+datos\b/.test(s) ||
+    /\b(bi|business intelligence|inteligencia de negocio)\b/.test(s) ||
+    /\b(power bi|tableau|looker)\s+(analyst|analista|developer)?\b/.test(s)
+  ) {
+    return "Data Analyst";
+  }
+
+  // Backend
+  if (
+    /\bbackend\b/.test(s) ||
+    /\bback[- ]end\b/.test(s) ||
+    /\b(desarrollador|desarrolladora|ingeniero|ingeniera|dev(eloper)?|engineer)\s+(de\s+)?backend\b/.test(
+      s,
+    ) ||
+    /\bbackend\s+(developer|engineer|dev|desarrollador|desarrolladora)\b/.test(s) ||
+    /\b(api|microservicio|microservicios)\s+(developer|engineer|desarrollador|ingeniero)?\b/.test(s)
+  ) {
+    return "Backend Developer";
+  }
+
+  // Frontend / web cliente
+  if (
+    /\bfrontend\b/.test(s) ||
+    /\bfront[- ]end\b/.test(s) ||
+    /\b(desarrollador|desarrolladora|ingeniero|ingeniera)\s+(de\s+)?frontend\b/.test(s) ||
+    /\bfrontend\s+(developer|engineer|dev|desarrollador|desarrolladora)\b/.test(s) ||
+    /\b(react|angular|vue|svelte|next\.js|nextjs)\s+(developer|engineer|dev|desarrollador|ingeniero)?\b/.test(
+      s,
+    ) ||
+    /\bweb\s+(developer|engineer|desarrollador|desarrolladora)\b/.test(s)
+  ) {
+    return "Frontend Developer";
+  }
+
+  return null;
+}
+
 export const TECH_ROLE_ERROR =
   "Este rol no parece estar relacionado con tecnología. Ejemplos: DevOps Engineer, QA Tester, Data Analyst, Scrum Master, Soporte técnico...";

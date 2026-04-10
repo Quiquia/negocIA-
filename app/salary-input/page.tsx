@@ -26,8 +26,9 @@ import {
   getCurrencyOptions,
   latamCountries,
 } from "../data/latam-countries";
+import { useIsMobile } from "@/app/components/ui/use-mobile";
 import { useTranslation } from "@/app/lib/i18n/use-translation";
-import { isTechRole } from "../data/tech-roles";
+import { isTechRole, matchCustomRoleToPreset } from "../data/tech-roles";
 import { useSalaryData } from "../providers/SalaryDataProvider";
 import { submitSalaryProfile } from "./actions";
 
@@ -133,6 +134,7 @@ function roleDescI18nPrefix(role: string): "fe" | "be" | "da" | "ux" {
 
 export default function SalaryInputPage() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const router = useRouter();
   const {
     prefillRole,
@@ -194,6 +196,7 @@ export default function SalaryInputPage() {
     name: "role",
     defaultValue: prefillRole || "Frontend Developer",
   });
+  const watchCustomRole = useWatch({ control, name: "customRole", defaultValue: "" });
 
   /** Suscripción explícita: watch() global a veces no re-renderiza bien con arrays de checkboxes. */
   const watchedTechStack = useWatch({ control, name: "techStack", defaultValue: [] });
@@ -337,13 +340,18 @@ export default function SalaryInputPage() {
   };
 
   const isOtherRole = watchRole === "Otro";
+  const matchedPresetForOther = useMemo(
+    () =>
+      isOtherRole ? matchCustomRoleToPreset(watchCustomRole?.trim() ?? "") : null,
+    [isOtherRole, watchCustomRole],
+  );
   const currentRoleOptions = isOtherRole
-    ? {
-        techStack: ["Python", "JavaScript / TypeScript", "SQL", "Excel avanzado", "Java", "Git", "Docker", "AWS / GCP / Azure"],
-        tools: ["Jira / Trello", "Slack", "Notion", "Google Workspace", "Git", "CI/CD", "APIs REST", "Testing"],
-        roleDescriptions: [] as string[],
-      }
+    ? matchedPresetForOther
+      ? roleOptions[matchedPresetForOther]
+      : { techStack: [] as string[], tools: [] as string[], roleDescriptions: [] as string[] }
     : (roleOptions[watchRole as keyof typeof roleOptions] || roleOptions["Frontend Developer"]);
+  /** En «Otro»: sin preset detectado solo hay inputs libres (sin fila de chips). */
+  const otherRoleOnlyFreeInputs = isOtherRole && matchedPresetForOther === null;
 
   /** Solo al cambiar de rol (no en el montaje): evita que Strict Mode / doble efecto borre stack/herramientas ya elegidas. */
   const previousRoleRef = useRef<string | null>(null);
@@ -366,6 +374,31 @@ export default function SalaryInputPage() {
     setTechInputError(false);
     setToolInputError(false);
   }, [watchRole, setValue]);
+
+  /** Al cambiar el preset inferido desde «Otro» (o al pasar de match → sin match): evita valores de chips incompatibles. */
+  const prevMatchedPresetRef = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (!isOtherRole) {
+      prevMatchedPresetRef.current = undefined;
+      return;
+    }
+    const m = matchedPresetForOther;
+    const prev = prevMatchedPresetRef.current;
+    if (prev === undefined) {
+      prevMatchedPresetRef.current = m;
+      return;
+    }
+    if (prev === m) return;
+    prevMatchedPresetRef.current = m;
+    setValue("techStack", []);
+    setValue("tools", []);
+    setCustomTechStack([]);
+    setCustomTools([]);
+    setTechInput("");
+    setToolInput("");
+    setTechInputError(false);
+    setToolInputError(false);
+  }, [isOtherRole, matchedPresetForOther, setValue]);
 
   // Detect country from browser timezone on mount
   useEffect(() => {
@@ -719,13 +752,11 @@ export default function SalaryInputPage() {
                     {t("salary.label.stack")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  {isOtherRole && (
-                    <p className="text-xs text-muted-foreground -mt-1">
-                      {t("salary.stackHintOther")}
-                    </p>
-                  )}
+                  <p className="text-xs text-muted-foreground -mt-1 max-w-2xl leading-relaxed">
+                    {t(isMobile ? "salary.stackHintMobile" : "salary.stackHintDesktop")}
+                  </p>
                   <div
-                    key={`tech-stack-${watchRole}`}
+                    key={`tech-stack-${watchRole}-${matchedPresetForOther ?? "none"}`}
                     className={`flex flex-wrap gap-3 ${errors.techStack ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
                     {currentRoleOptions.techStack.filter(t => t !== "Otro").map((tech) => (
@@ -775,6 +806,7 @@ export default function SalaryInputPage() {
                     <div className="flex flex-col gap-1">
                       <input
                         type="text"
+                        enterKeyHint="enter"
                         value={techInput}
                         onChange={(e) => {
                           const raw = e.target.value;
@@ -804,7 +836,7 @@ export default function SalaryInputPage() {
                             ? t("salary.ph.techOther")
                             : t("salary.ph.techShort")
                         }
-                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? "w-48" : "w-32"} ${techInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
+                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? (otherRoleOnlyFreeInputs ? "w-full min-w-[200px] sm:max-w-md" : "w-48") : "w-32"} ${techInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
                       />
                       {techInputError && (
                         <span className="text-xs text-rose-500 pl-2">
@@ -821,13 +853,11 @@ export default function SalaryInputPage() {
                     {t("salary.label.tools")}{" "}
                     <span className="text-rose-500">*</span>
                   </label>
-                  {isOtherRole && (
-                    <p className="text-xs text-muted-foreground -mt-1">
-                      {t("salary.stackHintOther")}
-                    </p>
-                  )}
+                  <p className="text-xs text-muted-foreground -mt-1 max-w-2xl leading-relaxed">
+                    {t(isMobile ? "salary.toolsHintMobile" : "salary.toolsHintDesktop")}
+                  </p>
                   <div
-                    key={`tools-${watchRole}`}
+                    key={`tools-${watchRole}-${matchedPresetForOther ?? "none"}`}
                     className={`flex flex-wrap gap-3 ${errors.tools ? "p-2 border-2 border-rose-500/50 rounded-2xl bg-rose-50/50" : ""}`}
                   >
                     {currentRoleOptions.tools.filter(t => t !== "Otra").map((tool) => (
@@ -877,6 +907,7 @@ export default function SalaryInputPage() {
                     <div className="flex flex-col gap-1">
                       <input
                         type="text"
+                        enterKeyHint="enter"
                         value={toolInput}
                         onChange={(e) => {
                           const raw = e.target.value;
@@ -906,7 +937,7 @@ export default function SalaryInputPage() {
                             ? t("salary.ph.toolOther")
                             : t("salary.ph.toolShort")
                         }
-                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? "w-48" : "w-32"} ${toolInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
+                        className={`h-10 px-4 border-2 border-dashed rounded-full text-sm font-medium bg-white outline-none transition-all ${isOtherRole ? (otherRoleOnlyFreeInputs ? "w-full min-w-[200px] sm:max-w-md" : "w-48") : "w-32"} ${toolInputError ? "border-rose-400 focus:border-rose-500" : "border-border/50 focus:border-primary focus:bg-primary/5"}`}
                       />
                       {toolInputError && (
                         <span className="text-xs text-rose-500 pl-2">
